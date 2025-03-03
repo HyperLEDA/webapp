@@ -8,10 +8,11 @@ import {
   Route,
   useSearchParams,
   useNavigate,
-  Link,
   useParams,
 } from "react-router-dom";
 import { SearchBar } from "./components/ui/searchbar";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface PGCObject {
   pgc: number;
@@ -19,6 +20,12 @@ interface PGCObject {
 }
 
 const API_BASE_URL = "http://89.169.133.242/api/v1/query/simple";
+
+const homePageMarkdown = `
+Examples:
+- Search by name:
+	- Simple: [IC1445](/query?q=IC1445)
+`;
 
 function HomePage() {
   const navigate = useNavigate();
@@ -30,6 +37,11 @@ function HomePage() {
   return (
     <div className="p-4">
       <SearchBar onSearch={handleSearch} logoSize="large" />
+      <div className="max-w-4xl mx-auto mt-8 prose prose-invert leading-none">
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+          {homePageMarkdown}
+        </ReactMarkdown>
+      </div>
     </div>
   );
 }

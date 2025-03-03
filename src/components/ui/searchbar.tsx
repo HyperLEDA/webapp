@@ -37,10 +37,10 @@ export const SearchBar: React.FC<SearchBarProps> = ({
       {showLogo && (
         <Link to="/">
           <img
-            src="./src/assets/logo.png"
+            src="/src/assets/logo.png"
             alt="HyperLeda Logo"
             className={classNames({
-              "h-16 mx-auto mb-2": logoSize === "large",
+              "h-32 mx-auto mb-2": logoSize === "large",
               "h-10": logoSize === "small"
             })}
           />
