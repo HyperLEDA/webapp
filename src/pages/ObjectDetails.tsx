@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { PGCObject } from "../clients/backend";
 import { SearchBar } from "../components/ui/searchbar";
 import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
 import axios from "axios";
-import { API_BASE_URL } from "../clients/backend";
+import { API_BASE_URL, PGCObject } from "../clients/backend";
+import { AladinViewer } from "../components/ui/aladin";
 
 export const ObjectDetailsPage: React.FC = () => {
   const { pgcId } = useParams<{ pgcId: string }>();
@@ -48,7 +48,7 @@ export const ObjectDetailsPage: React.FC = () => {
   }, [pgcId, navigate]);
 
   const handleBackToResults = () => {
-    navigate(-1); // Go back to previous page
+    navigate(-1);
   };
 
   const handleSearch = (query: string) => {
@@ -66,10 +66,47 @@ export const ObjectDetailsPage: React.FC = () => {
           <Button onClick={handleBackToResults} className="mb-4">
             Back
           </Button>
-          <Card>
+          <div key={object.pgc} className="flex items-center w-full">
+            <AladinViewer
+              ra={object.catalogs.icrs.ra}
+              dec={object.catalogs.icrs.dec}
+              fov={0.02}
+              survey="P/DSS2/color"
+              className="w-96 h-96"
+            />
+            <div className="ml-4 w-full">
+              <Card className="mb-4" title="PGC">
+                <CardContent>{object.pgc}</CardContent>
+              </Card>
+              <Card className="mb-4" title="ICRS">
+                <table>
+                  <tbody>
+                    <tr>
+                      <td className="font-medium pr-4">Right Ascension</td>
+                      <td>
+                        {object.catalogs.icrs.ra} ± {object.catalogs.icrs.e_ra}{" "}
+                        deg
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="font-medium pr-4">Declination</td>
+                      <td>
+                        {object.catalogs.icrs.dec} ±{" "}
+                        {object.catalogs.icrs.e_dec} deg
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </Card>
+              <Card title="Name">
+                <CardContent>{object.catalogs.designation.design}</CardContent>
+              </Card>
+            </div>
+          </div>
+          <Card className="mt-4" title="Velocity">
             <CardContent>
-              <h2 className="text-xl font-bold mb-2">PGC {object.pgc}</h2>
-              <pre>Catalogs: {JSON.stringify(object.catalogs, null, 2)}</pre>
+              {object.catalogs.redshift.cz} ± {object.catalogs.redshift.e_cz}{" "}
+              km/s
             </CardContent>
           </Card>
         </div>
