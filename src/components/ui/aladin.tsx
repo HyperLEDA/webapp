@@ -1,3 +1,4 @@
+import classNames from "classnames";
 import { useEffect, useRef, useState } from "react";
 
 interface AladinViewerProps {
@@ -28,14 +29,12 @@ export function AladinViewer({
       return;
     }
 
-    // Add CSS first
     const link = document.createElement("link");
     link.rel = "stylesheet";
     link.href =
       "https://aladin.u-strasbg.fr/AladinLite/api/v3/latest/aladin.min.css";
     document.head.appendChild(link);
 
-    // Load Aladin script
     const script = document.createElement("script");
     script.src =
       "https://aladin.u-strasbg.fr/AladinLite/api/v3/latest/aladin.js";
@@ -52,10 +51,11 @@ export function AladinViewer({
         const aladin = window.A.aladin(aladinDivRef.current, {
           survey,
           fov,
-          showReticle: true,
+          showReticle: false,
           showZoomControl: true,
-          showFullscreenControl: true,
-          showLayersControl: true,
+          showFullscreenControl: false,
+          showLayersControl: false,
+          showCooGridControl: false,
         });
 
         if (target) {
@@ -71,11 +71,19 @@ export function AladinViewer({
     return () => clearTimeout(timer);
   }, [aladinLoaded, ra, dec, fov, survey, target]);
 
-  return <div ref={aladinDivRef} className={className}></div>;
+  return (
+    <div ref={aladinDivRef} className={classNames("border", className)}>
+      {!aladinLoaded && (
+        <div className="flex justify-center items-center h-full">
+          Loading image...
+        </div>
+      )}
+    </div>
+  );
 }
 
 declare global {
   interface Window {
-    A: any;
+    A: unknown;
   }
 }

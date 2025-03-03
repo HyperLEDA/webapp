@@ -13,6 +13,8 @@ export const SearchResultsPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const navigate = useNavigate();
   const query = searchParams.get("q") || "";
+  const page = parseInt(searchParams.get("page") || "1");
+  const pageSize = parseInt(searchParams.get("pagesize") || "10");
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -26,7 +28,7 @@ export const SearchResultsPage: React.FC = () => {
         const response = await axios.get<{ data: { objects: PGCObject[] } }>(
           API_BASE_URL,
           {
-            params: { name: query, page_size: 10 },
+            params: { name: query, page_size: pageSize, page: page },
           }
         );
         setResults(response.data.data.objects || []);
@@ -38,7 +40,7 @@ export const SearchResultsPage: React.FC = () => {
     };
 
     fetchResults();
-  }, [query, navigate]);
+  }, [query, navigate, pageSize, page]);
 
   const handleObjectClick = (object: PGCObject) => {
     navigate(`/object/${object.pgc}`);
@@ -48,6 +50,14 @@ export const SearchResultsPage: React.FC = () => {
     if (newQuery.trim()) {
       navigate(`/query?q=${encodeURIComponent(newQuery)}`);
     }
+  };
+
+  const handlePageChange = (newPage: number) => {
+    navigate(
+      `/query?q=${encodeURIComponent(
+        query
+      )}&page=${newPage}&pagesize=${pageSize}`
+    );
   };
 
   return (
@@ -63,37 +73,56 @@ export const SearchResultsPage: React.FC = () => {
       ) : (
         <div className="grid grid-cols-1 gap-4">
           {results.length > 0 ? (
-            results.map((object) => (
-              <div key={object.pgc} className="flex items-center w-full">
-                <AladinViewer
-                  ra={object.catalogs.icrs.ra}
-                  dec={object.catalogs.icrs.dec}
-                  fov={0.02}
-                  survey="P/DSS2/color"
-                  className="w-60 h-60"
-                />
-                <Card
-                  key={object.pgc}
-                  className="cursor-pointer hover:shadow-lg flex-grow ml-4"
-                  onClick={() => handleObjectClick(object)}
+            <>
+              {results.map((object) => (
+                <div key={object.pgc} className="flex items-center w-full">
+                  <AladinViewer
+                    ra={object.catalogs.icrs.ra}
+                    dec={object.catalogs.icrs.dec}
+                    fov={0.02}
+                    survey="P/DSS2/color"
+                    className="w-60 h-60"
+                  />
+                  <Card
+                    key={object.pgc}
+                    className="cursor-pointer hover:shadow-lg flex-grow ml-4"
+                    onClick={() => handleObjectClick(object)}
+                  >
+                    <CardContent>
+                      <h2 className="text-lg">PGC {object.pgc}</h2>
+                    </CardContent>
+                    <CardContent>
+                      <h2 className="text-lg">
+                        Name: {object.catalogs.designation.design}
+                      </h2>
+                    </CardContent>
+                    <CardContent>
+                      <h2 className="text-lg">
+                        J2000: {object.catalogs.icrs.ra} deg,{" "}
+                        {object.catalogs.icrs.dec} deg
+                      </h2>
+                    </CardContent>
+                  </Card>
+                </div>
+              ))}
+              <div className="flex justify-center items-center gap-4 mt-4">
+                <button
+                  onClick={() => handlePageChange(page - 1)}
+                  disabled={page <= 1}
+                  className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
                 >
-                  <CardContent>
-                    <h2 className="text-lg">PGC {object.pgc}</h2>
-                  </CardContent>
-                  <CardContent>
-                    <h2 className="text-lg">
-                      Name: {object.catalogs.designation.design}
-                    </h2>
-                  </CardContent>
-                  <CardContent>
-                    <h2 className="text-lg">
-                      J2000: {object.catalogs.icrs.ra} deg,{" "}
-                      {object.catalogs.icrs.dec} deg
-                    </h2>
-                  </CardContent>
-                </Card>
+                  Previous
+                </button>
+                <span>Page {page}</span>
+                <button
+                  onClick={() => handlePageChange(page + 1)}
+                  disabled={results.length < pageSize}
+                  className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+                >
+                  Next
+                </button>
               </div>
-            ))
+            </>
           ) : (
             <p className="text-center">No results found for "{query}"</p>
           )}

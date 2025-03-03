@@ -78,7 +78,7 @@ export const ObjectDetailsPage: React.FC = () => {
               <Card className="mb-4" title="PGC">
                 <CardContent>{object.pgc}</CardContent>
               </Card>
-              <Card className="mb-4" title="ICRS">
+              <Card className="mb-4" title="J2000">
                 <table>
                   <tbody>
                     <tr>
