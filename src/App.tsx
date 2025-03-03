@@ -45,7 +45,7 @@ function App() {
     <div className="p-4">
       <header className="text-center mb-4">
         <img
-          src="./assets/logo.png"
+          src="./src/assets/logo.png"
           alt="HyperLeda Logo"
           className="h-16 mx-auto"
         />
