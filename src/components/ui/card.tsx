@@ -11,8 +11,8 @@ export const Card: React.FC<CardProps> = ({ children, className, onClick }) => {
   return (
     <div
       className={classNames(
-        "bg-white shadow-md rounded-2xl p-4 hover:shadow-lg transition-shadow cursor-pointer",
-        className
+      "shadow-md rounded p-4 hover:shadow-lg transition-shadow cursor-pointer border border-gray-200",
+      className
       )}
       onClick={onClick}
     >
@@ -26,6 +26,9 @@ interface CardContentProps {
   className?: string;
 }
 
-export const CardContent: React.FC<CardContentProps> = ({ children, className }) => {
+export const CardContent: React.FC<CardContentProps> = ({
+  children,
+  className,
+}) => {
   return <div className={classNames("p-2", className)}>{children}</div>;
 };

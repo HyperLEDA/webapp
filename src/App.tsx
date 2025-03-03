@@ -43,22 +43,29 @@ function App() {
 
   return (
     <div className="p-4">
-      <header className="text-center mb-4">
+      <header className="text-center mb-4 w-full max-w-4xl mx-auto">
         <img
           src="./src/assets/logo.png"
           alt="HyperLeda Logo"
           className="h-16 mx-auto"
         />
-        <input
-          type="text"
-          placeholder="Search for an object..."
-          className="border rounded px-2 py-1 w-1/2 mt-4"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-        <Button onClick={handleSearch} className="ml-2">
-          Search
-        </Button>
+        <div className="flex mt-4 w-full max-w-4xl mx-auto">
+          <input
+            type="text"
+            placeholder="Search for an object..."
+            className="border rounded px-2 py-1 mt-4 flex-grow"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleSearch();
+              }
+            }}
+          />
+          <Button onClick={handleSearch} className="ml-2 mt-2">
+            Search
+          </Button>
+        </div>
       </header>
 
       {loading ? (
@@ -80,7 +87,7 @@ function App() {
           </Card>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4">
           {results.map((object) => (
             <Card
               key={object.pgc}
