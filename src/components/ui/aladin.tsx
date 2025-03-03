@@ -42,15 +42,11 @@ export function AladinViewer({
     script.async = true;
     script.onload = () => setAladinLoaded(true);
     document.body.appendChild(script);
-
-    // No cleanup - we want Aladin to stay loaded throughout the app lifetime
   }, []);
 
-  // Initialize the viewer once Aladin is loaded and whenever props change
   useEffect(() => {
     if (!aladinLoaded || !aladinDivRef.current || !window.A) return;
 
-    // Small timeout to ensure Aladin is fully initialized
     const timer = setTimeout(() => {
       try {
         const aladin = window.A.aladin(aladinDivRef.current, {
@@ -78,7 +74,6 @@ export function AladinViewer({
   return <div ref={aladinDivRef} className={className}></div>;
 }
 
-// Add TypeScript interface for the Aladin global object
 declare global {
   interface Window {
     A: any;
