@@ -41,19 +41,31 @@ function App() {
     setSelectedObject(null);
   };
 
+  const hasSearchResults = () => {
+    return results.length > 0 || selectedObject !== null;
+  };
+
   return (
     <div className="p-4">
-      <header className="text-center mb-4 w-full max-w-4xl mx-auto">
+      <header
+        className={`text-center mb-4 w-full max-w-4xl mx-auto ${
+          hasSearchResults() ? "md:flex md:items-center" : ""
+        }`}
+      >
         <img
           src="./src/assets/logo.png"
           alt="HyperLeda Logo"
-          className="h-16 mx-auto"
+          className={`${hasSearchResults() ? "h-10" : "h-16 mx-auto mb-2"}`}
         />
-        <div className="flex mt-4 w-full max-w-4xl mx-auto">
+        <div
+          className={`flex items-center ${
+            hasSearchResults() ? "w-full ml-2" : "w-full max-w-4xl mx-auto"
+          }`}
+        >
           <input
             type="text"
             placeholder="Search for an object..."
-            className="border rounded px-2 py-1 mt-4 flex-grow"
+            className="border rounded px-2 py-1 flex-grow h-10"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={(e) => {
@@ -62,7 +74,7 @@ function App() {
               }
             }}
           />
-          <Button onClick={handleSearch} className="ml-2 mt-2">
+          <Button onClick={handleSearch} className="ml-2 h-10">
             Search
           </Button>
         </div>
