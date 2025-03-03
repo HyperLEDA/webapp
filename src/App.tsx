@@ -13,6 +13,7 @@ import {
 import { SearchBar } from "./components/ui/searchbar";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { Footer } from "./components/ui/footer";
 
 interface PGCObject {
   pgc: number;
@@ -20,6 +21,15 @@ interface PGCObject {
 }
 
 const API_BASE_URL = "http://89.169.133.242/api/v1/query/simple";
+
+function Layout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen flex flex-col">
+      <div className="flex-grow">{children}</div>
+      <Footer />
+    </div>
+  );
+}
 
 const homePageMarkdown = `
 Examples:
@@ -204,9 +214,30 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/query" element={<SearchResultsPage />} />
-        <Route path="/object/:pgcId" element={<ObjectDetailsPage />} />
+        <Route
+          path="/"
+          element={
+            <Layout>
+              <HomePage />
+            </Layout>
+          }
+        />
+        <Route
+          path="/query"
+          element={
+            <Layout>
+              <SearchResultsPage />
+            </Layout>
+          }
+        />
+        <Route
+          path="/object/:pgcId"
+          element={
+            <Layout>
+              <ObjectDetailsPage />
+            </Layout>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );
