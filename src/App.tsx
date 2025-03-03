@@ -14,10 +14,33 @@ import { SearchBar } from "./components/ui/searchbar";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Footer } from "./components/ui/footer";
+import { AladinViewer } from "./components/ui/aladin";
 
 interface PGCObject {
   pgc: number;
-  catalogs: Record<string, Record<string, unknown>>;
+  catalogs: Catalogs;
+}
+
+interface Catalogs {
+  designation: Designation;
+  icrs: ICRS;
+  redshift: Redshift;
+}
+
+interface Designation {
+  design: string;
+}
+
+interface ICRS {
+  ra: number;
+  dec: number;
+  e_ra: number;
+  e_dec: number;
+}
+
+interface Redshift {
+  cz: number;
+  e_cz: number;
 }
 
 const API_BASE_URL = "http://89.169.133.242/api/v1/query/simple";
@@ -113,15 +136,24 @@ function SearchResultsPage() {
         <div className="grid grid-cols-1 gap-4">
           {results.length > 0 ? (
             results.map((object) => (
-              <Card
-                key={object.pgc}
-                className="cursor-pointer hover:shadow-lg"
-                onClick={() => handleObjectClick(object)}
-              >
-                <CardContent>
-                  <h2 className="text-lg font-bold">PGC {object.pgc}</h2>
-                </CardContent>
-              </Card>
+              <div key={object.pgc} className="flex items-center w-full">
+                <AladinViewer
+                  ra={object.catalogs.icrs.ra}
+                  dec={object.catalogs.icrs.dec}
+                  fov={0.02}
+                  survey="P/DSS2/color"
+                  className="w-60 h-60"
+                />
+                <Card
+                  key={object.pgc}
+                  className="cursor-pointer hover:shadow-lg flex-grow"
+                  onClick={() => handleObjectClick(object)}
+                >
+                  <CardContent>
+                    <h2 className="text-lg font-bold">PGC {object.pgc}</h2>
+                  </CardContent>
+                </Card>
+              </div>
             ))
           ) : (
             <p className="text-center">No results found for "{query}"</p>
