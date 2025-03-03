@@ -74,11 +74,22 @@ export const SearchResultsPage: React.FC = () => {
                 />
                 <Card
                   key={object.pgc}
-                  className="cursor-pointer hover:shadow-lg flex-grow"
+                  className="cursor-pointer hover:shadow-lg flex-grow ml-4"
                   onClick={() => handleObjectClick(object)}
                 >
                   <CardContent>
-                    <h2 className="text-lg font-bold">PGC {object.pgc}</h2>
+                    <h2 className="text-lg">PGC {object.pgc}</h2>
+                  </CardContent>
+                  <CardContent>
+                    <h2 className="text-lg">
+                      Name: {object.catalogs.designation.design}
+                    </h2>
+                  </CardContent>
+                  <CardContent>
+                    <h2 className="text-lg">
+                      J2000: {object.catalogs.icrs.ra} deg,{" "}
+                      {object.catalogs.icrs.dec} deg
+                    </h2>
                   </CardContent>
                 </Card>
               </div>
