@@ -5,8 +5,12 @@ import remarkGfm from "remark-gfm";
 
 const homePageHint = `
 Examples:
-- Search by name:
-	- Simple: [IC1445](/query?q=IC1445)
+- Search by name: [name:IC1445](/query?q=name:IC1445)
+- Search by PGC number: [pgc:112642](/query?q=pgc:112642)
+
+The search conditions can be concatenated with AND or OR operators. For example:
+- Search by name and PGC number: [name:IC1445 and pgc:112642](/query?q=name:IC1445%20AND%20pgc:112642)
+- Search by name or PGC number: [name:IC4445 or pgc:87422](/query?q=name:IC1445%20OR%20pgc:112642)
 `;
 
 export const HomePage: React.FC = () => {

@@ -3,8 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { SearchBar } from "../components/ui/searchbar";
 import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
-import axios from "axios";
-import { API_BASE_URL, PGCObject } from "../clients/backend";
+import { backendClient, PGCObject } from "../clients/backend";
 import { AladinViewer } from "../components/ui/aladin";
 
 export const ObjectDetailsPage: React.FC = () => {
@@ -22,18 +21,12 @@ export const ObjectDetailsPage: React.FC = () => {
 
       setLoading(true);
       try {
-        const response = await axios.get<{ data: { objects: PGCObject[] } }>(
-          API_BASE_URL,
-          {
-            params: { pgcs: pgcId, page_size: 10 },
-          }
-        );
+        const response = await backendClient.querySimple({
+          pgcs: [Number(pgcId)],
+        });
 
-        if (
-          response.data.data.objects &&
-          response.data.data.objects.length > 0
-        ) {
-          setObject(response.data.data.objects[0]);
+        if (response.objects && response.objects.length > 0) {
+          setObject(response.objects[0]);
         } else {
           console.error("Object not found");
         }

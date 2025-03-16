@@ -84,6 +84,6 @@ export function AladinViewer({
 
 declare global {
   interface Window {
-    A: unknown;
+    A: any;
   }
 }

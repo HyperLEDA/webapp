@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { PGCObject } from "../clients/backend";
-import axios from "axios";
-import { API_BASE_URL } from "../clients/backend";
+import { backendClient, PGCObject } from "../clients/backend";
 import { SearchBar } from "../components/ui/searchbar";
 import { AladinViewer } from "../components/ui/aladin";
 import { Card, CardContent } from "../components/ui/card";
@@ -25,13 +23,8 @@ export const SearchResultsPage: React.FC = () => {
 
       setLoading(true);
       try {
-        const response = await axios.get<{ data: { objects: PGCObject[] } }>(
-          API_BASE_URL,
-          {
-            params: { name: query, page_size: pageSize, page: page },
-          }
-        );
-        setResults(response.data.data.objects || []);
+        const response = await backendClient.query(query, page - 1, pageSize);
+        setResults(response.objects);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
