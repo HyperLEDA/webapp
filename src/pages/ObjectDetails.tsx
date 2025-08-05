@@ -69,34 +69,51 @@ export const ObjectDetailsPage: React.FC = () => {
               />
             )}
             <div className="ml-4 w-full">
+              {object.catalogs?.designation && (
+                <Card className="mb-4" title="Name">
+                  <CardContent>{object.catalogs.designation.name}</CardContent>
+                </Card>
+              )}
               <Card className="mb-4" title="PGC">
                 <CardContent>{object.pgc}</CardContent>
               </Card>
               {object.catalogs?.coordinates?.equatorial && (
-                <Card className="mb-4" title="J2000">
-                  <table>
-                    <tbody>
+                <Card className="mb-4" title="Coordinates">
+                  <Card title="Equatorial">
+                    <table>
                       <tr>
                         <td className="font-medium pr-4">Right Ascension</td>
                         <td>
-                          {object.catalogs.coordinates.equatorial.ra} ± {object.catalogs.coordinates.equatorial.e_ra}{" "}
+                          {object.catalogs.coordinates.equatorial.ra.toFixed(2)} ± {object.catalogs.coordinates.equatorial.e_ra}{" "}
                           deg
                         </td>
                       </tr>
                       <tr>
                         <td className="font-medium pr-4">Declination</td>
                         <td>
-                          {object.catalogs.coordinates.equatorial.dec} ±{" "}
+                          {object.catalogs.coordinates.equatorial.dec.toFixed(2)} ±{" "}
                           {object.catalogs.coordinates.equatorial.e_dec} deg
                         </td>
                       </tr>
-                    </tbody>
-                  </table>
-                </Card>
-              )}
-              {object.catalogs?.designation && (
-                <Card title="Name">
-                  <CardContent>{object.catalogs.designation.name}</CardContent>
+                    </table>
+                  </Card>
+                  <Card title="Galactic">
+                    <table>
+                      <tr>
+                        <td className="font-medium pr-4">Galactic latitude</td>
+                        <td>
+                          {object.catalogs.coordinates.galactic.lat.toFixed(2)} ± {object.catalogs.coordinates.galactic.e_lat}{" "}
+                          deg
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="font-medium pr-4">Galactic longitude</td>
+                        {object.catalogs.coordinates.galactic.lon.toFixed(2)} ± {object.catalogs.coordinates.galactic.e_lon}{" "} deg
+                        <td>
+                        </td>
+                      </tr>
+                    </table>
+                  </Card>
                 </Card>
               )}
             </div>
@@ -104,8 +121,20 @@ export const ObjectDetailsPage: React.FC = () => {
           {object.catalogs?.velocity?.redshift && (
             <Card className="mt-4" title="Velocity">
               <CardContent>
-                {object.catalogs.velocity.redshift.z} ± {object.catalogs.velocity.redshift.e_z}{" "}
-                km/s
+                <table>
+                  <tr>
+                    <td className="font-medium pr-4">cz</td>
+                    <td>
+                      {object.catalogs.velocity.heliocentric.v} ± {object.catalogs.velocity.heliocentric.e_v}{" "} km/s
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="font-medium pr-4">z</td>
+                    {object.catalogs.velocity.redshift.z} ± {object.catalogs.velocity.redshift.e_z}{" "}
+                    <td>
+                    </td>
+                  </tr>
+                </table>
               </CardContent>
             </Card>
           )}
