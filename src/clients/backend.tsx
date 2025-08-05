@@ -2,6 +2,21 @@ import axios from "axios";
 
 export const API_BASE_URL = "http://dm2.sao.ru:81";
 
+export interface SearchPGCObject {
+  pgc: number;
+  catalogs: SearchCatalogs;
+}
+
+export interface SearchCatalogs {
+  designation: SearchDesignation;
+  icrs: EquatorialCoordinates;
+  redshift: Redshift;
+}
+
+export interface SearchDesignation {
+  design: string;
+}
+
 export interface PGCObject {
   pgc: number;
   catalogs: Catalogs;
@@ -57,7 +72,7 @@ export interface QueryParams {
 }
 
 export interface QueryResponse {
-  objects: PGCObject[];
+  objects: SearchPGCObject[];
 }
 
 export interface QuerySimpleResponse {

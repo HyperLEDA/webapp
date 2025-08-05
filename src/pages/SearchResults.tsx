@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { backendClient, PGCObject } from "../clients/backend";
+import { backendClient, SearchPGCObject } from "../clients/backend";
 import { SearchBar } from "../components/ui/searchbar";
 import { AladinViewer } from "../components/ui/aladin";
 import { Card, CardContent } from "../components/ui/card";
 
 export const SearchResultsPage: React.FC = () => {
   const [searchParams] = useSearchParams();
-  const [results, setResults] = useState<PGCObject[]>([]);
+  const [results, setResults] = useState<SearchPGCObject[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const navigate = useNavigate();
   const query = searchParams.get("q") || "";
@@ -35,7 +35,7 @@ export const SearchResultsPage: React.FC = () => {
     fetchResults();
   }, [query, navigate, pageSize, page]);
 
-  const handleObjectClick = (object: PGCObject) => {
+  const handleObjectClick = (object: SearchPGCObject) => {
     navigate(`/object/${object.pgc}`);
   };
 
