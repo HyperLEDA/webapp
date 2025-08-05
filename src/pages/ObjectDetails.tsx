@@ -21,12 +21,11 @@ export const ObjectDetailsPage: React.FC = () => {
 
       setLoading(true);
       try {
-        const response = await backendClient.querySimple({
-          pgcs: [Number(pgcId)],
-        });
+        const response = await backendClient.queryByPGC([Number(pgcId)]);
 
         if (response.objects && response.objects.length > 0) {
-          setObject(response.objects[0]);
+          const objectData = response.objects[0];
+          setObject(objectData);
         } else {
           console.error("Object not found");
         }
@@ -60,48 +59,56 @@ export const ObjectDetailsPage: React.FC = () => {
             Back
           </Button>
           <div key={object.pgc} className="flex items-center w-full">
-            <AladinViewer
-              ra={object.catalogs.icrs.ra}
-              dec={object.catalogs.icrs.dec}
-              fov={0.02}
-              survey="P/DSS2/color"
-              className="w-96 h-96"
-            />
+            {object.catalogs?.coordinates?.equatorial && (
+              <AladinViewer
+                ra={object.catalogs.coordinates.equatorial.ra}
+                dec={object.catalogs.coordinates.equatorial.dec}
+                fov={0.02}
+                survey="P/DSS2/color"
+                className="w-96 h-96"
+              />
+            )}
             <div className="ml-4 w-full">
               <Card className="mb-4" title="PGC">
                 <CardContent>{object.pgc}</CardContent>
               </Card>
-              <Card className="mb-4" title="J2000">
-                <table>
-                  <tbody>
-                    <tr>
-                      <td className="font-medium pr-4">Right Ascension</td>
-                      <td>
-                        {object.catalogs.icrs.ra} ± {object.catalogs.icrs.e_ra}{" "}
-                        deg
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className="font-medium pr-4">Declination</td>
-                      <td>
-                        {object.catalogs.icrs.dec} ±{" "}
-                        {object.catalogs.icrs.e_dec} deg
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </Card>
-              <Card title="Name">
-                <CardContent>{object.catalogs.designation.design}</CardContent>
-              </Card>
+              {object.catalogs?.coordinates?.equatorial && (
+                <Card className="mb-4" title="J2000">
+                  <table>
+                    <tbody>
+                      <tr>
+                        <td className="font-medium pr-4">Right Ascension</td>
+                        <td>
+                          {object.catalogs.coordinates.equatorial.ra} ± {object.catalogs.coordinates.equatorial.e_ra}{" "}
+                          deg
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="font-medium pr-4">Declination</td>
+                        <td>
+                          {object.catalogs.coordinates.equatorial.dec} ±{" "}
+                          {object.catalogs.coordinates.equatorial.e_dec} deg
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </Card>
+              )}
+              {object.catalogs?.designation && (
+                <Card title="Name">
+                  <CardContent>{object.catalogs.designation.name}</CardContent>
+                </Card>
+              )}
             </div>
           </div>
-          <Card className="mt-4" title="Velocity">
-            <CardContent>
-              {object.catalogs.redshift.cz} ± {object.catalogs.redshift.e_cz}{" "}
-              km/s
-            </CardContent>
-          </Card>
+          {object.catalogs?.velocity?.redshift && (
+            <Card className="mt-4" title="Velocity">
+              <CardContent>
+                {object.catalogs.velocity.redshift.z} ± {object.catalogs.velocity.redshift.e_z}{" "}
+                km/s
+              </CardContent>
+            </Card>
+          )}
         </div>
       ) : (
         <div className="text-center">
