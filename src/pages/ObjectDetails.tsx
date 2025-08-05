@@ -3,12 +3,13 @@ import { useNavigate, useParams } from "react-router-dom";
 import { SearchBar } from "../components/ui/searchbar";
 import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
-import { backendClient, PGCObject } from "../clients/backend";
+import { backendClient, PGCObject, Schema } from "../clients/backend";
 import { AladinViewer } from "../components/ui/aladin";
 
 export const ObjectDetailsPage: React.FC = () => {
   const { pgcId } = useParams<{ pgcId: string }>();
   const [object, setObject] = useState<PGCObject | null>(null);
+  const [schema, setSchema] = useState<Schema | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const navigate = useNavigate();
 
@@ -26,6 +27,7 @@ export const ObjectDetailsPage: React.FC = () => {
         if (response.objects && response.objects.length > 0) {
           const objectData = response.objects[0];
           setObject(objectData);
+          setSchema(response.schema)
         } else {
           console.error("Object not found");
         }
@@ -82,17 +84,15 @@ export const ObjectDetailsPage: React.FC = () => {
                   <Card title="Equatorial">
                     <table>
                       <tr>
-                        <td className="font-medium pr-4">Right Ascension</td>
+                        <td className="font-medium pr-4">Right ascension</td>
                         <td>
-                          {object.catalogs.coordinates.equatorial.ra.toFixed(2)} ± {object.catalogs.coordinates.equatorial.e_ra}{" "}
-                          deg
+                          {object.catalogs.coordinates.equatorial.ra.toFixed(2)}{" "}{schema?.units.coordinates.equatorial.ra} ± {object.catalogs.coordinates.equatorial.e_ra}{" "}{schema?.units.coordinates.equatorial.e_ra}
                         </td>
                       </tr>
                       <tr>
                         <td className="font-medium pr-4">Declination</td>
                         <td>
-                          {object.catalogs.coordinates.equatorial.dec.toFixed(2)} ±{" "}
-                          {object.catalogs.coordinates.equatorial.e_dec} deg
+                          {object.catalogs.coordinates.equatorial.dec.toFixed(2)}{" "}{schema?.units.coordinates.equatorial.dec} ± {object.catalogs.coordinates.equatorial.e_dec}{" "}{schema?.units.coordinates.equatorial.e_dec}
                         </td>
                       </tr>
                     </table>
@@ -100,15 +100,14 @@ export const ObjectDetailsPage: React.FC = () => {
                   <Card title="Galactic">
                     <table>
                       <tr>
-                        <td className="font-medium pr-4">Galactic latitude</td>
+                        <td className="font-medium pr-4">Latitude</td>
                         <td>
-                          {object.catalogs.coordinates.galactic.lat.toFixed(2)} ± {object.catalogs.coordinates.galactic.e_lat}{" "}
-                          deg
+                          {object.catalogs.coordinates.galactic.lat.toFixed(2)}{" "}{schema?.units.coordinates.galactic.lat} ± {object.catalogs.coordinates.galactic.e_lat}{" "}{schema?.units.coordinates.galactic.e_lat}
                         </td>
                       </tr>
                       <tr>
-                        <td className="font-medium pr-4">Galactic longitude</td>
-                        {object.catalogs.coordinates.galactic.lon.toFixed(2)} ± {object.catalogs.coordinates.galactic.e_lon}{" "} deg
+                        <td className="font-medium pr-4">Longitude</td>
+                        {object.catalogs.coordinates.galactic.lon.toFixed(2)}{" "}{schema?.units.coordinates.galactic.lon} ± {object.catalogs.coordinates.galactic.e_lon}{" "}{schema?.units.coordinates.galactic.e_lon}
                         <td>
                         </td>
                       </tr>
@@ -125,12 +124,12 @@ export const ObjectDetailsPage: React.FC = () => {
                   <tr>
                     <td className="font-medium pr-4">cz</td>
                     <td>
-                      {object.catalogs.velocity.heliocentric.v} ± {object.catalogs.velocity.heliocentric.e_v}{" "} km/s
+                      {object.catalogs.velocity.heliocentric.v.toFixed(2)}{" "}{schema?.units.velocity.heliocentric.v} ± {object.catalogs.velocity.heliocentric.e_v.toFixed(2)}{" "}{schema?.units.velocity.heliocentric.e_v}
                     </td>
                   </tr>
                   <tr>
                     <td className="font-medium pr-4">z</td>
-                    {object.catalogs.velocity.redshift.z} ± {object.catalogs.velocity.redshift.e_z}{" "}
+                    {object.catalogs.velocity.redshift.z.toFixed(4)} ± {object.catalogs.velocity.redshift.e_z.toFixed(6)}{" "}
                     <td>
                     </td>
                   </tr>
