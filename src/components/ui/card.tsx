@@ -17,13 +17,13 @@ export const Card: React.FC<CardProps> = ({
   return (
     <div
       className={classNames(
-        "shadow-md rounded p-4 hover:shadow-lg transition-shadow border border-gray-200",
+        "shadow-md rounded p-2 hover:shadow-lg transition-shadow border border-gray-200",
         { "cursor-pointer": onClick },
         className
       )}
       onClick={onClick}
     >
-      {title && <h3 className="text-lg font-semibold mb-2">{title}</h3>}
+      {title && <h3 className="text-lg font-semibold mb-1">{title}</h3>}
       {children}
     </div>
   );
