@@ -2,13 +2,16 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { SearchBar } from "../components/ui/searchbar";
 import { Button } from "../components/ui/button";
-import { Card, CardContent } from "../components/ui/card";
-import { backendClient, PGCObject } from "../clients/backend";
+import { BasicInfoCard } from "../components/ui/basic-info-card";
+import { CoordinateDisplay } from "../components/ui/coordinate-display";
+import { VelocityDisplay } from "../components/ui/velocity-display";
+import { backendClient, PGCObject, Schema } from "../clients/backend";
 import { AladinViewer } from "../components/ui/aladin";
 
 export const ObjectDetailsPage: React.FC = () => {
   const { pgcId } = useParams<{ pgcId: string }>();
   const [object, setObject] = useState<PGCObject | null>(null);
+  const [schema, setSchema] = useState<Schema | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const navigate = useNavigate();
 
@@ -21,12 +24,12 @@ export const ObjectDetailsPage: React.FC = () => {
 
       setLoading(true);
       try {
-        const response = await backendClient.querySimple({
-          pgcs: [Number(pgcId)],
-        });
+        const response = await backendClient.queryByPGC([Number(pgcId)]);
 
         if (response.objects && response.objects.length > 0) {
-          setObject(response.objects[0]);
+          const objectData = response.objects[0];
+          setObject(objectData);
+          setSchema(response.schema)
         } else {
           console.error("Object not found");
         }
@@ -48,6 +51,59 @@ export const ObjectDetailsPage: React.FC = () => {
     navigate(`/query?q=${encodeURIComponent(query)}`);
   };
 
+  const renderObjectDetails = () => {
+    if (!object || !schema) return null;
+
+    return (
+      <div>
+        <div key={object.pgc} className="flex items-center w-full">
+          {object.catalogs?.coordinates?.equatorial && (
+            <AladinViewer
+              ra={object.catalogs.coordinates.equatorial.ra}
+              dec={object.catalogs.coordinates.equatorial.dec}
+              fov={0.02}
+              survey="P/DSS2/color"
+              className="w-96 h-96"
+            />
+          )}
+          <div className="ml-4 w-full">
+            {object.catalogs?.designation && (
+              <BasicInfoCard title="Name">
+                {object.catalogs.designation.name}
+              </BasicInfoCard>
+            )}
+            <BasicInfoCard title="PGC">
+              {object.pgc}
+            </BasicInfoCard>
+            {object.catalogs?.coordinates?.equatorial && (
+              <CoordinateDisplay
+                equatorial={object.catalogs.coordinates.equatorial}
+                galactic={object.catalogs.coordinates.galactic}
+                units={schema.units.coordinates}
+              />
+            )}
+          </div>
+        </div>
+        {object.catalogs?.velocity?.redshift && (
+          <VelocityDisplay
+            heliocentric={object.catalogs.velocity.heliocentric}
+            redshift={object.catalogs.velocity.redshift}
+            units={schema.units.velocity.heliocentric}
+          />
+        )}
+      </div>
+    );
+  };
+
+  const renderNotFound = () => (
+    <div className="text-center">
+      <Button onClick={handleBackToResults} className="mb-4">
+        Back
+      </Button>
+      <p>Object not found.</p>
+    </div>
+  );
+
   return (
     <div className="p-4">
       <SearchBar onSearch={handleSearch} logoSize="small" showLogo={true} />
@@ -55,61 +111,9 @@ export const ObjectDetailsPage: React.FC = () => {
       {loading ? (
         <p className="text-center">Loading...</p>
       ) : object ? (
-        <div>
-          <Button onClick={handleBackToResults} className="mb-4">
-            Back
-          </Button>
-          <div key={object.pgc} className="flex items-center w-full">
-            <AladinViewer
-              ra={object.catalogs.icrs.ra}
-              dec={object.catalogs.icrs.dec}
-              fov={0.02}
-              survey="P/DSS2/color"
-              className="w-96 h-96"
-            />
-            <div className="ml-4 w-full">
-              <Card className="mb-4" title="PGC">
-                <CardContent>{object.pgc}</CardContent>
-              </Card>
-              <Card className="mb-4" title="J2000">
-                <table>
-                  <tbody>
-                    <tr>
-                      <td className="font-medium pr-4">Right Ascension</td>
-                      <td>
-                        {object.catalogs.icrs.ra} ± {object.catalogs.icrs.e_ra}{" "}
-                        deg
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className="font-medium pr-4">Declination</td>
-                      <td>
-                        {object.catalogs.icrs.dec} ±{" "}
-                        {object.catalogs.icrs.e_dec} deg
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </Card>
-              <Card title="Name">
-                <CardContent>{object.catalogs.designation.design}</CardContent>
-              </Card>
-            </div>
-          </div>
-          <Card className="mt-4" title="Velocity">
-            <CardContent>
-              {object.catalogs.redshift.cz} ± {object.catalogs.redshift.e_cz}{" "}
-              km/s
-            </CardContent>
-          </Card>
-        </div>
+        renderObjectDetails()
       ) : (
-        <div className="text-center">
-          <Button onClick={handleBackToResults} className="mb-4">
-            Back
-          </Button>
-          <p>Object not found.</p>
-        </div>
+        renderNotFound()
       )}
     </div>
   );
