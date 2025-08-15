@@ -22,14 +22,14 @@ export const CoordinateDisplay: React.FC<CoordinateDisplayProps> = ({
             label: "Right ascension",
             value: equatorial.ra.toFixed(2),
             unit: units.equatorial.ra,
-            error: equatorial.e_ra,
+            error: equatorial.e_ra.toFixed(2),
             errorUnit: units.equatorial.e_ra,
         },
         {
             label: "Declination",
             value: equatorial.dec.toFixed(2),
             unit: units.equatorial.dec,
-            error: equatorial.e_dec,
+            error: equatorial.e_dec.toFixed(2),
             errorUnit: units.equatorial.e_dec,
         },
     ];
@@ -39,14 +39,14 @@ export const CoordinateDisplay: React.FC<CoordinateDisplayProps> = ({
             label: "Latitude",
             value: galactic.lat.toFixed(2),
             unit: units.galactic.lat,
-            error: galactic.e_lat,
+            error: galactic.e_lat.toFixed(2),
             errorUnit: units.galactic.e_lat,
         },
         {
             label: "Longitude",
             value: galactic.lon.toFixed(2),
             unit: units.galactic.lon,
-            error: galactic.e_lon,
+            error: galactic.e_lon.toFixed(2),
             errorUnit: units.galactic.e_lon,
         },
     ];

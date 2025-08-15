@@ -4,13 +4,14 @@ import { SearchBar } from "../components/ui/searchbar";
 import { Button } from "../components/ui/button";
 import { BasicInfoCard } from "../components/ui/basic-info-card";
 import { CoordinateDisplay } from "../components/ui/coordinate-display";
-import { VelocityDisplay } from "../components/ui/velocity-display";
-import { backendClient, PGCObject, Schema } from "../clients/backend";
+import { RedshiftDisplay, VelocityDisplay } from "../components/ui/velocity-display";
 import { AladinViewer } from "../components/ui/aladin";
+import { querySimpleApiV1QuerySimpleGet } from "../clients/backend/sdk.gen"
+import { PgcObject, Schema } from "../clients/backend/types.gen"
 
 export const ObjectDetailsPage: React.FC = () => {
   const { pgcId } = useParams<{ pgcId: string }>();
-  const [object, setObject] = useState<PGCObject | null>(null);
+  const [object, setObject] = useState<PgcObject | null>(null);
   const [schema, setSchema] = useState<Schema | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const navigate = useNavigate();
@@ -24,12 +25,19 @@ export const ObjectDetailsPage: React.FC = () => {
 
       setLoading(true);
       try {
-        const response = await backendClient.queryByPGC([Number(pgcId)]);
+        const response = await querySimpleApiV1QuerySimpleGet({
+          query: {
+            pgcs: [Number(pgcId)]
+          }
+        })
 
-        if (response.objects && response.objects.length > 0) {
-          const objectData = response.objects[0];
+        const objects = response.data?.data.objects
+        const schema = response.data?.data.schema
+
+        if (objects && objects.length > 0) {
+          const objectData = objects[0];
           setObject(objectData);
-          setSchema(response.schema)
+          setSchema(schema || null)
         } else {
           console.error("Object not found");
         }
@@ -84,11 +92,15 @@ export const ObjectDetailsPage: React.FC = () => {
             )}
           </div>
         </div>
-        {object.catalogs?.velocity?.redshift && (
+        {object.catalogs?.redshift && (
+          <RedshiftDisplay
+            redshift={object.catalogs.redshift}
+          />
+        )}
+        {object.catalogs?.velocity && (
           <VelocityDisplay
-            heliocentric={object.catalogs.velocity.heliocentric}
-            redshift={object.catalogs.velocity.redshift}
-            units={schema.units.velocity.heliocentric}
+            velocities={object.catalogs.velocity}
+            units={schema.units.velocity}
           />
         )}
       </div>
