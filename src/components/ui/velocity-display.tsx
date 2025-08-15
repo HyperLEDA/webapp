@@ -45,6 +45,7 @@ export const VelocityDisplay: React.FC<VelocityDisplayProps> = ({ velocities, un
         },
         {
             label: "Local group",
+            hint: "Source: https://ui.adsabs.harvard.edu/abs/2025A%26A...698A.178M/abstract",
             value: velocities["local_group"].v.toFixed(2),
             unit: units["local_group"].v,
             error: velocities["local_group"].e_v.toFixed(2),
@@ -52,6 +53,7 @@ export const VelocityDisplay: React.FC<VelocityDisplayProps> = ({ velocities, un
         },
         {
             label: "CMB (old)",
+            hint: "Source: https://ui.adsabs.harvard.edu/abs/1996ApJ...473..576F/abstract",
             value: velocities["cmb_old"].v.toFixed(2),
             unit: units["cmb_old"].v,
             error: velocities["cmb_old"].e_v.toFixed(2),
@@ -59,6 +61,7 @@ export const VelocityDisplay: React.FC<VelocityDisplayProps> = ({ velocities, un
         },
         {
             label: "CMB",
+            hint: "Source: https://ui.adsabs.harvard.edu/abs/2016A%26A...594A...8P/abstract",
             value: velocities["cmb"].v.toFixed(2),
             unit: units["cmb"].v,
             error: velocities["cmb"].e_v.toFixed(2),
