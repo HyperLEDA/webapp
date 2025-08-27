@@ -153,7 +153,7 @@ export const ObjectDetailsPage: React.FC = () => {
     ];
 
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 p-6 rounded-lg">
         <div className="flex items-start space-x-6">
           {object.catalogs?.coordinates?.equatorial && (
             <AladinViewer
@@ -165,10 +165,10 @@ export const ObjectDetailsPage: React.FC = () => {
             />
           )}
           <div className="flex-1">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            <h2 className="text-2xl font-bold text-white mb-2">
               {object.catalogs?.designation?.name || `PGC ${object.pgc}`}
-            </h1>
-            <p className="text-gray-600">PGC: {object.pgc}</p>
+            </h2>
+            <p className="text-gray-300">PGC: {object.pgc}</p>
           </div>
         </div>
 
@@ -176,9 +176,12 @@ export const ObjectDetailsPage: React.FC = () => {
           <FlexibleTable
             columns={coordinatesColumns}
             data={coordinatesData}
+            headerClassName="bg-gray-700 border-gray-600"
+            columnHeaderClassName="bg-gray-600 text-white"
+            cellClassName="bg-gray-700 text-gray-200"
           >
-            <h2 className="text-xl font-bold text-gray-800">Coordinates</h2>
-            <p className="text-gray-600">Celestial coordinates of the object</p>
+            <h2 className="text-xl font-bold text-white">Coordinates</h2>
+            <p className="text-gray-300">Celestial coordinates of the object</p>
           </FlexibleTable>
         )}
 
@@ -186,9 +189,12 @@ export const ObjectDetailsPage: React.FC = () => {
           <FlexibleTable
             columns={redshiftColumns}
             data={redshiftData}
+            headerClassName="bg-gray-700 border-gray-600"
+            columnHeaderClassName="bg-gray-600 text-white"
+            cellClassName="bg-gray-700 text-gray-200"
           >
-            <h2 className="text-xl font-bold text-gray-800">Redshift</h2>
-            <p className="text-gray-600">Redshift measurements</p>
+            <h2 className="text-xl font-bold text-white">Redshift</h2>
+            <p className="text-gray-300">Redshift measurements</p>
           </FlexibleTable>
         )}
 
@@ -196,9 +202,12 @@ export const ObjectDetailsPage: React.FC = () => {
           <FlexibleTable
             columns={velocityColumns}
             data={velocityData}
+            headerClassName="bg-gray-700 border-gray-600"
+            columnHeaderClassName="bg-gray-600 text-white"
+            cellClassName="bg-gray-700 text-gray-200"
           >
-            <h2 className="text-xl font-bold text-gray-800">Velocity Data</h2>
-            <p className="text-gray-600">Velocity measurements with respect to different apexes</p>
+            <h2 className="text-xl font-bold text-white">Velocity</h2>
+            <p className="text-gray-300">Velocity measurements with respect to different apexes</p>
           </FlexibleTable>
         )}
       </div>
@@ -210,7 +219,7 @@ export const ObjectDetailsPage: React.FC = () => {
       <Button onClick={handleBackToResults} className="mb-4">
         Back
       </Button>
-      <p>Object not found.</p>
+      <p className="text-gray-300">Object not found.</p>
     </div>
   );
 
@@ -219,7 +228,9 @@ export const ObjectDetailsPage: React.FC = () => {
       <SearchBar onSearch={handleSearch} logoSize="small" showLogo={true} />
 
       {loading ? (
-        <p className="text-center">Loading...</p>
+        <div className="flex justify-center items-center h-64">
+          <p className="text-gray-300 text-lg">Loading...</p>
+        </div>
       ) : object ? (
         renderObjectDetails()
       ) : (
