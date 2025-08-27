@@ -2,10 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { SearchBar } from "../components/ui/searchbar";
 import { Button } from "../components/ui/button";
-import { BasicInfoCard } from "../components/ui/basic-info-card";
-import { CoordinateDisplay } from "../components/ui/coordinate-display";
-import { RedshiftDisplay, VelocityDisplay } from "../components/ui/velocity-display";
 import { AladinViewer } from "../components/ui/aladin";
+import { CommonTable } from "../components/ui/common-table";
 import { querySimpleApiV1QuerySimpleGet } from "../clients/backend/sdk.gen"
 import { PgcObject, Schema } from "../clients/backend/types.gen"
 
@@ -62,9 +60,101 @@ export const ObjectDetailsPage: React.FC = () => {
   const renderObjectDetails = () => {
     if (!object || !schema) return null;
 
+    const coordinatesColumns = [
+      { name: "Parameter" },
+      { name: "Value" },
+      { name: "Unit" },
+      { name: "Error" },
+      { name: "Error unit" },
+    ];
+
+    const coordinatesData = [
+      {
+        Parameter: "Right ascension",
+        Value: object.catalogs?.coordinates?.equatorial?.ra?.toFixed(6) || "NULL",
+        Unit: schema.units.coordinates?.equatorial?.ra || "NULL",
+        Error: object.catalogs?.coordinates?.equatorial?.e_ra?.toFixed(6) || "NULL",
+        "Error unit": schema.units.coordinates?.equatorial?.e_ra || "NULL",
+      },
+      {
+        Parameter: "Declination",
+        Value: object.catalogs?.coordinates?.equatorial?.dec?.toFixed(6) || "NULL",
+        Unit: schema.units.coordinates?.equatorial?.dec || "NULL",
+        Error: object.catalogs?.coordinates?.equatorial?.e_dec?.toFixed(6) || "NULL",
+        "Error unit": schema.units.coordinates?.equatorial?.e_dec || "NULL",
+      },
+      {
+        Parameter: "Galactic longitude",
+        Value: object.catalogs?.coordinates?.galactic?.lon?.toFixed(6) || "NULL",
+        Unit: schema.units.coordinates?.galactic?.lon || "NULL",
+        Error: object.catalogs?.coordinates?.galactic?.e_lon?.toFixed(6) || "NULL",
+        "Error unit": schema.units.coordinates?.galactic?.e_lon || "NULL",
+      },
+      {
+        Parameter: "Galactic latitude",
+        Value: object.catalogs?.coordinates?.galactic?.lat?.toFixed(6) || "NULL",
+        Unit: schema.units.coordinates?.galactic?.lat || "NULL",
+        Error: object.catalogs?.coordinates?.galactic?.e_lat?.toFixed(6) || "NULL",
+        "Error unit": schema.units.coordinates?.galactic?.e_lat || "NULL",
+      },
+    ];
+
+    const redshiftColumns = [
+      { name: "Parameter" },
+      { name: "Value" },
+      { name: "Error" },
+    ];
+
+    const redshiftData = [
+      {
+        Parameter: "z",
+        Value: object.catalogs?.redshift?.z?.toFixed(6) || "NULL",
+        Error: object.catalogs?.redshift?.e_z?.toFixed(6) || "NULL",
+      },
+    ];
+
+    const velocityColumns = [
+      { name: "Parameter" },
+      { name: "Value" },
+      { name: "Unit" },
+      { name: "Error" },
+      { name: "Error unit" },
+    ];
+
+    const velocityData = [
+      {
+        Parameter: "Heliocentric",
+        Value: object.catalogs?.velocity?.heliocentric?.v?.toFixed(2) || "NULL",
+        Unit: schema.units.velocity?.heliocentric?.v || "NULL",
+        Error: object.catalogs?.velocity?.heliocentric?.e_v?.toFixed(2) || "NULL",
+        "Error unit": schema.units.velocity?.heliocentric?.e_v || "NULL",
+      },
+      {
+        Parameter: "Local Group",
+        Value: object.catalogs?.velocity?.local_group?.v?.toFixed(2) || "NULL",
+        Unit: schema.units.velocity?.local_group?.v || "NULL",
+        Error: object.catalogs?.velocity?.local_group?.e_v?.toFixed(2) || "NULL",
+        "Error unit": schema.units.velocity?.local_group?.e_v || "NULL",
+      },
+      {
+        Parameter: "CMB (old)",
+        Value: object.catalogs?.velocity?.cmb_old?.v?.toFixed(2) || "NULL",
+        Unit: schema.units.velocity?.cmb_old?.v || "NULL",
+        Error: object.catalogs?.velocity?.cmb_old?.e_v?.toFixed(2) || "NULL",
+        "Error unit": schema.units.velocity?.cmb_old?.e_v || "NULL",
+      },
+      {
+        Parameter: "CMB",
+        Value: object.catalogs?.velocity?.cmb?.v?.toFixed(2) || "NULL",
+        Unit: schema.units.velocity?.cmb?.v || "NULL",
+        Error: object.catalogs?.velocity?.cmb?.e_v?.toFixed(2) || "NULL",
+        "Error unit": schema.units.velocity?.cmb?.e_v || "NULL",
+      },
+    ];
+
     return (
-      <div>
-        <div key={object.pgc} className="flex items-center w-full">
+      <div className="space-y-6 p-6 rounded-lg">
+        <div className="flex items-start space-x-6">
           {object.catalogs?.coordinates?.equatorial && (
             <AladinViewer
               ra={object.catalogs.coordinates.equatorial.ra}
@@ -74,34 +164,51 @@ export const ObjectDetailsPage: React.FC = () => {
               className="w-96 h-96"
             />
           )}
-          <div className="ml-4 w-full">
-            {object.catalogs?.designation && (
-              <BasicInfoCard title="Name">
-                {object.catalogs.designation.name}
-              </BasicInfoCard>
-            )}
-            <BasicInfoCard title="PGC">
-              {object.pgc}
-            </BasicInfoCard>
-            {object.catalogs?.coordinates?.equatorial && (
-              <CoordinateDisplay
-                equatorial={object.catalogs.coordinates.equatorial}
-                galactic={object.catalogs.coordinates.galactic}
-                units={schema.units.coordinates}
-              />
-            )}
+          <div className="flex-1">
+            <h2 className="text-2xl font-bold text-white mb-2">
+              {object.catalogs?.designation?.name || `PGC ${object.pgc}`}
+            </h2>
+            <p className="text-gray-300">PGC: {object.pgc}</p>
           </div>
         </div>
-        {object.catalogs?.redshift && (
-          <RedshiftDisplay
-            redshift={object.catalogs.redshift}
-          />
+
+        {object.catalogs?.coordinates && (
+          <CommonTable
+            columns={coordinatesColumns}
+            data={coordinatesData}
+            headerClassName="bg-gray-700 border-gray-600"
+            columnHeaderClassName="bg-gray-600 text-white"
+            cellClassName="bg-gray-700 text-gray-200"
+          >
+            <h2 className="text-xl font-bold text-white">Coordinates</h2>
+            <p className="text-gray-300">Celestial coordinates of the object</p>
+          </CommonTable>
         )}
+
+        {object.catalogs?.redshift && (
+          <CommonTable
+            columns={redshiftColumns}
+            data={redshiftData}
+            headerClassName="bg-gray-700 border-gray-600"
+            columnHeaderClassName="bg-gray-600 text-white"
+            cellClassName="bg-gray-700 text-gray-200"
+          >
+            <h2 className="text-xl font-bold text-white">Redshift</h2>
+            <p className="text-gray-300">Redshift measurements</p>
+          </CommonTable>
+        )}
+
         {object.catalogs?.velocity && (
-          <VelocityDisplay
-            velocities={object.catalogs.velocity}
-            units={schema.units.velocity}
-          />
+          <CommonTable
+            columns={velocityColumns}
+            data={velocityData}
+            headerClassName="bg-gray-700 border-gray-600"
+            columnHeaderClassName="bg-gray-600 text-white"
+            cellClassName="bg-gray-700 text-gray-200"
+          >
+            <h2 className="text-xl font-bold text-white">Velocity</h2>
+            <p className="text-gray-300">Velocity measurements with respect to different apexes</p>
+          </CommonTable>
         )}
       </div>
     );
@@ -112,7 +219,7 @@ export const ObjectDetailsPage: React.FC = () => {
       <Button onClick={handleBackToResults} className="mb-4">
         Back
       </Button>
-      <p>Object not found.</p>
+      <p className="text-gray-300">Object not found.</p>
     </div>
   );
 
@@ -121,7 +228,9 @@ export const ObjectDetailsPage: React.FC = () => {
       <SearchBar onSearch={handleSearch} logoSize="small" showLogo={true} />
 
       {loading ? (
-        <p className="text-center">Loading...</p>
+        <div className="flex justify-center items-center h-64">
+          <p className="text-gray-300 text-lg">Loading...</p>
+        </div>
       ) : object ? (
         renderObjectDetails()
       ) : (
