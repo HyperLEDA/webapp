@@ -3,7 +3,6 @@ import { Footer } from "./components/ui/footer";
 import { HomePage } from "./pages/Home";
 import { SearchResultsPage } from "./pages/SearchResults";
 import { ObjectDetailsPage } from "./pages/ObjectDetails";
-import FlexibleTableDemo from "./pages/FlexibleTableDemo";
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -39,14 +38,6 @@ function App() {
           element={
             <Layout>
               <ObjectDetailsPage />
-            </Layout>
-          }
-        />
-        <Route
-          path="/table-demo"
-          element={
-            <Layout>
-              <FlexibleTableDemo />
             </Layout>
           }
         />

@@ -35,17 +35,14 @@ export const FlexibleTable: React.FC<FlexibleTableProps> = ({
 
     return (
         <div className={classNames("w-full", className)}>
-            {/* Header Section */}
             {children && (
-                <div className={classNames("mb-4 p-4 bg-gray-50 rounded-lg", headerClassName)}>
+                <div className={classNames("mb-1 p-4 bg-gray-50 rounded-sm", headerClassName)}>
                     {children}
                 </div>
             )}
 
-            {/* Table Section */}
             <div className={classNames("overflow-x-auto", tableClassName)}>
-                <table className="w-full border-collapse border border-gray-300">
-                    {/* Column Headers */}
+                <table className="w-full border-collapse border border-gray-300 rounded-sm">
                     <thead>
                         <tr className="bg-gray-100">
                             {columns.map((column) => (
@@ -62,7 +59,6 @@ export const FlexibleTable: React.FC<FlexibleTableProps> = ({
                         </tr>
                     </thead>
 
-                    {/* Table Body */}
                     <tbody>
                         {data.map((row, rowIndex) => (
                             <tr
