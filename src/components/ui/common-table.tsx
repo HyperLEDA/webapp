@@ -5,7 +5,7 @@ interface Column {
     name: string;
 }
 
-interface FlexibleTableProps {
+interface CommonTableProps {
     columns: Column[];
     data: Record<string, string | number | undefined>[];
     className?: string;
@@ -16,7 +16,7 @@ interface FlexibleTableProps {
     children?: React.ReactNode;
 }
 
-export const FlexibleTable: React.FC<FlexibleTableProps> = ({
+export const CommonTable: React.FC<CommonTableProps> = ({
     columns,
     data,
     className = "",

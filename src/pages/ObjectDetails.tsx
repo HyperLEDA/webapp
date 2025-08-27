@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { SearchBar } from "../components/ui/searchbar";
 import { Button } from "../components/ui/button";
 import { AladinViewer } from "../components/ui/aladin";
-import { FlexibleTable } from "../components/ui/flexible-table";
+import { CommonTable } from "../components/ui/common-table";
 import { querySimpleApiV1QuerySimpleGet } from "../clients/backend/sdk.gen"
 import { PgcObject, Schema } from "../clients/backend/types.gen"
 
@@ -173,7 +173,7 @@ export const ObjectDetailsPage: React.FC = () => {
         </div>
 
         {object.catalogs?.coordinates && (
-          <FlexibleTable
+          <CommonTable
             columns={coordinatesColumns}
             data={coordinatesData}
             headerClassName="bg-gray-700 border-gray-600"
@@ -182,11 +182,11 @@ export const ObjectDetailsPage: React.FC = () => {
           >
             <h2 className="text-xl font-bold text-white">Coordinates</h2>
             <p className="text-gray-300">Celestial coordinates of the object</p>
-          </FlexibleTable>
+          </CommonTable>
         )}
 
         {object.catalogs?.redshift && (
-          <FlexibleTable
+          <CommonTable
             columns={redshiftColumns}
             data={redshiftData}
             headerClassName="bg-gray-700 border-gray-600"
@@ -195,11 +195,11 @@ export const ObjectDetailsPage: React.FC = () => {
           >
             <h2 className="text-xl font-bold text-white">Redshift</h2>
             <p className="text-gray-300">Redshift measurements</p>
-          </FlexibleTable>
+          </CommonTable>
         )}
 
         {object.catalogs?.velocity && (
-          <FlexibleTable
+          <CommonTable
             columns={velocityColumns}
             data={velocityData}
             headerClassName="bg-gray-700 border-gray-600"
@@ -208,7 +208,7 @@ export const ObjectDetailsPage: React.FC = () => {
           >
             <h2 className="text-xl font-bold text-white">Velocity</h2>
             <p className="text-gray-300">Velocity measurements with respect to different apexes</p>
-          </FlexibleTable>
+          </CommonTable>
         )}
       </div>
     );
