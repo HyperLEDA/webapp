@@ -22,8 +22,8 @@ export const Button: React.FC<ButtonProps> = ({
       onClick={onClick}
       disabled={disabled}
       className={classNames(
-        "px-4 py-2 flex items-center bg-blue-500 text-white font-semibold rounded hover:bg-blue-600 transition disabled:bg-gray-400 disabled:cursor-not-allowed",
-        className
+        className,
+        "px-4 py-2 box-border flex items-center font-semibold border-1 border-[#1a1a1a] rounded-lg bg-[#1a1a1a] hover:border-[#646cff] transition-colors active:border-white",
       )}
     >
       {children}
