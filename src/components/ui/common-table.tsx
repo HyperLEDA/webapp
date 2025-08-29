@@ -59,7 +59,7 @@ export const CommonTable: React.FC<CommonTableProps> = ({
                                 <th
                                     key={column.name}
                                     className={classNames(
-                                        "border border-gray-300 px-4 py-2 text-left font-semibold text-gray-700",
+                                        "border border-gray-300 px-2 py-1 text-center font-semibold text-gray-700",
                                         columnHeaderClassName
                                     )}
                                 >
@@ -83,7 +83,7 @@ export const CommonTable: React.FC<CommonTableProps> = ({
                                         <td
                                             key={column.name}
                                             className={classNames(
-                                                "border border-gray-300 px-4 py-2",
+                                                "border border-gray-300 px-2 py-1",
                                                 cellClassName,
                                             )}
                                         >

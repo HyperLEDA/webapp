@@ -63,7 +63,7 @@ function renderColumnName(name: string): ReactElement {
             <p>{name}</p>
             <Button
                 onClick={handleCopy}
-                className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 px-2 py-2"
+                className="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
             >
                 {copied ? (
                     <MdCheck className="text-gray-400" />
