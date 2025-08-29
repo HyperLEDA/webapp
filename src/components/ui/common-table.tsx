@@ -3,11 +3,12 @@ import classNames from "classnames";
 
 interface Column {
     name: string;
+    renderCell?: (value: any) => React.ReactNode;
 }
 
 interface CommonTableProps {
     columns: Column[];
-    data: Record<string, string | number | undefined>[];
+    data: Record<string, any>[];
     className?: string;
     tableClassName?: string;
     headerClassName?: string;
@@ -26,10 +27,19 @@ export const CommonTable: React.FC<CommonTableProps> = ({
     cellClassName = "bg-gray-700 text-gray-200",
     children,
 }) => {
-    const renderCell = (value: string | number | undefined): React.ReactNode => {
+    const renderCell = (value: any, column: Column): React.ReactNode => {
+        if (column.renderCell) {
+            return column.renderCell(value);
+        }
+
         if (value === undefined || value === null) {
             return <span className="text-gray-400 italic">NULL</span>;
         }
+
+        if (React.isValidElement(value)) {
+            return value;
+        }
+
         return <span>{String(value)}</span>;
     };
 
@@ -78,7 +88,7 @@ export const CommonTable: React.FC<CommonTableProps> = ({
                                                 cellClassName
                                             )}
                                         >
-                                            {renderCell(cellValue)}
+                                            {renderCell(cellValue, column)}
                                         </td>
                                     );
                                 })}

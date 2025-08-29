@@ -16,9 +16,15 @@ const renderBibliography = (bib: Bibliography) => {
 
     authors += ` ${bib.year}`
 
-    // const targetLink = `https://ui.adsabs.harvard.edu/abs/${bib.bibcode}/abstract`
+    const targetLink = "https://ui.adsabs.harvard.edu/abs/" + bib.bibcode + "/abstract"
 
-    return `${authors}: "${bib.title}"`
+    return <div><a href={targetLink}>{bib.bibcode}</a> | {authors}: "{bib.title}"</div>
+}
+
+function renderTime(time: string): string {
+    const dt = new Date(time as string);
+
+    return dt.toString()
 }
 
 const renderTableDetails = (tableName: string, table: GetTableResponse) => {
@@ -35,6 +41,18 @@ const renderTableDetails = (tableName: string, table: GetTableResponse) => {
         {
             Parameter: "Bibliography",
             Value: renderBibliography(table.bibliography)
+        },
+        {
+            Parameter: "Number of records",
+            Value: table.rows_num
+        },
+        {
+            Parameter: "Datatype",
+            Value: table.meta.datatype
+        },
+        {
+            Parameter: "Modification time",
+            Value: renderTime(table.meta.modification_dt as string)
         }
     ]
 
