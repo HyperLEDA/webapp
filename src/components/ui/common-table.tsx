@@ -1,7 +1,7 @@
 import React from "react";
 import classNames from "classnames";
 
-interface Column {
+export interface Column {
     name: string;
     renderCell?: (value: any) => React.ReactNode;
 }

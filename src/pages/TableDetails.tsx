@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { ReactElement, useEffect, useState } from "react";
 import { GetTableResponse, HttpValidationError, Bibliography } from "../clients/admin/types.gen";
 import { getTableAdminApiV1TableGet } from "../clients/admin/sdk.gen";
 import { useNavigate, useParams } from "react-router-dom";
-import { CommonTable } from "../components/ui/common-table";
+import { CommonTable, Column } from "../components/ui/common-table";
 
 const renderBibliography = (bib: Bibliography) => {
     var authors = ""
@@ -25,6 +25,22 @@ function renderTime(time: string): string {
     const dt = new Date(time as string);
 
     return dt.toString()
+}
+
+function renderUCD(ucd: string | undefined | null): ReactElement {
+    if (!ucd) {
+        return <div></div>
+    }
+
+    var words: ReactElement[] = []
+
+    ucd.split(";").forEach(word => {
+        words.push(
+            <div className="inline-block bg-gray-600 rounded px-1.5 py-0.5 text-sm mr-0.5 mb-0.5">{word}</div>
+        )
+    });
+
+    return <div>{words}</div>
 }
 
 const renderTableDetails = (tableName: string, table: GetTableResponse) => {
@@ -56,11 +72,11 @@ const renderTableDetails = (tableName: string, table: GetTableResponse) => {
         }
     ]
 
-    const columnInfoColumns = [
+    const columnInfoColumns: Column[] = [
         { name: "Name" },
         { name: "Description" },
         { name: "Unit" },
-        { name: "UCD" },
+        { name: "UCD", renderCell: renderUCD },
     ]
 
     var columnInfoValues: any[] = []
@@ -80,7 +96,7 @@ const renderTableDetails = (tableName: string, table: GetTableResponse) => {
             <p className="text-gray-300">{table.description}</p>
         </CommonTable>
         <CommonTable columns={columnInfoColumns} data={columnInfoValues}>
-            <h2 className="text-2xl font-bold text-white mb-2">Description of columns</h2>
+            <h2 className="text-2xl font-bold text-white">Description of columns</h2>
         </CommonTable>
     </div>
 }
