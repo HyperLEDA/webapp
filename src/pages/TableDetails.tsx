@@ -56,10 +56,31 @@ const renderTableDetails = (tableName: string, table: GetTableResponse) => {
         }
     ]
 
+    const columnInfoColumns = [
+        { name: "Name" },
+        { name: "Description" },
+        { name: "Unit" },
+        { name: "UCD" },
+    ]
+
+    var columnInfoValues: any[] = []
+
+    table.column_info.forEach(col => {
+        columnInfoValues.push({
+            Name: <p className="font-mono">{col.name}</p>,
+            Description: col.description,
+            Unit: col.unit,
+            UCD: col.ucd,
+        })
+    });
+
     return <div>
-        <CommonTable columns={infoColumns} data={infoValues}>
+        <CommonTable columns={infoColumns} data={infoValues} className="pb-5">
             <h2 className="text-2xl font-bold text-white mb-2">{tableName}</h2>
             <p className="text-gray-300">{table.description}</p>
+        </CommonTable>
+        <CommonTable columns={columnInfoColumns} data={columnInfoValues}>
+            <h2 className="text-2xl font-bold text-white mb-2">Description of columns</h2>
         </CommonTable>
     </div>
 }
