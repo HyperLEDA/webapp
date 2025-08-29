@@ -3,6 +3,7 @@ import { GetTableResponse, HttpValidationError, Bibliography } from "../clients/
 import { getTableAdminApiV1TableGet } from "../clients/admin/sdk.gen";
 import { useNavigate, useParams } from "react-router-dom";
 import { CommonTable, Column } from "../components/ui/common-table";
+import { Button } from "../components/ui/button";
 
 const renderBibliography = (bib: Bibliography) => {
     var authors = ""
@@ -43,6 +44,41 @@ function renderUCD(ucd: string | undefined | null): ReactElement {
     return <div>{words}</div>
 }
 
+function renderColumnName(name: string): ReactElement {
+    const handleCopy = async () => {
+        try {
+            await navigator.clipboard.writeText(name);
+        } catch (err) {
+            console.error('Failed to copy text: ', err);
+        }
+    };
+
+    return (
+        <div className="font-mono group relative flex items-center justify-between">
+            <p>{name}</p>
+            <Button
+                onClick={handleCopy}
+                className="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+            >
+                <svg
+                    className="w-4 h-4 text-gray-400 hover:text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                >
+                    <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                    />
+                </svg>
+            </Button>
+        </div>
+    );
+}
+
 const renderTableDetails = (tableName: string, table: GetTableResponse) => {
     const infoColumns = [
         { name: "Parameter" },
@@ -73,7 +109,7 @@ const renderTableDetails = (tableName: string, table: GetTableResponse) => {
     ]
 
     const columnInfoColumns: Column[] = [
-        { name: "Name" },
+        { name: "Name", renderCell: renderColumnName },
         { name: "Description" },
         { name: "Unit" },
         { name: "UCD", renderCell: renderUCD },
@@ -83,7 +119,7 @@ const renderTableDetails = (tableName: string, table: GetTableResponse) => {
 
     table.column_info.forEach(col => {
         columnInfoValues.push({
-            Name: <p className="font-mono">{col.name}</p>,
+            Name: col.name,
             Description: col.description,
             Unit: col.unit,
             UCD: col.ucd,
