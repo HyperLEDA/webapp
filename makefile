@@ -3,6 +3,9 @@ GIT_VERSION = `git rev-parse --short main`
 run:
 	yarn dev
 
+build:
+	yarn build
+
 gen:
 	yarn run openapi-ts -i http://dm2.sao.ru:81/api/openapi.json -o ./src/clients/backend
 
