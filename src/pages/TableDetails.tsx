@@ -56,7 +56,7 @@ function renderBibliography(bib: Bibliography): ReactElement {
     const targetLink = "https://ui.adsabs.harvard.edu/abs/" + bib.bibcode + "/abstract"
 
     return <CopyButton textToCopy={bib.bibcode}>
-        <div><a href={targetLink}>{bib.bibcode}</a> | {authors}: "{bib.title}"</div>
+        <div><a target="_blank" rel="noopener noreferrer" href={targetLink}>{bib.bibcode}</a> | {authors}: "{bib.title}"</div>
     </CopyButton>
 }
 
