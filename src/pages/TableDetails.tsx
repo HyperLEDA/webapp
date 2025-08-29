@@ -6,7 +6,42 @@ import { CommonTable, Column } from "../components/ui/common-table";
 import { Button } from "../components/ui/button";
 import { MdContentCopy, MdCheck } from "react-icons/md";
 
-const renderBibliography = (bib: Bibliography) => {
+interface CopyButtonProps {
+    children: ReactElement;
+    textToCopy: string;
+}
+
+const CopyButton: React.FC<CopyButtonProps> = ({ children, textToCopy }) => {
+    const [copied, setCopied] = useState(false);
+
+    const handleCopy = async () => {
+        try {
+            await navigator.clipboard.writeText(textToCopy);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 1000);
+        } catch (err) {
+            console.error('Failed to copy text: ', err);
+        }
+    };
+
+    return (
+        <div className="font-mono group relative flex items-center justify-between">
+            <div>{children}</div>
+            <Button
+                onClick={handleCopy}
+                className="opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+                {copied ? (
+                    <MdCheck className="text-gray-400" />
+                ) : (
+                    <MdContentCopy className="text-gray-400" />
+                )}
+            </Button>
+        </div>
+    );
+};
+
+function renderBibliography(bib: Bibliography): ReactElement {
     var authors = ""
 
     if (bib.authors.length >= 1) {
@@ -20,7 +55,9 @@ const renderBibliography = (bib: Bibliography) => {
 
     const targetLink = "https://ui.adsabs.harvard.edu/abs/" + bib.bibcode + "/abstract"
 
-    return <div><a href={targetLink}>{bib.bibcode}</a> | {authors}: "{bib.title}"</div>
+    return <CopyButton textToCopy={bib.bibcode}>
+        <div><a href={targetLink}>{bib.bibcode}</a> | {authors}: "{bib.title}"</div>
+    </CopyButton>
 }
 
 function renderTime(time: string): string {
@@ -36,43 +73,21 @@ function renderUCD(ucd: string | undefined | null): ReactElement {
 
     var words: ReactElement[] = []
 
-    ucd.split(";").forEach(word => {
+    ucd.split(";").forEach((word, index) => {
         words.push(
-            <div className="inline-block bg-gray-600 rounded px-1.5 py-0.5 text-sm mr-0.5 mb-0.5">{word}</div>
+            <div key={`${word}-${index}`} className="inline-block bg-gray-600 rounded px-1.5 py-0.5 text-sm mr-0.5 mb-0.5">{word}</div>
         )
     });
 
-    return <div>{words}</div>
+    return <CopyButton textToCopy={ucd}>
+        <div>{words}</div>
+    </CopyButton>
 }
 
 function renderColumnName(name: string): ReactElement {
-    const [copied, setCopied] = useState(false);
-
-    const handleCopy = async () => {
-        try {
-            await navigator.clipboard.writeText(name);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 1000);
-        } catch (err) {
-            console.error('Failed to copy text: ', err);
-        }
-    };
-
-    return (
-        <div className="font-mono group relative flex items-center justify-between">
-            <p>{name}</p>
-            <Button
-                onClick={handleCopy}
-                className="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-            >
-                {copied ? (
-                    <MdCheck className="text-gray-400" />
-                ) : (
-                    <MdContentCopy className="text-gray-400" />
-                )}
-            </Button>
-        </div>
-    );
+    return <CopyButton textToCopy={name}>
+        <p>{name}</p>
+    </CopyButton>
 }
 
 const renderTableDetails = (tableName: string, table: GetTableResponse) => {
@@ -88,7 +103,7 @@ const renderTableDetails = (tableName: string, table: GetTableResponse) => {
         },
         {
             Parameter: "Source paper",
-            Value: renderBibliography(table.bibliography)
+            Value: renderBibliography(table.bibliography),
         },
         {
             Parameter: "Number of records",
