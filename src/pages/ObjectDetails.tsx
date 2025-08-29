@@ -176,9 +176,6 @@ export const ObjectDetailsPage: React.FC = () => {
           <CommonTable
             columns={coordinatesColumns}
             data={coordinatesData}
-            headerClassName="bg-gray-700 border-gray-600"
-            columnHeaderClassName="bg-gray-600 text-white"
-            cellClassName="bg-gray-700 text-gray-200"
           >
             <h2 className="text-xl font-bold text-white">Coordinates</h2>
             <p className="text-gray-300">Celestial coordinates of the object</p>
@@ -189,9 +186,6 @@ export const ObjectDetailsPage: React.FC = () => {
           <CommonTable
             columns={redshiftColumns}
             data={redshiftData}
-            headerClassName="bg-gray-700 border-gray-600"
-            columnHeaderClassName="bg-gray-600 text-white"
-            cellClassName="bg-gray-700 text-gray-200"
           >
             <h2 className="text-xl font-bold text-white">Redshift</h2>
             <p className="text-gray-300">Redshift measurements</p>
@@ -202,9 +196,6 @@ export const ObjectDetailsPage: React.FC = () => {
           <CommonTable
             columns={velocityColumns}
             data={velocityData}
-            headerClassName="bg-gray-700 border-gray-600"
-            columnHeaderClassName="bg-gray-600 text-white"
-            cellClassName="bg-gray-700 text-gray-200"
           >
             <h2 className="text-xl font-bold text-white">Velocity</h2>
             <p className="text-gray-300">Velocity measurements with respect to different apexes</p>

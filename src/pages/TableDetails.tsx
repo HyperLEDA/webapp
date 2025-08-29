@@ -1,7 +1,50 @@
 import React, { useEffect, useState } from "react";
-import { GetTableResponse, HttpValidationError } from "../clients/admin/types.gen";
+import { GetTableResponse, HttpValidationError, Bibliography } from "../clients/admin/types.gen";
 import { getTableAdminApiV1TableGet } from "../clients/admin/sdk.gen";
 import { useNavigate, useParams } from "react-router-dom";
+import { CommonTable } from "../components/ui/common-table";
+
+const renderBibliography = (bib: Bibliography) => {
+    var authors = ""
+
+    if (bib.authors.length >= 1) {
+        authors += bib.authors[0]
+    }
+    if (bib.authors.length >= 2) {
+        authors += " et al."
+    }
+
+    authors += ` ${bib.year}`
+
+    // const targetLink = `https://ui.adsabs.harvard.edu/abs/${bib.bibcode}/abstract`
+
+    return `${authors}: "${bib.title}"`
+}
+
+const renderTableDetails = (tableName: string, table: GetTableResponse) => {
+    const infoColumns = [
+        { name: "Parameter" },
+        { name: "Value" }
+    ]
+
+    const infoValues = [
+        {
+            Parameter: "Table ID",
+            Value: table.id,
+        },
+        {
+            Parameter: "Bibliography",
+            Value: renderBibliography(table.bibliography)
+        }
+    ]
+
+    return <div>
+        <CommonTable columns={infoColumns} data={infoValues}>
+            <h2 className="text-2xl font-bold text-white mb-2">{tableName}</h2>
+            <p className="text-gray-300">{table.description}</p>
+        </CommonTable>
+    </div>
+}
 
 export const TableDetailsPage: React.FC = () => {
     const { tableName } = useParams<{ tableName: string }>();
@@ -56,7 +99,7 @@ export const TableDetailsPage: React.FC = () => {
                     <p className="text-gray-300 text-lg">Loading...</p>
                 </div>
             ) : table ? (
-                <div>{table?.bibliography.title}</div>
+                renderTableDetails(tableName ?? "", table)
             ) : error ? (
                 renderError(error)
             ) : (

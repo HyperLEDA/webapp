@@ -21,9 +21,9 @@ export const CommonTable: React.FC<CommonTableProps> = ({
     data,
     className = "",
     tableClassName = "",
-    headerClassName = "",
-    columnHeaderClassName = "",
-    cellClassName = "",
+    headerClassName = "bg-gray-700 border-gray-600",
+    columnHeaderClassName = "bg-gray-600 text-white",
+    cellClassName = "bg-gray-700 text-gray-200",
     children,
 }) => {
     const renderCell = (value: string | number | undefined): React.ReactNode => {
