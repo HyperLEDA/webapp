@@ -24,7 +24,7 @@ export const CommonTable: React.FC<CommonTableProps> = ({
     tableClassName = "",
     headerClassName = "bg-gray-700 border-gray-600",
     columnHeaderClassName = "bg-gray-600 text-white",
-    cellClassName = "bg-gray-700 text-gray-200",
+    cellClassName = "text-gray-200",
     children,
 }) => {
     const renderCell = (value: any, column: Column): React.ReactNode => {
@@ -74,8 +74,7 @@ export const CommonTable: React.FC<CommonTableProps> = ({
                             <tr
                                 key={rowIndex}
                                 className={classNames(
-                                    "hover:bg-gray-50",
-                                    rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50"
+                                    "bg-gray-700 hover:bg-gray-800 transition-colors duration-150"
                                 )}
                             >
                                 {columns.map((column) => {
@@ -84,8 +83,8 @@ export const CommonTable: React.FC<CommonTableProps> = ({
                                         <td
                                             key={column.name}
                                             className={classNames(
-                                                "border border-gray-300 px-4 py-2 text-black",
-                                                cellClassName
+                                                "border border-gray-300 px-4 py-2",
+                                                cellClassName,
                                             )}
                                         >
                                             {renderCell(cellValue, column)}

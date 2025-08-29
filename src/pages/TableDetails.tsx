@@ -55,7 +55,7 @@ const renderTableDetails = (tableName: string, table: GetTableResponse) => {
             Value: table.id,
         },
         {
-            Parameter: "Bibliography",
+            Parameter: "Source paper",
             Value: renderBibliography(table.bibliography)
         },
         {
@@ -63,7 +63,7 @@ const renderTableDetails = (tableName: string, table: GetTableResponse) => {
             Value: table.rows_num
         },
         {
-            Parameter: "Datatype",
+            Parameter: "Type of data",
             Value: table.meta.datatype
         },
         {
@@ -90,13 +90,13 @@ const renderTableDetails = (tableName: string, table: GetTableResponse) => {
         })
     });
 
-    return <div>
+    return <div className="px-8">
         <CommonTable columns={infoColumns} data={infoValues} className="pb-5">
-            <h2 className="text-2xl font-bold text-white mb-2">{tableName}</h2>
-            <p className="text-gray-300">{table.description}</p>
+            <h2 className="text-2xl font-bold text-white mb-2">{table.description}</h2>
+            <p className="text-gray-300 font-mono">{tableName}</p>
         </CommonTable>
         <CommonTable columns={columnInfoColumns} data={columnInfoValues}>
-            <h2 className="text-2xl font-bold text-white">Description of columns</h2>
+            <h2 className="text-2xl font-bold text-white">Column information</h2>
         </CommonTable>
     </div>
 }
