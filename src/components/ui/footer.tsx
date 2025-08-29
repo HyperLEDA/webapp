@@ -10,7 +10,7 @@ Old version: http://leda.univ-lyon1.fr/
 `;
 
 export function Footer() {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
 
   const toggleCollapse = () => {
     setIsCollapsed(!isCollapsed);
