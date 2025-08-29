@@ -3,6 +3,8 @@ import { Footer } from "./components/ui/footer";
 import { HomePage } from "./pages/Home";
 import { SearchResultsPage } from "./pages/SearchResults";
 import { ObjectDetailsPage } from "./pages/ObjectDetails";
+import { NotFoundPage } from "./pages/NotFound";
+import { TableDetailsPage } from "./pages/TableDetails";
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -40,6 +42,18 @@ function App() {
               <ObjectDetailsPage />
             </Layout>
           }
+        />
+        <Route
+          path="/table/:tableName"
+          element={
+            <Layout>
+              <TableDetailsPage />
+            </Layout>
+          }
+        />
+        <Route
+          path="*"
+          element={<NotFoundPage />}
         />
       </Routes>
     </BrowserRouter>
