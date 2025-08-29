@@ -1,4 +1,4 @@
-GIT_VERSION = `git rev-parse --short main`
+GIT_VERSION = `git rev-parse --short HEAD`
 
 run:
 	yarn dev
