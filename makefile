@@ -8,6 +8,7 @@ build:
 
 gen:
 	yarn run openapi-ts -i http://dm2.sao.ru:81/api/openapi.json -o ./src/clients/backend
+	yarn run openapi-ts -i http://dm2.sao.ru:81/admin/api/openapi.json -o ./src/clients/admin
 
 image-build:
 	docker build . -t ghcr.io/hyperleda/hyperleda-webapp:$(GIT_VERSION)

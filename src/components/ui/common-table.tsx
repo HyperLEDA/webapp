@@ -1,13 +1,14 @@
 import React from "react";
 import classNames from "classnames";
 
-interface Column {
+export interface Column {
     name: string;
+    renderCell?: (value: any) => React.ReactNode;
 }
 
 interface CommonTableProps {
     columns: Column[];
-    data: Record<string, string | number | undefined>[];
+    data: Record<string, any>[];
     className?: string;
     tableClassName?: string;
     headerClassName?: string;
@@ -21,15 +22,24 @@ export const CommonTable: React.FC<CommonTableProps> = ({
     data,
     className = "",
     tableClassName = "",
-    headerClassName = "",
-    columnHeaderClassName = "",
-    cellClassName = "",
+    headerClassName = "bg-gray-700 border-gray-600",
+    columnHeaderClassName = "bg-gray-600 text-white",
+    cellClassName = "text-gray-200",
     children,
 }) => {
-    const renderCell = (value: string | number | undefined): React.ReactNode => {
+    const renderCell = (value: any, column: Column): React.ReactNode => {
+        if (column.renderCell) {
+            return column.renderCell(value);
+        }
+
         if (value === undefined || value === null) {
             return <span className="text-gray-400 italic">NULL</span>;
         }
+
+        if (React.isValidElement(value)) {
+            return value;
+        }
+
         return <span>{String(value)}</span>;
     };
 
@@ -49,7 +59,7 @@ export const CommonTable: React.FC<CommonTableProps> = ({
                                 <th
                                     key={column.name}
                                     className={classNames(
-                                        "border border-gray-300 px-4 py-2 text-left font-semibold text-gray-700",
+                                        "border border-gray-300 px-2 py-1 text-center font-semibold text-gray-700",
                                         columnHeaderClassName
                                     )}
                                 >
@@ -64,8 +74,7 @@ export const CommonTable: React.FC<CommonTableProps> = ({
                             <tr
                                 key={rowIndex}
                                 className={classNames(
-                                    "hover:bg-gray-50",
-                                    rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50"
+                                    "bg-gray-700 hover:bg-gray-800 transition-colors duration-150"
                                 )}
                             >
                                 {columns.map((column) => {
@@ -74,11 +83,11 @@ export const CommonTable: React.FC<CommonTableProps> = ({
                                         <td
                                             key={column.name}
                                             className={classNames(
-                                                "border border-gray-300 px-4 py-2 text-black",
-                                                cellClassName
+                                                "border border-gray-300 px-2 py-1",
+                                                cellClassName,
                                             )}
                                         >
-                                            {renderCell(cellValue)}
+                                            {renderCell(cellValue, column)}
                                         </td>
                                     );
                                 })}
