@@ -3,43 +3,7 @@ import { GetTableResponse, HttpValidationError, Bibliography } from "../clients/
 import { getTableAdminApiV1TableGet } from "../clients/admin/sdk.gen";
 import { useNavigate, useParams } from "react-router-dom";
 import { CommonTable, Column } from "../components/ui/common-table";
-import { Button } from "../components/ui/button";
-import { MdContentCopy, MdCheck } from "react-icons/md";
-
-interface CopyButtonProps {
-    children: ReactElement;
-    textToCopy: string;
-}
-
-const CopyButton: React.FC<CopyButtonProps> = ({ children, textToCopy }) => {
-    const [copied, setCopied] = useState(false);
-
-    const handleCopy = async () => {
-        try {
-            await navigator.clipboard.writeText(textToCopy);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 1000);
-        } catch (err) {
-            console.error('Failed to copy text: ', err);
-        }
-    };
-
-    return (
-        <div className="font-mono group relative flex items-center justify-between">
-            <div>{children}</div>
-            <Button
-                onClick={handleCopy}
-                className="opacity-0 group-hover:opacity-100 transition-opacity"
-            >
-                {copied ? (
-                    <MdCheck className="text-gray-400" />
-                ) : (
-                    <MdContentCopy className="text-gray-400" />
-                )}
-            </Button>
-        </div>
-    );
-};
+import { CopyButton } from "../components/ui/copy-button";
 
 function renderBibliography(bib: Bibliography): ReactElement {
     var authors = ""
