@@ -1,11 +1,29 @@
-import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { ReactElement, useEffect, useState } from "react";
+import { NavigateFunction, useNavigate, useSearchParams } from "react-router-dom";
 import { backendClient, SearchPGCObject } from "../clients/backend";
 import { SearchBar } from "../components/ui/searchbar";
 import { AladinViewer } from "../components/ui/aladin";
 import { Card, CardContent } from "../components/ui/card";
 
-export const SearchResultsPage: React.FC = () => {
+function objectClickHandler(navigate: NavigateFunction, object: SearchPGCObject) {
+  navigate(`/object/${object.pgc}`);
+};
+
+function searchHandler(navigate: NavigateFunction) {
+  return function f(query: string) {
+    navigate(`/query?q=${encodeURIComponent(query)}`);
+  }
+};
+
+function pageChangeHandler(navigate: NavigateFunction, query: string, pageSize: number, newPage: number) {
+  navigate(
+    `/query?q=${encodeURIComponent(
+      query
+    )}&page=${newPage}&pagesize=${pageSize}`
+  );
+};
+
+export function SearchResultsPage(): ReactElement {
   const [searchParams] = useSearchParams();
   const [results, setResults] = useState<SearchPGCObject[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -15,7 +33,7 @@ export const SearchResultsPage: React.FC = () => {
   const pageSize = parseInt(searchParams.get("pagesize") || "10");
 
   useEffect(() => {
-    const fetchResults = async () => {
+    async function fetchResults() {
       if (!query.trim()) {
         navigate("/");
         return;
@@ -35,29 +53,11 @@ export const SearchResultsPage: React.FC = () => {
     fetchResults();
   }, [query, navigate, pageSize, page]);
 
-  const handleObjectClick = (object: SearchPGCObject) => {
-    navigate(`/object/${object.pgc}`);
-  };
-
-  const handleSearch = (newQuery: string) => {
-    if (newQuery.trim()) {
-      navigate(`/query?q=${encodeURIComponent(newQuery)}`);
-    }
-  };
-
-  const handlePageChange = (newPage: number) => {
-    navigate(
-      `/query?q=${encodeURIComponent(
-        query
-      )}&page=${newPage}&pagesize=${pageSize}`
-    );
-  };
-
   return (
     <div className="p-4">
       <SearchBar
         initialValue={query}
-        onSearch={handleSearch}
+        onSearch={searchHandler(navigate)}
         logoSize="small"
       />
 
@@ -79,7 +79,7 @@ export const SearchResultsPage: React.FC = () => {
                   <Card
                     key={object.pgc}
                     className="cursor-pointer hover:shadow-lg flex-grow ml-4"
-                    onClick={() => handleObjectClick(object)}
+                    onClick={() => objectClickHandler(navigate, object)}
                   >
                     <CardContent>
                       <h2 className="text-lg">PGC {object.pgc}</h2>
@@ -100,7 +100,7 @@ export const SearchResultsPage: React.FC = () => {
               ))}
               <div className="flex justify-center items-center gap-4 mt-4">
                 <button
-                  onClick={() => handlePageChange(page - 1)}
+                  onClick={() => pageChangeHandler(navigate, query, pageSize, page - 1)}
                   disabled={page <= 1}
                   className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
                 >
@@ -108,7 +108,7 @@ export const SearchResultsPage: React.FC = () => {
                 </button>
                 <span>Page {page}</span>
                 <button
-                  onClick={() => handlePageChange(page + 1)}
+                  onClick={() => pageChangeHandler(navigate, query, pageSize, page + 1)}
                   disabled={results.length < pageSize}
                   className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
                 >

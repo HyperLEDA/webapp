@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { NavigateFunction, useNavigate } from "react-router-dom";
 import { SearchBar } from "../components/ui/searchbar";
 import { ReactElement } from "react";
 import { Link } from "../components/ui/link";
@@ -32,16 +32,18 @@ const homePageHint: ReactElement = (
   </div>
 );
 
-export const HomePage: React.FC = () => {
-  const navigate = useNavigate();
-
-  const handleSearch = (query: string) => {
+function searchHandler(navigate: NavigateFunction) {
+  return function f(query: string) {
     navigate(`/query?q=${encodeURIComponent(query)}`);
-  };
+  }
+};
+
+export function HomePage(): ReactElement {
+  const navigate = useNavigate();
 
   return (
     <div className="p-4">
-      <SearchBar onSearch={handleSearch} logoSize="large" />
+      <SearchBar onSearch={searchHandler(navigate)} logoSize="large" />
       <div className="max-w-4xl mx-auto mt-8 prose prose-invert leading-none prose-a:no-underline">
         {homePageHint}
       </div>

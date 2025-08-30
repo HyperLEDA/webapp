@@ -1,4 +1,4 @@
-import React, { ReactElement, ReactNode } from "react";
+import React, { ReactElement } from "react";
 import classNames from "classnames";
 import { Hint } from "./hint";
 
@@ -6,7 +6,7 @@ export type CellPrimitive = ReactElement | string | number
 
 export interface Column {
     name: string;
-    renderCell?: (value: CellPrimitive) => ReactNode;
+    renderCell?: (value: CellPrimitive) => ReactElement;
     hint?: ReactElement;
 }
 
@@ -21,7 +21,7 @@ interface CommonTableProps {
     children?: React.ReactNode;
 }
 
-export const CommonTable: React.FC<CommonTableProps> = ({
+export function CommonTable({
     columns,
     data,
     className = "",
@@ -30,8 +30,8 @@ export const CommonTable: React.FC<CommonTableProps> = ({
     columnHeaderClassName = "bg-gray-600 text-white",
     cellClassName = "text-gray-200",
     children,
-}) => {
-    const renderCell = (value: CellPrimitive, column: Column): React.ReactNode => {
+}: CommonTableProps): ReactElement {
+    function renderCell(value: CellPrimitive, column: Column): ReactElement {
         if (column.renderCell) {
             return column.renderCell(value);
         }

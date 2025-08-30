@@ -7,12 +7,12 @@ interface CopyButtonProps {
     textToCopy: string;
 }
 
-export const CopyButton: React.FC<CopyButtonProps> = ({ children, textToCopy }) => {
+export function CopyButton(props: CopyButtonProps): ReactElement {
     const [copied, setCopied] = useState(false);
 
-    const handleCopy = async () => {
+    async function handleCopy() {
         try {
-            await navigator.clipboard.writeText(textToCopy);
+            await navigator.clipboard.writeText(props.textToCopy);
             setCopied(true);
             setTimeout(() => setCopied(false), 1000);
         } catch (err) {
@@ -22,7 +22,7 @@ export const CopyButton: React.FC<CopyButtonProps> = ({ children, textToCopy }) 
 
     return (
         <div className="font-mono group relative flex items-center justify-between">
-            <div>{children}</div>
+            <div>{props.children}</div>
             <Button
                 onClick={handleCopy}
                 className="opacity-0 group-hover:opacity-100 transition-opacity"

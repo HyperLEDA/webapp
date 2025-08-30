@@ -1,4 +1,4 @@
-import React, { ReactElement, useEffect, useState } from "react";
+import { ReactElement, useEffect, useState } from "react";
 import { GetTableResponse, HttpValidationError, Bibliography } from "../clients/admin/types.gen";
 import { getTableAdminApiV1TableGet } from "../clients/admin/sdk.gen";
 import { useNavigate, useParams } from "react-router-dom";
@@ -32,7 +32,7 @@ function renderTime(time: string): string {
 }
 
 function renderUCD(ucd: CellPrimitive): ReactElement {
-    if (!(typeof ucd == "string")) {
+    if (!(typeof ucd === "string")) {
         return <div></div>
     }
 
@@ -55,7 +55,7 @@ function renderColumnName(name: CellPrimitive): ReactElement {
     </CopyButton>
 }
 
-const renderTableDetails = (tableName: string, table: GetTableResponse) => {
+function renderTableDetails(tableName: string, table: GetTableResponse): ReactElement {
     const infoColumns = [
         { name: "Parameter" },
         { name: "Value" }
@@ -129,7 +129,19 @@ const renderTableDetails = (tableName: string, table: GetTableResponse) => {
     </div>
 }
 
-export const TableDetailsPage: React.FC = () => {
+function renderNotFound(): ReactElement {
+    return <div className="text-center">
+        <p className="text-gray-300">Table not found.</p>
+    </div>
+};
+
+function renderError(error: HttpValidationError): ReactElement {
+    return <div className="text-center">
+        <p className="text-gray-300">{error.detail?.toString()}</p>
+    </div>
+};
+
+export function TableDetailsPage(): ReactElement {
     const { tableName } = useParams<{ tableName: string }>();
     const [table, setTable] = useState<GetTableResponse | null>(null);
     const [error, setError] = useState<HttpValidationError | null>(null);
@@ -137,7 +149,7 @@ export const TableDetailsPage: React.FC = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const fetchData = async () => {
+        async function fetchData() {
             if (!tableName) {
                 navigate("/");
                 return;
@@ -162,18 +174,6 @@ export const TableDetailsPage: React.FC = () => {
 
         fetchData();
     }, [tableName, navigate])
-
-    const renderNotFound = () => (
-        <div className="text-center">
-            <p className="text-gray-300">Table not found.</p>
-        </div>
-    );
-
-    const renderError = (error: HttpValidationError) => (
-        <div className="text-center">
-            <p className="text-gray-300">{error.detail?.toString()}</p>
-        </div>
-    );
 
     return (
         <div className="p-4">

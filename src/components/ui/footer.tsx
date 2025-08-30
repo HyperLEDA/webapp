@@ -12,7 +12,7 @@ const footerContent = <div className="prose prose-invert prose-a:no-underline">
 export function Footer() {
   const [isCollapsed, setIsCollapsed] = useState(true);
 
-  const toggleCollapse = () => {
+  function toggleCollapse() {
     setIsCollapsed(!isCollapsed);
   };
 

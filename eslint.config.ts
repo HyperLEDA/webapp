@@ -7,7 +7,7 @@ export default tseslint.config(
       eslint.configs.recommended,
       tseslint.configs.recommended,
     ],
-    ignores: ['src/clients/**'],
+    ignores: ['src/clients/**'], // code-generated
     rules: {
       '@typescript-eslint/array-type': 'error',
       'array-callback-return': 'error',
@@ -22,7 +22,18 @@ export default tseslint.config(
       'no-use-before-define': 'error',
       'no-useless-assignment': 'error',
       'require-atomic-updates': 'error',
-      'arrow-body-style': 'error'
+
+      // suggestion enforcements to make TypeScript a sane language
+      'arrow-body-style': 'error',
+      'block-scoped-var': 'error',
+      'camelcase': ['error', { properties: 'never' }], // code-generated client structures might not always adhere to camelcase
+      'consistent-return': 'error',
+      'default-case': 'error',
+      'default-case-last': 'error',
+      'default-param-last': 'error',
+      'eqeqeq': 'error',
+      'func-name-matching': 'error',
+      'func-style': ["error", "declaration"]
     }
   },
 )

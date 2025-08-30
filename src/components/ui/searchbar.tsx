@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { ReactElement, useState } from "react";
 import { Link } from "react-router-dom";
 import classNames from "classnames";
 import { Button } from "./button";
@@ -11,16 +11,11 @@ interface SearchBarProps {
   showLogo?: boolean;
 }
 
-export const SearchBar: React.FC<SearchBarProps> = ({
-  initialValue = "",
-  onSearch,
-  className,
-  logoSize = "large",
-  showLogo = true,
-}) => {
+export function SearchBar(props: SearchBarProps): ReactElement {
+  const { initialValue = "", logoSize = "large", showLogo = true, onSearch, className } = props;
   const [searchQuery, setSearchQuery] = useState<string>(initialValue);
 
-  const handleSubmit = () => {
+  function handleSubmit() {
     if (searchQuery.trim()) {
       onSearch(searchQuery);
     }
