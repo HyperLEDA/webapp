@@ -1,27 +1,37 @@
 import { ReactElement, useEffect, useState } from "react";
-import { NavigateFunction, useNavigate, useSearchParams } from "react-router-dom";
+import {
+  NavigateFunction,
+  useNavigate,
+  useSearchParams,
+} from "react-router-dom";
 import { SearchPGCObject, backendClient } from "../clients/backend";
 import { SearchBar } from "../components/ui/searchbar";
 import { AladinViewer } from "../components/ui/aladin";
 import { Card, CardContent } from "../components/ui/card";
 
-function objectClickHandler(navigate: NavigateFunction, object: SearchPGCObject) {
+function objectClickHandler(
+  navigate: NavigateFunction,
+  object: SearchPGCObject,
+) {
   navigate(`/object/${object.pgc}`);
-};
+}
 
 function searchHandler(navigate: NavigateFunction) {
   return function f(query: string) {
     navigate(`/query?q=${encodeURIComponent(query)}`);
-  }
-};
+  };
+}
 
-function pageChangeHandler(navigate: NavigateFunction, query: string, pageSize: number, newPage: number) {
+function pageChangeHandler(
+  navigate: NavigateFunction,
+  query: string,
+  pageSize: number,
+  newPage: number,
+) {
   navigate(
-    `/query?q=${encodeURIComponent(
-      query
-    )}&page=${newPage}&pagesize=${pageSize}`
+    `/query?q=${encodeURIComponent(query)}&page=${newPage}&pagesize=${pageSize}`,
   );
-};
+}
 
 export function SearchResultsPage(): ReactElement {
   const [searchParams] = useSearchParams();
@@ -48,7 +58,7 @@ export function SearchResultsPage(): ReactElement {
       } finally {
         setLoading(false);
       }
-    };
+    }
 
     fetchResults();
   }, [query, navigate, pageSize, page]);
@@ -100,7 +110,9 @@ export function SearchResultsPage(): ReactElement {
               ))}
               <div className="flex justify-center items-center gap-4 mt-4">
                 <button
-                  onClick={() => pageChangeHandler(navigate, query, pageSize, page - 1)}
+                  onClick={() =>
+                    pageChangeHandler(navigate, query, pageSize, page - 1)
+                  }
                   disabled={page <= 1}
                   className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
                 >
@@ -108,7 +120,9 @@ export function SearchResultsPage(): ReactElement {
                 </button>
                 <span>Page {page}</span>
                 <button
-                  onClick={() => pageChangeHandler(navigate, query, pageSize, page + 1)}
+                  onClick={() =>
+                    pageChangeHandler(navigate, query, pageSize, page + 1)
+                  }
                   disabled={results.length < pageSize}
                   className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
                 >
@@ -123,4 +137,4 @@ export function SearchResultsPage(): ReactElement {
       )}
     </div>
   );
-};
+}

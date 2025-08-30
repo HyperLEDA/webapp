@@ -4,33 +4,36 @@ import { SearchBar } from "../components/ui/searchbar";
 import { Button } from "../components/ui/button";
 import { AladinViewer } from "../components/ui/aladin";
 import { CommonTable } from "../components/ui/common-table";
-import { querySimpleApiV1QuerySimpleGet } from "../clients/backend/sdk.gen"
-import { PgcObject, Schema } from "../clients/backend/types.gen"
+import { querySimpleApiV1QuerySimpleGet } from "../clients/backend/sdk.gen";
+import { PgcObject, Schema } from "../clients/backend/types.gen";
 
 function backToResultsHandler(navigate: NavigateFunction) {
   return function f() {
     navigate(-1);
-  }
+  };
 }
 
 function searchHandler(navigate: NavigateFunction) {
   return function f(query: string) {
     navigate(`/query?q=${encodeURIComponent(query)}`);
-  }
-};
-
+  };
+}
 
 function renderNotFound(navigate: NavigateFunction) {
-  return <div className="text-center">
-    <Button onClick={backToResultsHandler(navigate)} className="mb-4">
-      Back
-    </Button>
-    <p className="text-gray-300">Object not found.</p>
-  </div>
-};
+  return (
+    <div className="text-center">
+      <Button onClick={backToResultsHandler(navigate)} className="mb-4">
+        Back
+      </Button>
+      <p className="text-gray-300">Object not found.</p>
+    </div>
+  );
+}
 
-
-function renderObjectDetails(object: PgcObject, schema: Schema | null): ReactElement {
+function renderObjectDetails(
+  object: PgcObject,
+  schema: Schema | null,
+): ReactElement {
   if (!object || !schema) return <div />;
 
   const coordinatesColumns = [
@@ -46,28 +49,33 @@ function renderObjectDetails(object: PgcObject, schema: Schema | null): ReactEle
       Parameter: "Right ascension",
       Value: object.catalogs?.coordinates?.equatorial?.ra?.toFixed(6) || "NULL",
       Unit: schema.units.coordinates?.equatorial?.ra || "NULL",
-      Error: object.catalogs?.coordinates?.equatorial?.e_ra?.toFixed(6) || "NULL",
+      Error:
+        object.catalogs?.coordinates?.equatorial?.e_ra?.toFixed(6) || "NULL",
       "Error unit": schema.units.coordinates?.equatorial?.e_ra || "NULL",
     },
     {
       Parameter: "Declination",
-      Value: object.catalogs?.coordinates?.equatorial?.dec?.toFixed(6) || "NULL",
+      Value:
+        object.catalogs?.coordinates?.equatorial?.dec?.toFixed(6) || "NULL",
       Unit: schema.units.coordinates?.equatorial?.dec || "NULL",
-      Error: object.catalogs?.coordinates?.equatorial?.e_dec?.toFixed(6) || "NULL",
+      Error:
+        object.catalogs?.coordinates?.equatorial?.e_dec?.toFixed(6) || "NULL",
       "Error unit": schema.units.coordinates?.equatorial?.e_dec || "NULL",
     },
     {
       Parameter: "Galactic longitude",
       Value: object.catalogs?.coordinates?.galactic?.lon?.toFixed(6) || "NULL",
       Unit: schema.units.coordinates?.galactic?.lon || "NULL",
-      Error: object.catalogs?.coordinates?.galactic?.e_lon?.toFixed(6) || "NULL",
+      Error:
+        object.catalogs?.coordinates?.galactic?.e_lon?.toFixed(6) || "NULL",
       "Error unit": schema.units.coordinates?.galactic?.e_lon || "NULL",
     },
     {
       Parameter: "Galactic latitude",
       Value: object.catalogs?.coordinates?.galactic?.lat?.toFixed(6) || "NULL",
       Unit: schema.units.coordinates?.galactic?.lat || "NULL",
-      Error: object.catalogs?.coordinates?.galactic?.e_lat?.toFixed(6) || "NULL",
+      Error:
+        object.catalogs?.coordinates?.galactic?.e_lat?.toFixed(6) || "NULL",
       "Error unit": schema.units.coordinates?.galactic?.e_lat || "NULL",
     },
   ];
@@ -146,37 +154,30 @@ function renderObjectDetails(object: PgcObject, schema: Schema | null): ReactEle
       </div>
 
       {object.catalogs?.coordinates && (
-        <CommonTable
-          columns={coordinatesColumns}
-          data={coordinatesData}
-        >
+        <CommonTable columns={coordinatesColumns} data={coordinatesData}>
           <h2 className="text-xl font-bold text-white">Coordinates</h2>
           <p className="text-gray-300">Celestial coordinates of the object</p>
         </CommonTable>
       )}
 
       {object.catalogs?.redshift && (
-        <CommonTable
-          columns={redshiftColumns}
-          data={redshiftData}
-        >
+        <CommonTable columns={redshiftColumns} data={redshiftData}>
           <h2 className="text-xl font-bold text-white">Redshift</h2>
           <p className="text-gray-300">Redshift measurements</p>
         </CommonTable>
       )}
 
       {object.catalogs?.velocity && (
-        <CommonTable
-          columns={velocityColumns}
-          data={velocityData}
-        >
+        <CommonTable columns={velocityColumns} data={velocityData}>
           <h2 className="text-xl font-bold text-white">Velocity</h2>
-          <p className="text-gray-300">Velocity measurements with respect to different apexes</p>
+          <p className="text-gray-300">
+            Velocity measurements with respect to different apexes
+          </p>
         </CommonTable>
       )}
     </div>
   );
-};
+}
 
 export function ObjectDetailsPage(): ReactElement {
   const { pgcId } = useParams<{ pgcId: string }>();
@@ -196,17 +197,17 @@ export function ObjectDetailsPage(): ReactElement {
       try {
         const response = await querySimpleApiV1QuerySimpleGet({
           query: {
-            pgcs: [Number(pgcId)]
-          }
-        })
+            pgcs: [Number(pgcId)],
+          },
+        });
 
-        const objects = response.data?.data.objects
-        const schema = response.data?.data.schema
+        const objects = response.data?.data.objects;
+        const schema = response.data?.data.schema;
 
         if (objects && objects.length > 0) {
           const objectData = objects[0];
           setObject(objectData);
-          setSchema(schema || null)
+          setSchema(schema || null);
         } else {
           console.error("Object not found");
         }
@@ -215,14 +216,18 @@ export function ObjectDetailsPage(): ReactElement {
       } finally {
         setLoading(false);
       }
-    };
+    }
 
     fetchObjectDetails();
   }, [pgcId, navigate]);
 
   return (
     <div className="p-4">
-      <SearchBar onSearch={searchHandler(navigate)} logoSize="small" showLogo={true} />
+      <SearchBar
+        onSearch={searchHandler(navigate)}
+        logoSize="small"
+        showLogo={true}
+      />
 
       {loading ? (
         <div className="flex justify-center items-center h-64">
@@ -235,4 +240,4 @@ export function ObjectDetailsPage(): ReactElement {
       )}
     </div>
   );
-};
+}

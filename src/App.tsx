@@ -56,7 +56,8 @@ function App() {
           element={
             <Layout>
               <NotFoundPage />
-            </Layout>}
+            </Layout>
+          }
         />
       </Routes>
     </BrowserRouter>

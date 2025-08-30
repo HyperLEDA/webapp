@@ -12,21 +12,27 @@ interface SearchBarProps {
 }
 
 export function SearchBar(props: SearchBarProps): ReactElement {
-  const { initialValue = "", logoSize = "large", showLogo = true, onSearch, className } = props;
+  const {
+    initialValue = "",
+    logoSize = "large",
+    showLogo = true,
+    onSearch,
+    className,
+  } = props;
   const [searchQuery, setSearchQuery] = useState<string>(initialValue);
 
   function handleSubmit() {
     if (searchQuery.trim()) {
       onSearch(searchQuery);
     }
-  };
+  }
 
   return (
     <header
       className={classNames(
         "text-center mb-4 w-full max-w-4xl mx-auto",
         { "md:flex md:items-center": logoSize === "small" },
-        className
+        className,
       )}
     >
       {showLogo && (
@@ -65,4 +71,4 @@ export function SearchBar(props: SearchBarProps): ReactElement {
       </div>
     </header>
   );
-};
+}

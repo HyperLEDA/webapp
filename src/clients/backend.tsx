@@ -130,7 +130,7 @@ export class HyperLEDAClient {
     },
   });
 
-  private constructor() { }
+  private constructor() {}
 
   public static getInstance(): HyperLEDAClient {
     if (!HyperLEDAClient.instance) {
@@ -142,7 +142,7 @@ export class HyperLEDAClient {
   public async query(
     queryString: string,
     page: number = 0,
-    pageSize: number = 25
+    pageSize: number = 25,
   ): Promise<QueryResponse> {
     try {
       const response = await this.axiosInstance.get<APIResponse<QueryResponse>>(
@@ -153,7 +153,7 @@ export class HyperLEDAClient {
             page: page,
             page_size: pageSize,
           },
-        }
+        },
       );
       return {
         objects: response.data.data.objects || [],
@@ -176,10 +176,9 @@ export class HyperLEDAClient {
     page_size?: number;
   }): Promise<QuerySimpleResponse> {
     try {
-      const response = await this.axiosInstance.get<APIResponse<QuerySimpleResponse>>(
-        "/api/v1/query/simple",
-        { params }
-      );
+      const response = await this.axiosInstance.get<
+        APIResponse<QuerySimpleResponse>
+      >("/api/v1/query/simple", { params });
       return response.data.data;
     } catch (error) {
       console.error("Error in querySimple:", error);
@@ -190,19 +189,18 @@ export class HyperLEDAClient {
   public async queryByPGC(
     pgcNumbers: number[],
     page: number = 0,
-    pageSize: number = 25
+    pageSize: number = 25,
   ): Promise<QuerySimpleResponse> {
     try {
-      const response = await this.axiosInstance.get<APIResponse<QuerySimpleResponse>>(
-        "/api/v1/query/simple",
-        {
-          params: {
-            pgcs: pgcNumbers,
-            page: page,
-            page_size: pageSize,
-          },
-        }
-      );
+      const response = await this.axiosInstance.get<
+        APIResponse<QuerySimpleResponse>
+      >("/api/v1/query/simple", {
+        params: {
+          pgcs: pgcNumbers,
+          page: page,
+          page_size: pageSize,
+        },
+      });
       return response.data.data;
     } catch (error) {
       console.error("Error in queryByPGC:", error);

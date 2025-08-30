@@ -15,16 +15,19 @@ const homePageHint: ReactElement = (
       </li>
     </ul>
     <div>
-      The search conditions can be concatenated with AND or OR operators. For example:
+      The search conditions can be concatenated with AND or OR operators. For
+      example:
     </div>
     <ul>
       <li>
-        Search by name and PGC number: <Link href="/query?q=name:IC1445%20AND%20pgc:112642">
+        Search by name and PGC number:{" "}
+        <Link href="/query?q=name:IC1445%20AND%20pgc:112642">
           name:IC1445 and pgc:112642
         </Link>
       </li>
       <li>
-        Search by name or PGC number: <Link href="/query?q=name:IC1445%20OR%20pgc:112642">
+        Search by name or PGC number:{" "}
+        <Link href="/query?q=name:IC1445%20OR%20pgc:112642">
           name:IC4445 or pgc:87422
         </Link>
       </li>
@@ -35,8 +38,8 @@ const homePageHint: ReactElement = (
 function searchHandler(navigate: NavigateFunction) {
   return function f(query: string) {
     navigate(`/query?q=${encodeURIComponent(query)}`);
-  }
-};
+  };
+}
 
 export function HomePage(): ReactElement {
   const navigate = useNavigate();
@@ -49,4 +52,4 @@ export function HomePage(): ReactElement {
       </div>
     </div>
   );
-};
+}

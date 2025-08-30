@@ -7,9 +7,11 @@ build:
 	yarn build
 
 check:
+	yarn run prettier --check src
 	yarn eslint src
 
 fix:
+	yarn run prettier --write src
 	yarn eslint --fix src
 
 gen:
