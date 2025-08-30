@@ -2,12 +2,12 @@ import React, { ReactElement, useEffect, useState } from "react";
 import { GetTableResponse, HttpValidationError, Bibliography } from "../clients/admin/types.gen";
 import { getTableAdminApiV1TableGet } from "../clients/admin/sdk.gen";
 import { useNavigate, useParams } from "react-router-dom";
-import { CommonTable, Column } from "../components/ui/common-table";
+import { CommonTable, Column, CellPrimitive } from "../components/ui/common-table";
 import { CopyButton } from "../components/ui/copy-button";
 import { Link } from "../components/ui/link";
 
 function renderBibliography(bib: Bibliography): ReactElement {
-    var authors = ""
+    let authors = ""
 
     if (bib.authors.length >= 1) {
         authors += bib.authors[0]
@@ -31,12 +31,12 @@ function renderTime(time: string): string {
     return dt.toString()
 }
 
-function renderUCD(ucd: string | undefined | null): ReactElement {
-    if (!ucd) {
+function renderUCD(ucd: CellPrimitive): ReactElement {
+    if (!(typeof ucd == "string")) {
         return <div></div>
     }
 
-    var words: ReactElement[] = []
+    const words: ReactElement[] = []
 
     ucd.split(";").forEach((word, index) => {
         words.push(
@@ -49,8 +49,8 @@ function renderUCD(ucd: string | undefined | null): ReactElement {
     </CopyButton>
 }
 
-function renderColumnName(name: string): ReactElement {
-    return <CopyButton textToCopy={name}>
+function renderColumnName(name: CellPrimitive): ReactElement {
+    return <CopyButton textToCopy={String(name)}>
         <p>{name}</p>
     </CopyButton>
 }
@@ -61,7 +61,7 @@ const renderTableDetails = (tableName: string, table: GetTableResponse) => {
         { name: "Value" }
     ]
 
-    const infoValues = [
+    const infoValues: Record<string, CellPrimitive>[] = [
         {
             Parameter: "Table ID",
             Value: table.id,
@@ -76,7 +76,7 @@ const renderTableDetails = (tableName: string, table: GetTableResponse) => {
         },
         {
             Parameter: "Type of data",
-            Value: table.meta.datatype
+            Value: String(table.meta.datatype)
         },
         {
             Parameter: "Modification time",
@@ -98,15 +98,24 @@ const renderTableDetails = (tableName: string, table: GetTableResponse) => {
         },
     ]
 
-    var columnInfoValues: any[] = []
+    const columnInfoValues: Record<string, CellPrimitive>[] = []
 
     table.column_info.forEach(col => {
-        columnInfoValues.push({
+        const colValue: Record<string, CellPrimitive> = {
             Name: col.name,
-            Description: col.description,
-            Unit: col.unit,
-            UCD: col.ucd,
-        })
+        }
+
+        if (col.description) {
+            colValue.Description = col.description
+        }
+        if (col.unit) {
+            colValue.Unit = col.unit
+        }
+        if (col.ucd) {
+            colValue.UCD = col.ucd
+        }
+
+        columnInfoValues.push(colValue)
     });
 
     return <div className="p-4">
