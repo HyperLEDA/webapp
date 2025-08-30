@@ -51,6 +51,19 @@ export function AladinViewer({
 
 declare global {
   interface Window {
-    A: any;
+    A: {
+      aladin: (element: HTMLElement, options?: {
+        survey?: string;
+        fov?: number;
+        showReticle?: boolean;
+        showZoomControl?: boolean;
+        showFullscreenControl?: boolean;
+        showLayersControl?: boolean;
+        showCooGridControl?: boolean;
+      }) => {
+        gotoObject: (target: string) => void;
+        gotoRaDec: (ra: number, dec: number) => void;
+      };
+    };
   }
 }
