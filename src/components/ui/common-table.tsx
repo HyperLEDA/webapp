@@ -1,9 +1,11 @@
-import React from "react";
+import React, { ReactElement } from "react";
 import classNames from "classnames";
+import { Hint } from "./hint";
 
 export interface Column {
     name: string;
     renderCell?: (value: any) => React.ReactNode;
+    hint?: ReactElement;
 }
 
 interface CommonTableProps {
@@ -33,7 +35,7 @@ export const CommonTable: React.FC<CommonTableProps> = ({
         }
 
         if (value === undefined || value === null) {
-            return <span className="text-gray-400 italic">NULL</span>;
+            return <div />;
         }
 
         if (React.isValidElement(value)) {
@@ -44,7 +46,7 @@ export const CommonTable: React.FC<CommonTableProps> = ({
     };
 
     return (
-        <div className={classNames("w-full", className)}>
+        <div className={classNames("w-full z-0", className)}>
             {children && (
                 <div className={classNames("mb-1 p-4 bg-gray-50 rounded-sm", headerClassName)}>
                     {children}
@@ -63,7 +65,13 @@ export const CommonTable: React.FC<CommonTableProps> = ({
                                         columnHeaderClassName
                                     )}
                                 >
-                                    {column.name}
+                                    {column.hint ? (
+                                        <Hint hintContent={column.hint}>
+                                            <span>{column.name}</span>
+                                        </Hint>
+                                    ) : (
+                                        column.name
+                                    )}
                                 </th>
                             ))}
                         </tr>

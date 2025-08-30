@@ -53,7 +53,10 @@ function App() {
         />
         <Route
           path="*"
-          element={<NotFoundPage />}
+          element={
+            <Layout>
+              <NotFoundPage />
+            </Layout>}
         />
       </Routes>
     </BrowserRouter>
