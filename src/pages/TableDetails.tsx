@@ -109,7 +109,7 @@ const renderTableDetails = (tableName: string, table: GetTableResponse) => {
         })
     });
 
-    return <div className="px-8">
+    return <div className="p-4">
         <CommonTable columns={infoColumns} data={infoValues} className="pb-5">
             <h2 className="text-2xl font-bold text-white mb-2">{table.description}</h2>
             <p className="text-gray-300 font-mono">{tableName}</p>
