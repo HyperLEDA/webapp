@@ -44,13 +44,27 @@ export function AladinViewer({
     }
   }, [ra, dec, fov, survey, target]);
 
-  return (
-    <div ref={aladinDivRef} className={classNames("border", className)} />
-  );
+  return <div ref={aladinDivRef} className={classNames("border", className)} />;
 }
 
 declare global {
   interface Window {
-    A: any;
+    A: {
+      aladin: (
+        element: HTMLElement,
+        options?: {
+          survey?: string;
+          fov?: number;
+          showReticle?: boolean;
+          showZoomControl?: boolean;
+          showFullscreenControl?: boolean;
+          showLayersControl?: boolean;
+          showCooGridControl?: boolean;
+        },
+      ) => {
+        gotoObject: (target: string) => void;
+        gotoRaDec: (ra: number, dec: number) => void;
+      };
+    };
   }
 }

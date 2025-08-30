@@ -24,3 +24,8 @@ dist-ssr
 *.sw?
 
 yarn.lock
+
+# code-generated files
+src/clients/backend
+src/clients/admin
+

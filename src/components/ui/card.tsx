@@ -1,4 +1,4 @@
-import React from "react";
+import React, { ReactElement } from "react";
 import classNames from "classnames";
 
 interface CardProps {
@@ -8,35 +8,31 @@ interface CardProps {
   title?: string;
 }
 
-export const Card: React.FC<CardProps> = ({
-  children,
-  className,
-  onClick,
-  title,
-}) => {
+export function Card(props: CardProps): ReactElement {
   return (
     <div
       className={classNames(
         "shadow-md rounded p-2 hover:shadow-lg transition-shadow border border-gray-200",
-        { "cursor-pointer": onClick },
-        className
+        { "cursor-pointer": props.onClick },
+        props.className,
       )}
-      onClick={onClick}
+      onClick={props.onClick}
     >
-      {title && <h3 className="text-lg font-semibold mb-1">{title}</h3>}
-      {children}
+      {props.title && (
+        <h3 className="text-lg font-semibold mb-1">{props.title}</h3>
+      )}
+      {props.children}
     </div>
   );
-};
+}
 
 interface CardContentProps {
   children: React.ReactNode;
   className?: string;
 }
 
-export const CardContent: React.FC<CardContentProps> = ({
-  children,
-  className,
-}) => {
-  return <div className={classNames("p-2", className)}>{children}</div>;
-};
+export function CardContent(props: CardContentProps): ReactElement {
+  return (
+    <div className={classNames("p-2", props.className)}>{props.children}</div>
+  );
+}

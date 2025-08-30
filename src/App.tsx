@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Footer } from "./components/ui/footer";
 import { HomePage } from "./pages/Home";
 import { SearchResultsPage } from "./pages/SearchResults";
@@ -56,7 +56,8 @@ function App() {
           element={
             <Layout>
               <NotFoundPage />
-            </Layout>}
+            </Layout>
+          }
         />
       </Routes>
     </BrowserRouter>
