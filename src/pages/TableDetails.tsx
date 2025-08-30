@@ -1,8 +1,8 @@
 import { ReactElement, useEffect, useState } from "react";
-import { GetTableResponse, HttpValidationError, Bibliography } from "../clients/admin/types.gen";
+import { Bibliography, GetTableResponse, HttpValidationError } from "../clients/admin/types.gen";
 import { getTableAdminApiV1TableGet } from "../clients/admin/sdk.gen";
 import { useNavigate, useParams } from "react-router-dom";
-import { CommonTable, Column, CellPrimitive } from "../components/ui/common-table";
+import { CellPrimitive, Column, CommonTable } from "../components/ui/common-table";
 import { CopyButton } from "../components/ui/copy-button";
 import { Link } from "../components/ui/link";
 

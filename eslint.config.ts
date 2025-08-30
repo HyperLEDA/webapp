@@ -23,7 +23,7 @@ export default tseslint.config(
       'no-useless-assignment': 'error',
       'require-atomic-updates': 'error',
 
-      // suggestion enforcements to make TypeScript a sane language
+      // opinionated suggestion enforcements to make TypeScript a sane language
       'arrow-body-style': 'error',
       'block-scoped-var': 'error',
       'camelcase': ['error', { properties: 'never' }], // code-generated client structures might not always adhere to camelcase
@@ -33,7 +33,30 @@ export default tseslint.config(
       'default-param-last': 'error',
       'eqeqeq': 'error',
       'func-name-matching': 'error',
-      'func-style': ["error", "declaration"]
+      'func-style': ["error", "declaration"],
+      'init-declarations': ["error", "always"],
+      'no-array-constructor': 'error',
+      'no-caller': 'error',
+      'no-delete-var': 'error',
+      'no-else-return': 'error',
+      'no-empty': 'error',
+      'no-invalid-this': 'error',
+      'no-label-var': 'error',
+      'no-lone-blocks': 'error',
+      'no-lonely-if': 'error',
+      'no-loop-func': 'error',
+      'no-octal': 'error',
+      'no-octal-escape': 'error',
+      'no-return-assign': 'error',
+      'no-sequences': 'error',
+      'no-throw-literal': 'error',
+      'no-unneeded-ternary': 'error',
+      'no-useless-rename': 'error',
+      'no-useless-return': 'error',
+      'no-var': 'error',
+      'prefer-const': 'error',
+      'require-await': 'error',
+      // 'sort-imports': 'error' // TODO: add code formatter
     }
   },
 )

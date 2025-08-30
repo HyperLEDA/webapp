@@ -1,6 +1,6 @@
 import { ReactElement, useEffect, useState } from "react";
 import { NavigateFunction, useNavigate, useSearchParams } from "react-router-dom";
-import { backendClient, SearchPGCObject } from "../clients/backend";
+import { SearchPGCObject, backendClient } from "../clients/backend";
 import { SearchBar } from "../components/ui/searchbar";
 import { AladinViewer } from "../components/ui/aladin";
 import { Card, CardContent } from "../components/ui/card";
