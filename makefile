@@ -7,10 +7,10 @@ build:
 	yarn build
 
 check:
-	yarn eslint . --ignore-pattern 'src/clients/*'
+	yarn eslint src
 
 fix:
-	yarn eslint --fix . --ignore-pattern 'src/clients/*'
+	yarn eslint --fix src
 
 gen:
 	yarn run openapi-ts -i http://dm2.sao.ru:81/api/openapi.json -o ./src/clients/backend
