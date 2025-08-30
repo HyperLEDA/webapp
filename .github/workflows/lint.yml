@@ -1,4 +1,4 @@
-name: Check code for smells and potential bugs
+name: Check code for formatting, code smells and potential bugs
 
 on:
   push:
