@@ -13,6 +13,7 @@ import {
 } from "../components/ui/common-table";
 import { CopyButton } from "../components/ui/copy-button";
 import { Link } from "../components/ui/link";
+import { getResource } from "../resources/resources";
 
 function renderBibliography(bib: Bibliography): ReactElement {
   let authors = "";
@@ -120,11 +121,15 @@ interface MarkingRulesProps {
   table: GetTableResponse;
 }
 
+function renderCatalog(catalog: CellPrimitive): ReactElement {
+  return <span>{getResource(`catalog.${String(catalog)}`).Title}</span>;
+}
+
 function MarkingRules(props: MarkingRulesProps): ReactElement {
   const columns: Column[] = [
-    { name: "Catalog" },
+    { name: "Catalog", renderCell: renderCatalog },
     { name: "Parameter" },
-    { name: "Column name" },
+    { name: "Column name", renderCell: renderColumnName },
   ];
 
   const values: Record<string, CellPrimitive>[] = [];
@@ -142,7 +147,7 @@ function MarkingRules(props: MarkingRulesProps): ReactElement {
   return (
     <CommonTable columns={columns} data={values} className="pb-5">
       <h2 className="text-2xl font-bold">
-        Mapping of columns to catalog values for marking of objects.
+        Mapping of columns to catalog values for marking of records.
       </h2>
     </CommonTable>
   );
