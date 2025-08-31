@@ -58,7 +58,7 @@ function renderUCD(ucd: CellPrimitive): ReactElement {
         className="inline-block bg-gray-600 rounded px-1.5 py-0.5 text-sm mr-0.5 mb-0.5"
       >
         {word}
-      </div>,
+      </div>
     );
   });
 
@@ -77,35 +77,52 @@ function renderColumnName(name: CellPrimitive): ReactElement {
   );
 }
 
-function renderTableDetails(
-  tableName: string,
-  table: GetTableResponse,
-): ReactElement {
+interface TableMetaProps {
+  tableName: string;
+  table: GetTableResponse;
+}
+
+function TableMeta(props: TableMetaProps): ReactElement {
   const infoColumns = [{ name: "Parameter" }, { name: "Value" }];
 
   const infoValues: Record<string, CellPrimitive>[] = [
     {
       Parameter: "Table ID",
-      Value: table.id,
+      Value: props.table.id,
     },
     {
       Parameter: "Source paper",
-      Value: renderBibliography(table.bibliography),
+      Value: renderBibliography(props.table.bibliography),
     },
     {
       Parameter: "Number of records",
-      Value: table.rows_num,
+      Value: props.table.rows_num,
     },
     {
       Parameter: "Type of data",
-      Value: String(table.meta.datatype),
+      Value: String(props.table.meta.datatype),
     },
     {
       Parameter: "Modification time",
-      Value: renderTime(table.meta.modification_dt as string),
+      Value: renderTime(props.table.meta.modification_dt as string),
     },
   ];
 
+  return (
+    <CommonTable columns={infoColumns} data={infoValues} className="pb-5">
+      <h2 className="text-2xl font-bold text-white mb-2">
+        {props.table.description}
+      </h2>
+      <p className="text-gray-300 font-mono">{props.tableName}</p>
+    </CommonTable>
+  );
+}
+
+interface ColumnInfoProps {
+  table: GetTableResponse;
+}
+
+function ColumnInfo(props: ColumnInfoProps): ReactElement {
   const columnInfoColumns: Column[] = [
     { name: "Name", renderCell: renderColumnName },
     { name: "Description" },
@@ -128,7 +145,7 @@ function renderTableDetails(
 
   const columnInfoValues: Record<string, CellPrimitive>[] = [];
 
-  table.column_info.forEach((col) => {
+  props.table.column_info.forEach((col) => {
     const colValue: Record<string, CellPrimitive> = {
       Name: col.name,
     };
@@ -147,17 +164,9 @@ function renderTableDetails(
   });
 
   return (
-    <div className="p-4">
-      <CommonTable columns={infoColumns} data={infoValues} className="pb-5">
-        <h2 className="text-2xl font-bold text-white mb-2">
-          {table.description}
-        </h2>
-        <p className="text-gray-300 font-mono">{tableName}</p>
-      </CommonTable>
-      <CommonTable columns={columnInfoColumns} data={columnInfoValues}>
-        <h2 className="text-2xl font-bold text-white">Column information</h2>
-      </CommonTable>
-    </div>
+    <CommonTable columns={columnInfoColumns} data={columnInfoValues}>
+      <h2 className="text-2xl font-bold text-white">Column information</h2>
+    </CommonTable>
   );
 }
 
@@ -214,13 +223,16 @@ export function TableDetailsPage(): ReactElement {
   }, [tableName, navigate]);
 
   return (
-    <div className="p-4">
+    <div className="p-8">
       {loading ? (
         <div className="flex justify-center items-center h-64">
           <p className="text-gray-300 text-lg">Loading...</p>
         </div>
       ) : table ? (
-        renderTableDetails(tableName ?? "", table)
+        <div>
+          <TableMeta tableName={tableName ?? ""} table={table} />
+          <ColumnInfo table={table} />
+        </div>
       ) : error ? (
         renderError(error)
       ) : (

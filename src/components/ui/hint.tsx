@@ -19,7 +19,7 @@ export function Hint(props: HintProps): ReactElement {
           content={props.hintContent}
           arrow={false}
           placement="top"
-          className="bg-gray-600 px-2 border-1 max-w-xl"
+          className="bg-gray-600 z-10 backdrop-blur-sm bg-opacity-99 border-1 max-w-xl"
         >
           <MdHelpOutline />
         </Tooltip>

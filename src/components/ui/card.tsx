@@ -14,7 +14,7 @@ export function Card(props: CardProps): ReactElement {
       className={classNames(
         "shadow-md rounded p-2 hover:shadow-lg transition-shadow border border-gray-200",
         { "cursor-pointer": props.onClick },
-        props.className,
+        props.className
       )}
       onClick={props.onClick}
     >

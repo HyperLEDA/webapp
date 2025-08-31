@@ -10,7 +10,7 @@ const footerContent = (
       Information: <Link href="https://hyperleda.github.io/" />
     </div>
     <div>
-      Old version: <Link href="http://leda.univ-lyon1.fr/" />
+      Original version: <Link href="http://leda.univ-lyon1.fr/" />
     </div>
   </div>
 );
@@ -37,7 +37,7 @@ export function Footer() {
       </Button>
 
       <footer
-        className={`fixed bottom-0 border-1 left-0 right-0 py-3 z-10 shadow-lg backdrop-blur-sm bg-opacity-99 mx-10 mb-3 rounded transition-all duration-300 ease-in-out ${
+        className={`fixed bottom-0 border-1 left-0 right-0 py-3 z-10 shadow-lg backdrop-blur-sm mx-10 mb-3 rounded transition-all duration-300 ease-in-out ${
           isCollapsed
             ? "opacity-0 translate-y-full pointer-events-none"
             : "opacity-100 translate-y-0"
