@@ -83,9 +83,9 @@ interface TableMetaProps {
 }
 
 function TableMeta(props: TableMetaProps): ReactElement {
-  const infoColumns = [{ name: "Parameter" }, { name: "Value" }];
+  const columns = [{ name: "Parameter" }, { name: "Value" }];
 
-  const infoValues: Record<string, CellPrimitive>[] = [
+  const values: Record<string, CellPrimitive>[] = [
     {
       Parameter: "Table ID",
       Value: props.table.id,
@@ -109,11 +109,41 @@ function TableMeta(props: TableMetaProps): ReactElement {
   ];
 
   return (
-    <CommonTable columns={infoColumns} data={infoValues} className="pb-5">
-      <h2 className="text-2xl font-bold text-white mb-2">
-        {props.table.description}
-      </h2>
+    <CommonTable columns={columns} data={values} className="pb-5">
+      <h2 className="text-2xl font-bold mb-2">{props.table.description}</h2>
       <p className="text-gray-300 font-mono">{props.tableName}</p>
+    </CommonTable>
+  );
+}
+
+interface MarkingRulesProps {
+  table: GetTableResponse;
+}
+
+function MarkingRules(props: MarkingRulesProps): ReactElement {
+  const columns: Column[] = [
+    { name: "Catalog" },
+    { name: "Parameter" },
+    { name: "Column name" },
+  ];
+
+  const values: Record<string, CellPrimitive>[] = [];
+
+  props.table.marking_rules.forEach((rules) => {
+    for (const key in rules.columns) {
+      values.push({
+        Catalog: rules.catalog,
+        Parameter: key,
+        "Column name": rules.columns[key],
+      });
+    }
+  });
+
+  return (
+    <CommonTable columns={columns} data={values} className="pb-5">
+      <h2 className="text-2xl font-bold">
+        Mapping of columns to catalog values for marking of objects.
+      </h2>
     </CommonTable>
   );
 }
@@ -123,7 +153,7 @@ interface ColumnInfoProps {
 }
 
 function ColumnInfo(props: ColumnInfoProps): ReactElement {
-  const columnInfoColumns: Column[] = [
+  const columns: Column[] = [
     { name: "Name", renderCell: renderColumnName },
     { name: "Description" },
     { name: "Unit" },
@@ -143,7 +173,7 @@ function ColumnInfo(props: ColumnInfoProps): ReactElement {
     },
   ];
 
-  const columnInfoValues: Record<string, CellPrimitive>[] = [];
+  const values: Record<string, CellPrimitive>[] = [];
 
   props.table.column_info.forEach((col) => {
     const colValue: Record<string, CellPrimitive> = {
@@ -160,12 +190,12 @@ function ColumnInfo(props: ColumnInfoProps): ReactElement {
       colValue.UCD = col.ucd;
     }
 
-    columnInfoValues.push(colValue);
+    values.push(colValue);
   });
 
   return (
-    <CommonTable columns={columnInfoColumns} data={columnInfoValues}>
-      <h2 className="text-2xl font-bold text-white">Column information</h2>
+    <CommonTable columns={columns} data={values}>
+      <h2 className="text-2xl font-bold">Column information</h2>
     </CommonTable>
   );
 }
@@ -231,6 +261,7 @@ export function TableDetailsPage(): ReactElement {
       ) : table ? (
         <div>
           <TableMeta tableName={tableName ?? ""} table={table} />
+          <MarkingRules table={table} />
           <ColumnInfo table={table} />
         </div>
       ) : error ? (
