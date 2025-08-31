@@ -53,6 +53,5 @@ export default tseslint.config(eslintConfigPrettier, {
     "no-var": "error",
     "prefer-const": "error",
     "require-await": "error",
-    // 'sort-imports': 'error' // TODO: add code formatter
   },
 });

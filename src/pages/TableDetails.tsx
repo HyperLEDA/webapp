@@ -58,7 +58,7 @@ function renderUCD(ucd: CellPrimitive): ReactElement {
         className="inline-block bg-gray-600 rounded px-1.5 py-0.5 text-sm mr-0.5 mb-0.5"
       >
         {word}
-      </div>
+      </div>,
     );
   });
 
