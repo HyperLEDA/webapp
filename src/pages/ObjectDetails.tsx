@@ -134,7 +134,7 @@ function renderObjectDetails(
   ];
 
   return (
-    <div className="space-y-6 p-4 rounded-lg">
+    <div className="space-y-6 rounded-lg">
       <div className="flex items-start space-x-6">
         {object.catalogs?.coordinates?.equatorial && (
           <AladinViewer
@@ -222,7 +222,7 @@ export function ObjectDetailsPage(): ReactElement {
   }, [pgcId, navigate]);
 
   return (
-    <div className="p-4">
+    <div className="p-8">
       <SearchBar
         onSearch={searchHandler(navigate)}
         logoSize="small"

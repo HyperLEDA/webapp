@@ -1,0 +1,7 @@
+{
+  "title": {
+    "catalog.designation": "Designation",
+    "catalog.icrs": "Celestial coordinates",
+    "catalog.redshift": "Redshift"
+  }
+}
