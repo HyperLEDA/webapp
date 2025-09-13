@@ -3,6 +3,7 @@ import {
   Bibliography,
   GetTableResponse,
   HttpValidationError,
+  ObjectCrossmatchStatus,
 } from "../clients/admin/types.gen";
 import { getTableAdminApiV1TableGet } from "../clients/admin/sdk.gen";
 import { useNavigate, useParams } from "react-router-dom";
@@ -153,6 +154,42 @@ function MarkingRules(props: MarkingRulesProps): ReactElement {
   );
 }
 
+interface CrossmatchStatsProps {
+  table: GetTableResponse;
+}
+
+function CrossmatchStats(props: CrossmatchStatsProps): ReactElement {
+  const columns: Column[] = [{ name: "Status" }, { name: "Count" }];
+
+  const values: Record<string, CellPrimitive>[] = [];
+
+  if (props.table.statistics) {
+    const statusLabels: Record<ObjectCrossmatchStatus, string> = {
+      unprocessed: "Unprocessed",
+      new: "New",
+      collided: "Collided",
+      existing: "Existing",
+    };
+
+    Object.entries(props.table.statistics).forEach(([status, count]) => {
+      values.push({
+        Status: statusLabels[status as ObjectCrossmatchStatus] || status,
+        Count: count || 0,
+      });
+    });
+  }
+
+  if (values.length === 0) {
+    return <div></div>;
+  }
+
+  return (
+    <CommonTable columns={columns} data={values} className="pb-5">
+      <h2 className="text-2xl font-bold">Crossmatch Statistics</h2>
+    </CommonTable>
+  );
+}
+
 interface ColumnInfoProps {
   table: GetTableResponse;
 }
@@ -267,6 +304,7 @@ export function TableDetailsPage(): ReactElement {
         <div>
           <TableMeta tableName={tableName ?? ""} table={table} />
           <MarkingRules table={table} />
+          <CrossmatchStats table={table} />
           <ColumnInfo table={table} />
         </div>
       ) : error ? (
