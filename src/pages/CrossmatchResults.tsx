@@ -7,6 +7,7 @@ import {
 } from "../components/ui/common-table";
 import { Badge } from "../components/ui/badge";
 import { Dropdown } from "../components/ui/dropdown";
+import { TextFilter } from "../components/ui/text-filter";
 import { getCrossmatchRecordsAdminApiV1RecordsCrossmatchGet } from "../clients/admin/sdk.gen";
 import type {
   GetRecordsCrossmatchResponse,
@@ -35,11 +36,13 @@ export function CrossmatchResultsPage(): ReactElement {
 
   const [localStatus, setLocalStatus] = useState<string>(status || "all");
   const [localPageSize, setLocalPageSize] = useState<number>(pageSize);
+  const [localTableName, setLocalTableName] = useState<string>(tableName || "");
 
   useEffect(() => {
     setLocalStatus(status || "all");
     setLocalPageSize(pageSize);
-  }, [status, pageSize]);
+    setLocalTableName(tableName || "");
+  }, [status, pageSize, tableName]);
 
   useEffect(() => {
     async function fetchData() {
@@ -95,6 +98,12 @@ export function CrossmatchResultsPage(): ReactElement {
 
   function applyFilters(): void {
     const newSearchParams = new URLSearchParams(searchParams);
+
+    if (localTableName.trim()) {
+      newSearchParams.set("table_name", localTableName.trim());
+    } else {
+      newSearchParams.delete("table_name");
+    }
 
     if (localStatus === "all") {
       newSearchParams.delete("status");
@@ -198,13 +207,20 @@ export function CrossmatchResultsPage(): ReactElement {
   return (
     <div className="p-8">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-white mb-4">
-          Crossmatch Results for {tableName}
-        </h1>
+        <h2 className="text-3xl font-bold text-white mb-4">
+          Crossmatch results
+        </h2>
 
         <div className="flex gap-4 mb-4">
+          <TextFilter
+            title="Table name"
+            value={localTableName}
+            onChange={setLocalTableName}
+            placeholder="Enter table name"
+          />
+
           <Dropdown
-            title="Status Filter"
+            title="Status filter"
             options={[
               { value: "all", label: "All Statuses" },
               { value: "unprocessed", label: "Unprocessed" },
@@ -218,7 +234,7 @@ export function CrossmatchResultsPage(): ReactElement {
           />
 
           <Dropdown
-            title="Page Size"
+            title="Page size"
             options={[
               { value: "10" },
               { value: "25" },
