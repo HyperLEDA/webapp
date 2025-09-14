@@ -57,7 +57,7 @@ function renderUCD(ucd: CellPrimitive): ReactElement {
 
   ucd.split(";").forEach((word, index) => {
     words.push(
-      <Badge key={`${word}-${index}`} className="mr-0.5 mb-0.5">
+      <Badge key={`${word}-${index}`}>
         {word}
       </Badge>,
     );

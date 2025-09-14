@@ -108,8 +108,8 @@ export function CrossmatchResultsPage(): ReactElement {
     }
 
     if (record.status === "existing" && record.metadata.pgc) {
-      const pgcText = `PGC ${record.metadata.pgc}`;
-      return <Badge>{pgcText}</Badge>;
+      const pgcText = `${record.metadata.pgc}`;
+      return <Badge href={`/object/${record.metadata.pgc}`}>{pgcText}</Badge>;
     }
 
     if (record.status === "collided" && record.metadata.possible_matches) {
@@ -118,8 +118,8 @@ export function CrossmatchResultsPage(): ReactElement {
       return (
         <div>
           {pgcNumbers.map((pgc: number, index: number) => (
-            <Badge key={`${pgc}-${index}`} className="mr-0.5 mb-0.5">
-              PGC {pgc}
+            <Badge key={`${pgc}-${index}`} href={`/object/${pgc}`}>
+              {pgc}
             </Badge>
           ))}
         </div>
