@@ -20,6 +20,7 @@ import { getResource } from "../resources/resources";
 import { Button } from "../components/ui/button";
 import { Loading } from "../components/ui/loading";
 import { ErrorPage, ErrorPageHomeButton } from "../components/ui/error-page";
+import { LinkButton } from "../components/ui/link-button";
 
 export function CrossmatchResultsPage(): ReactElement {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -212,13 +213,14 @@ export function CrossmatchResultsPage(): ReactElement {
         </h2>
 
         <div className="flex gap-4 mb-4">
-          <TextFilter
-            title="Table name"
-            value={localTableName}
-            onChange={setLocalTableName}
-            placeholder="Enter table name"
-          />
-
+          <LinkButton to={`/table/${localTableName.trim()}`}>
+            <TextFilter
+              title="Table name"
+              value={localTableName}
+              onChange={setLocalTableName}
+              placeholder="Enter table name"
+            />
+          </LinkButton>
           <DropdownFilter
             title="Status filter"
             options={[
@@ -232,7 +234,6 @@ export function CrossmatchResultsPage(): ReactElement {
             value={localStatus}
             onChange={setLocalStatus}
           />
-
           <DropdownFilter
             title="Page size"
             options={[
@@ -245,7 +246,6 @@ export function CrossmatchResultsPage(): ReactElement {
             value={localPageSize.toString()}
             onChange={(value) => setLocalPageSize(parseInt(value))}
           />
-
           <div className="flex items-end">
             <Button onClick={applyFilters}>Apply</Button>
           </div>
