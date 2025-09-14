@@ -9,6 +9,7 @@ import { SearchBar } from "../components/ui/searchbar";
 import { AladinViewer } from "../components/ui/aladin";
 import { Card, CardContent } from "../components/ui/card";
 import { Loading } from "../components/ui/loading";
+import { ErrorPage, ErrorPageHomeButton } from "../components/ui/error-page";
 
 function objectClickHandler(
   navigate: NavigateFunction,
@@ -132,7 +133,13 @@ export function SearchResultsPage(): ReactElement {
               </div>
             </>
           ) : (
-            <p className="text-center">No results found for "{query}"</p>
+            <ErrorPage
+              title="No Results Found"
+              message={`No results found for "${query}"`}
+              className="p-4"
+            >
+              <ErrorPageHomeButton onClick={() => navigate("/")} />
+            </ErrorPage>
           )}
         </div>
       )}

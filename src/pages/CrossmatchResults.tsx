@@ -18,6 +18,7 @@ import type {
 import { getResource } from "../resources/resources";
 import { Button } from "../components/ui/button";
 import { Loading } from "../components/ui/loading";
+import { ErrorPage, ErrorPageHomeButton } from "../components/ui/error-page";
 
 export function CrossmatchResultsPage(): ReactElement {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -164,30 +165,28 @@ export function CrossmatchResultsPage(): ReactElement {
 
   if (error) {
     return (
-      <div className="p-8">
-        <div className="bg-red-900 border border-red-700 rounded p-4">
-          <h2 className="text-xl font-bold text-red-200 mb-2">Error</h2>
-          <p className="text-red-300">
-            {error.detail?.map((err: ValidationError) => err.msg).join(", ") ||
-              "An error occurred"}
-          </p>
-        </div>
-      </div>
+      <ErrorPage
+        title="Error"
+        message={
+          error.detail?.map((err: ValidationError) => err.msg).join(", ") ||
+          "An error occurred"
+        }
+        className="p-8"
+      >
+        <ErrorPageHomeButton onClick={() => navigate("/")} />
+      </ErrorPage>
     );
   }
 
   if (!tableName) {
     return (
-      <div className="p-8">
-        <div className="bg-yellow-900 border border-yellow-700 rounded p-4">
-          <h2 className="text-xl font-bold text-yellow-200 mb-2">
-            Missing Table Name
-          </h2>
-          <p className="text-yellow-300">
-            Please provide a table_name parameter.
-          </p>
-        </div>
-      </div>
+      <ErrorPage
+        title="Missing table name"
+        message="Please provide a table_name parameter."
+        className="p-8"
+      >
+        <ErrorPageHomeButton onClick={() => navigate("/")} />
+      </ErrorPage>
     );
   }
 

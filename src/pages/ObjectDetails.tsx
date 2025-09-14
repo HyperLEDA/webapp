@@ -1,10 +1,14 @@
 import { ReactElement, useEffect, useState } from "react";
 import { NavigateFunction, useNavigate, useParams } from "react-router-dom";
 import { SearchBar } from "../components/ui/searchbar";
-import { Button } from "../components/ui/button";
 import { AladinViewer } from "../components/ui/aladin";
 import { CommonTable } from "../components/ui/common-table";
 import { Loading } from "../components/ui/loading";
+import {
+  ErrorPage,
+  ErrorPageBackButton,
+  ErrorPageHomeButton,
+} from "../components/ui/error-page";
 import { querySimpleApiV1QuerySimpleGet } from "../clients/backend/sdk.gen";
 import { PgcObject, Schema } from "../clients/backend/types.gen";
 
@@ -22,12 +26,13 @@ function searchHandler(navigate: NavigateFunction) {
 
 function renderNotFound(navigate: NavigateFunction) {
   return (
-    <div className="text-center">
-      <Button onClick={backToResultsHandler(navigate)} className="mb-4">
-        Back
-      </Button>
-      <p className="text-gray-300">Object not found.</p>
-    </div>
+    <ErrorPage
+      title="Object Not Found"
+      message="The requested object could not be found."
+    >
+      <ErrorPageBackButton onClick={backToResultsHandler(navigate)} />
+      <ErrorPageHomeButton onClick={() => navigate("/")} />
+    </ErrorPage>
   );
 }
 

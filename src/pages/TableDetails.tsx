@@ -17,6 +17,7 @@ import { CopyButton } from "../components/ui/copy-button";
 import { Badge } from "../components/ui/badge";
 import { Link } from "../components/ui/link";
 import { Loading } from "../components/ui/loading";
+import { ErrorPage, ErrorPageHomeButton } from "../components/ui/error-page";
 import { getResource } from "../resources/resources";
 
 function renderBibliography(bib: Bibliography): ReactElement {
@@ -251,19 +252,28 @@ function ColumnInfo(props: ColumnInfoProps): ReactElement {
   );
 }
 
-function renderNotFound(): ReactElement {
+function renderNotFound(navigate: (path: string) => void): ReactElement {
   return (
-    <div className="text-center">
-      <p className="text-gray-300">Table not found.</p>
-    </div>
+    <ErrorPage
+      title="Table Not Found"
+      message="The requested table could not be found."
+    >
+      <ErrorPageHomeButton onClick={() => navigate("/")} />
+    </ErrorPage>
   );
 }
 
-function renderError(error: HttpValidationError): ReactElement {
+function renderError(
+  error: HttpValidationError,
+  navigate: (path: string) => void,
+): ReactElement {
   return (
-    <div className="text-center">
-      <p className="text-gray-300">{error.detail?.toString()}</p>
-    </div>
+    <ErrorPage
+      title="Error"
+      message={error.detail?.toString() || "An error occurred"}
+    >
+      <ErrorPageHomeButton onClick={() => navigate("/")} />
+    </ErrorPage>
   );
 }
 
@@ -319,9 +329,9 @@ export function TableDetailsPage(): ReactElement {
           <ColumnInfo table={table} />
         </div>
       ) : error ? (
-        renderError(error)
+        renderError(error, navigate)
       ) : (
-        renderNotFound()
+        renderNotFound(navigate)
       )}
     </div>
   );
