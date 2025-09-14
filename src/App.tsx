@@ -5,6 +5,7 @@ import { SearchResultsPage } from "./pages/SearchResults";
 import { ObjectDetailsPage } from "./pages/ObjectDetails";
 import { NotFoundPage } from "./pages/NotFound";
 import { TableDetailsPage } from "./pages/TableDetails";
+import { CrossmatchResultsPage } from "./pages/CrossmatchResults";
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -48,6 +49,14 @@ function App() {
           element={
             <Layout>
               <TableDetailsPage />
+            </Layout>
+          }
+        />
+        <Route
+          path="/crossmatch"
+          element={
+            <Layout>
+              <CrossmatchResultsPage />
             </Layout>
           }
         />

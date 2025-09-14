@@ -3,7 +3,7 @@ import {
   Bibliography,
   GetTableResponse,
   HttpValidationError,
-  ObjectCrossmatchStatus,
+  RecordCrossmatchStatus,
 } from "../clients/admin/types.gen";
 import { getTableAdminApiV1TableGet } from "../clients/admin/sdk.gen";
 import { useNavigate, useParams } from "react-router-dom";
@@ -12,8 +12,12 @@ import {
   Column,
   CommonTable,
 } from "../components/ui/common-table";
+import { Button } from "../components/ui/button";
 import { CopyButton } from "../components/ui/copy-button";
+import { Badge } from "../components/ui/badge";
 import { Link } from "../components/ui/link";
+import { Loading } from "../components/ui/loading";
+import { ErrorPage, ErrorPageHomeButton } from "../components/ui/error-page";
 import { getResource } from "../resources/resources";
 
 function renderBibliography(bib: Bibliography): ReactElement {
@@ -54,14 +58,7 @@ function renderUCD(ucd: CellPrimitive): ReactElement {
   const words: ReactElement[] = [];
 
   ucd.split(";").forEach((word, index) => {
-    words.push(
-      <div
-        key={`${word}-${index}`}
-        className="inline-block bg-gray-600 rounded px-1.5 py-0.5 text-sm mr-0.5 mb-0.5"
-      >
-        {word}
-      </div>,
-    );
+    words.push(<Badge key={`${word}-${index}`}>{word}</Badge>);
   });
 
   return (
@@ -148,7 +145,7 @@ function MarkingRules(props: MarkingRulesProps): ReactElement {
   return (
     <CommonTable columns={columns} data={values} className="pb-5">
       <h2 className="text-2xl font-bold">
-        Mapping of columns to catalog values for marking of records.
+        Mapping of columns to catalog values for marking of records
       </h2>
     </CommonTable>
   );
@@ -156,6 +153,8 @@ function MarkingRules(props: MarkingRulesProps): ReactElement {
 
 interface CrossmatchStatsProps {
   table: GetTableResponse;
+  tableName: string;
+  navigate: (path: string) => void;
 }
 
 function CrossmatchStats(props: CrossmatchStatsProps): ReactElement {
@@ -164,7 +163,7 @@ function CrossmatchStats(props: CrossmatchStatsProps): ReactElement {
   const values: Record<string, CellPrimitive>[] = [];
 
   if (props.table.statistics) {
-    const statusLabels: Record<ObjectCrossmatchStatus, string> = {
+    const statusLabels: Record<RecordCrossmatchStatus, string> = {
       unprocessed: "Unprocessed",
       new: "New",
       collided: "Collided",
@@ -173,7 +172,7 @@ function CrossmatchStats(props: CrossmatchStatsProps): ReactElement {
 
     Object.entries(props.table.statistics).forEach(([status, count]) => {
       values.push({
-        Status: statusLabels[status as ObjectCrossmatchStatus] || status,
+        Status: statusLabels[status as RecordCrossmatchStatus] || status,
         Count: count || 0,
       });
     });
@@ -183,9 +182,24 @@ function CrossmatchStats(props: CrossmatchStatsProps): ReactElement {
     return <div></div>;
   }
 
+  function handleViewCrossmatchResults(event: React.MouseEvent): void {
+    const url = `/crossmatch?table_name=${encodeURIComponent(props.tableName)}&status=collided`;
+
+    if (event.ctrlKey || event.metaKey) {
+      window.open(url, "_blank");
+    } else {
+      props.navigate(url);
+    }
+  }
+
   return (
     <CommonTable columns={columns} data={values} className="pb-5">
-      <h2 className="text-2xl font-bold">Crossmatch Statistics</h2>
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">Crossmatch Statistics</h2>
+        <Button onClick={handleViewCrossmatchResults}>
+          View crossmatch results
+        </Button>
+      </div>
     </CommonTable>
   );
 }
@@ -242,19 +256,28 @@ function ColumnInfo(props: ColumnInfoProps): ReactElement {
   );
 }
 
-function renderNotFound(): ReactElement {
+function renderNotFound(navigate: (path: string) => void): ReactElement {
   return (
-    <div className="text-center">
-      <p className="text-gray-300">Table not found.</p>
-    </div>
+    <ErrorPage
+      title="Table Not Found"
+      message="The requested table could not be found."
+    >
+      <ErrorPageHomeButton onClick={() => navigate("/")} />
+    </ErrorPage>
   );
 }
 
-function renderError(error: HttpValidationError): ReactElement {
+function renderError(
+  error: HttpValidationError,
+  navigate: (path: string) => void,
+): ReactElement {
   return (
-    <div className="text-center">
-      <p className="text-gray-300">{error.detail?.toString()}</p>
-    </div>
+    <ErrorPage
+      title="Error"
+      message={error.detail?.toString() || "An error occurred"}
+    >
+      <ErrorPageHomeButton onClick={() => navigate("/")} />
+    </ErrorPage>
   );
 }
 
@@ -297,20 +320,22 @@ export function TableDetailsPage(): ReactElement {
   return (
     <div className="p-8">
       {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <p className="text-gray-300 text-lg">Loading...</p>
-        </div>
+        <Loading />
       ) : table ? (
         <div>
           <TableMeta tableName={tableName ?? ""} table={table} />
           <MarkingRules table={table} />
-          <CrossmatchStats table={table} />
+          <CrossmatchStats
+            table={table}
+            tableName={tableName ?? ""}
+            navigate={navigate}
+          />
           <ColumnInfo table={table} />
         </div>
       ) : error ? (
-        renderError(error)
+        renderError(error, navigate)
       ) : (
-        renderNotFound()
+        renderNotFound(navigate)
       )}
     </div>
   );

@@ -1,9 +1,14 @@
 import { ReactElement, useEffect, useState } from "react";
 import { NavigateFunction, useNavigate, useParams } from "react-router-dom";
 import { SearchBar } from "../components/ui/searchbar";
-import { Button } from "../components/ui/button";
 import { AladinViewer } from "../components/ui/aladin";
 import { CommonTable } from "../components/ui/common-table";
+import { Loading } from "../components/ui/loading";
+import {
+  ErrorPage,
+  ErrorPageBackButton,
+  ErrorPageHomeButton,
+} from "../components/ui/error-page";
 import { querySimpleApiV1QuerySimpleGet } from "../clients/backend/sdk.gen";
 import { PgcObject, Schema } from "../clients/backend/types.gen";
 
@@ -21,12 +26,13 @@ function searchHandler(navigate: NavigateFunction) {
 
 function renderNotFound(navigate: NavigateFunction) {
   return (
-    <div className="text-center">
-      <Button onClick={backToResultsHandler(navigate)} className="mb-4">
-        Back
-      </Button>
-      <p className="text-gray-300">Object not found.</p>
-    </div>
+    <ErrorPage
+      title="Object Not Found"
+      message="The requested object could not be found."
+    >
+      <ErrorPageBackButton onClick={backToResultsHandler(navigate)} />
+      <ErrorPageHomeButton onClick={() => navigate("/")} />
+    </ErrorPage>
   );
 }
 
@@ -146,7 +152,7 @@ function renderObjectDetails(
           />
         )}
         <div className="flex-1">
-          <h2 className="text-2xl font-bold text-white mb-2">
+          <h2 className="text-2xl font-bold mb-2">
             {object.catalogs?.designation?.name || `PGC ${object.pgc}`}
           </h2>
           <p className="text-gray-300">PGC: {object.pgc}</p>
@@ -155,21 +161,21 @@ function renderObjectDetails(
 
       {object.catalogs?.coordinates && (
         <CommonTable columns={coordinatesColumns} data={coordinatesData}>
-          <h2 className="text-xl font-bold text-white">Coordinates</h2>
+          <h2 className="text-xl font-bold">Coordinates</h2>
           <p className="text-gray-300">Celestial coordinates of the object</p>
         </CommonTable>
       )}
 
       {object.catalogs?.redshift && (
         <CommonTable columns={redshiftColumns} data={redshiftData}>
-          <h2 className="text-xl font-bold text-white">Redshift</h2>
+          <h2 className="text-xl font-bold">Redshift</h2>
           <p className="text-gray-300">Redshift measurements</p>
         </CommonTable>
       )}
 
       {object.catalogs?.velocity && (
         <CommonTable columns={velocityColumns} data={velocityData}>
-          <h2 className="text-xl font-bold text-white">Velocity</h2>
+          <h2 className="text-xl font-bold">Velocity</h2>
           <p className="text-gray-300">
             Velocity measurements with respect to different apexes
           </p>
@@ -230,9 +236,7 @@ export function ObjectDetailsPage(): ReactElement {
       />
 
       {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <p className="text-gray-300 text-lg">Loading...</p>
-        </div>
+        <Loading />
       ) : object ? (
         renderObjectDetails(object, schema)
       ) : (

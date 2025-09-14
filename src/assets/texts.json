@@ -2,6 +2,10 @@
   "title": {
     "catalog.designation": "Designation",
     "catalog.icrs": "Celestial coordinates",
-    "catalog.redshift": "Redshift"
+    "catalog.redshift": "Redshift",
+    "crossmatch.status.unprocessed": "Unprocessed",
+    "crossmatch.status.new": "New",
+    "crossmatch.status.collided": "Collided",
+    "crossmatch.status.existing": "Existing"
   }
 }
