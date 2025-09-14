@@ -6,6 +6,7 @@ import {
   CellPrimitive,
 } from "../components/ui/common-table";
 import { Badge } from "../components/ui/badge";
+import { Dropdown } from "../components/ui/dropdown";
 import { getCrossmatchRecordsAdminApiV1RecordsCrossmatchGet } from "../clients/admin/sdk.gen";
 import type {
   GetRecordsCrossmatchResponse,
@@ -14,6 +15,8 @@ import type {
   HttpValidationError,
   ValidationError,
 } from "../clients/admin/types.gen";
+import { getResource } from "../resources/resources";
+import { Button } from "../components/ui/button";
 
 export function CrossmatchResultsPage(): ReactElement {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -130,13 +133,7 @@ export function CrossmatchResultsPage(): ReactElement {
   }
 
   function getStatusLabel(status: RecordCrossmatchStatus): string {
-    const statusLabels: Record<RecordCrossmatchStatus, string> = {
-      unprocessed: "Unprocessed",
-      new: "New",
-      collided: "Collided",
-      existing: "Existing",
-    };
-    return statusLabels[status];
+    return getResource(`crossmatch.status.${status}`).Title;
   }
 
   const columns: Column[] = [
@@ -207,38 +204,32 @@ export function CrossmatchResultsPage(): ReactElement {
         </h1>
 
         <div className="flex gap-4 mb-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
-              Status Filter
-            </label>
-            <select
-              value={status || "all"}
-              onChange={(e) => handleStatusChange(e.target.value)}
-              className="bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white"
-            >
-              <option value="all">All Statuses</option>
-              <option value="unprocessed">Unprocessed</option>
-              <option value="new">New</option>
-              <option value="collided">Collided</option>
-              <option value="existing">Existing</option>
-            </select>
-          </div>
+          <Dropdown
+            title="Status Filter"
+            options={[
+              { value: "all", label: "All Statuses" },
+              { value: "unprocessed", label: "Unprocessed" },
+              { value: "new", label: "New" },
+              { value: "collided", label: "Collided" },
+              { value: "existing", label: "Existing" },
+            ]}
+            defaultValue="all"
+            value={status || "all"}
+            onChange={handleStatusChange}
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
-              Page Size
-            </label>
-            <select
-              value={pageSize}
-              onChange={(e) => handlePageSizeChange(parseInt(e.target.value))}
-              className="bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white"
-            >
-              <option value={10}>10</option>
-              <option value={25}>25</option>
-              <option value={50}>50</option>
-              <option value={100}>100</option>
-            </select>
-          </div>
+          <Dropdown
+            title="Page Size"
+            options={[
+              { value: "10" },
+              { value: "25" },
+              { value: "50" },
+              { value: "100" },
+            ]}
+            defaultValue="25"
+            value={pageSize.toString()}
+            onChange={(value) => handlePageSizeChange(parseInt(value))}
+          />
         </div>
       </div>
 
@@ -252,23 +243,19 @@ export function CrossmatchResultsPage(): ReactElement {
       </CommonTable>
 
       <div className="flex justify-between items-center">
-        <button
+        <Button
           onClick={() => handlePageChange(page - 1)}
           disabled={page === 0}
-          className="px-4 py-2 bg-gray-700 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600"
         >
           Previous
-        </button>
-
+        </Button>
         <span className="text-gray-300">Page {page + 1}</span>
-
-        <button
+        <Button
           onClick={() => handlePageChange(page + 1)}
           disabled={tableData.length < pageSize}
-          className="px-4 py-2 bg-gray-700 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600"
         >
           Next
-        </button>
+        </Button>
       </div>
     </div>
   );
