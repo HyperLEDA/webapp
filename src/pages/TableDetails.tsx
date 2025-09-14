@@ -182,10 +182,14 @@ function CrossmatchStats(props: CrossmatchStatsProps): ReactElement {
     return <div></div>;
   }
 
-  function handleViewCrossmatchResults(): void {
-    props.navigate(
-      `/crossmatch?table_name=${encodeURIComponent(props.tableName)}&status=collided`,
-    );
+  function handleViewCrossmatchResults(event: React.MouseEvent): void {
+    const url = `/crossmatch?table_name=${encodeURIComponent(props.tableName)}&status=collided`;
+
+    if (event.ctrlKey || event.metaKey) {
+      window.open(url, "_blank");
+    } else {
+      props.navigate(url);
+    }
   }
 
   return (

@@ -152,7 +152,7 @@ function renderObjectDetails(
           />
         )}
         <div className="flex-1">
-          <h2 className="text-2xl font-bold text-white mb-2">
+          <h2 className="text-2xl font-bold mb-2">
             {object.catalogs?.designation?.name || `PGC ${object.pgc}`}
           </h2>
           <p className="text-gray-300">PGC: {object.pgc}</p>
@@ -161,21 +161,21 @@ function renderObjectDetails(
 
       {object.catalogs?.coordinates && (
         <CommonTable columns={coordinatesColumns} data={coordinatesData}>
-          <h2 className="text-xl font-bold text-white">Coordinates</h2>
+          <h2 className="text-xl font-bold">Coordinates</h2>
           <p className="text-gray-300">Celestial coordinates of the object</p>
         </CommonTable>
       )}
 
       {object.catalogs?.redshift && (
         <CommonTable columns={redshiftColumns} data={redshiftData}>
-          <h2 className="text-xl font-bold text-white">Redshift</h2>
+          <h2 className="text-xl font-bold">Redshift</h2>
           <p className="text-gray-300">Redshift measurements</p>
         </CommonTable>
       )}
 
       {object.catalogs?.velocity && (
         <CommonTable columns={velocityColumns} data={velocityData}>
-          <h2 className="text-xl font-bold text-white">Velocity</h2>
+          <h2 className="text-xl font-bold">Velocity</h2>
           <p className="text-gray-300">
             Velocity measurements with respect to different apexes
           </p>

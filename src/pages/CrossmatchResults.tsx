@@ -208,9 +208,7 @@ export function CrossmatchResultsPage(): ReactElement {
   return (
     <div className="p-8">
       <div className="mb-6">
-        <h2 className="text-3xl font-bold text-white mb-4">
-          Crossmatch results
-        </h2>
+        <h2 className="text-3xl font-bold mb-4">Crossmatch results</h2>
 
         <div className="flex gap-4 mb-4">
           <LinkButton to={`/table/${localTableName.trim()}`}>
