@@ -9,7 +9,9 @@ interface LinkProps {
 export function Link(props: LinkProps): ReactElement {
   const content = props.children ?? props.href;
   const baseClass = "text-green-500 hover:text-green-600 transition-colors";
-  const className = props.className ? `${baseClass} ${props.className}` : baseClass;
+  const className = props.className
+    ? `${baseClass} ${props.className}`
+    : baseClass;
   return (
     <a
       target="_blank"

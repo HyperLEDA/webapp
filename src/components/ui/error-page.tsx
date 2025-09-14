@@ -54,7 +54,7 @@ export function ErrorPageHomeButton({
 }): ReactElement {
   return (
     <Button onClick={onClick} className="px-6 py-3 text-base">
-        Home
+      Home
     </Button>
   );
 }
