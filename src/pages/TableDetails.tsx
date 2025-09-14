@@ -3,7 +3,7 @@ import {
   Bibliography,
   GetTableResponse,
   HttpValidationError,
-  ObjectCrossmatchStatus,
+  RecordCrossmatchStatus,
 } from "../clients/admin/types.gen";
 import { getTableAdminApiV1TableGet } from "../clients/admin/sdk.gen";
 import { useNavigate, useParams } from "react-router-dom";
@@ -12,6 +12,7 @@ import {
   Column,
   CommonTable,
 } from "../components/ui/common-table";
+import { Button } from "../components/ui/button";
 import { CopyButton } from "../components/ui/copy-button";
 import { Link } from "../components/ui/link";
 import { getResource } from "../resources/resources";
@@ -156,6 +157,8 @@ function MarkingRules(props: MarkingRulesProps): ReactElement {
 
 interface CrossmatchStatsProps {
   table: GetTableResponse;
+  tableName: string;
+  navigate: (path: string) => void;
 }
 
 function CrossmatchStats(props: CrossmatchStatsProps): ReactElement {
@@ -164,7 +167,7 @@ function CrossmatchStats(props: CrossmatchStatsProps): ReactElement {
   const values: Record<string, CellPrimitive>[] = [];
 
   if (props.table.statistics) {
-    const statusLabels: Record<ObjectCrossmatchStatus, string> = {
+    const statusLabels: Record<RecordCrossmatchStatus, string> = {
       unprocessed: "Unprocessed",
       new: "New",
       collided: "Collided",
@@ -173,7 +176,7 @@ function CrossmatchStats(props: CrossmatchStatsProps): ReactElement {
 
     Object.entries(props.table.statistics).forEach(([status, count]) => {
       values.push({
-        Status: statusLabels[status as ObjectCrossmatchStatus] || status,
+        Status: statusLabels[status as RecordCrossmatchStatus] || status,
         Count: count || 0,
       });
     });
@@ -183,9 +186,20 @@ function CrossmatchStats(props: CrossmatchStatsProps): ReactElement {
     return <div></div>;
   }
 
+  function handleViewCrossmatchResults(): void {
+    props.navigate(
+      `/crossmatch?table_name=${encodeURIComponent(props.tableName)}`,
+    );
+  }
+
   return (
     <CommonTable columns={columns} data={values} className="pb-5">
-      <h2 className="text-2xl font-bold">Crossmatch Statistics</h2>
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">Crossmatch Statistics</h2>
+        <Button onClick={handleViewCrossmatchResults}>
+          View Crossmatch Results
+        </Button>
+      </div>
     </CommonTable>
   );
 }
@@ -304,7 +318,11 @@ export function TableDetailsPage(): ReactElement {
         <div>
           <TableMeta tableName={tableName ?? ""} table={table} />
           <MarkingRules table={table} />
-          <CrossmatchStats table={table} />
+          <CrossmatchStats
+            table={table}
+            tableName={tableName ?? ""}
+            navigate={navigate}
+          />
           <ColumnInfo table={table} />
         </div>
       ) : error ? (

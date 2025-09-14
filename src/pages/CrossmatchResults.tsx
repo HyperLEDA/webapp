@@ -1,0 +1,257 @@
+import { ReactElement, useEffect, useState } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import {
+  CommonTable,
+  Column,
+  CellPrimitive,
+} from "../components/ui/common-table";
+import { getCrossmatchRecordsAdminApiV1RecordsCrossmatchGet } from "../clients/admin/sdk.gen";
+import type {
+  GetRecordsCrossmatchResponse,
+  RecordCrossmatch,
+  RecordCrossmatchStatus,
+  HttpValidationError,
+  ValidationError,
+} from "../clients/admin/types.gen";
+
+export function CrossmatchResultsPage(): ReactElement {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  const [data, setData] = useState<GetRecordsCrossmatchResponse | null>(null);
+  const [error, setError] = useState<HttpValidationError | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  const tableName = searchParams.get("table_name");
+  const status = searchParams.get("status") as RecordCrossmatchStatus | null;
+  const page = parseInt(searchParams.get("page") || "0");
+  const pageSize = parseInt(searchParams.get("page_size") || "25");
+
+  useEffect(() => {
+    async function fetchData() {
+      if (!tableName) {
+        navigate("/");
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const response =
+          await getCrossmatchRecordsAdminApiV1RecordsCrossmatchGet({
+            query: {
+              table_name: tableName,
+              status: status || undefined,
+              page: page,
+              page_size: pageSize,
+            },
+          });
+
+        if (response.error) {
+          setError(response.error);
+          return;
+        }
+
+        if (response.data) {
+          setData(response.data.data);
+        }
+      } catch (err) {
+        console.error("Error fetching crossmatch records", err);
+        setError({
+          detail: [
+            {
+              loc: [],
+              msg: "Failed to fetch crossmatch records",
+              type: "value_error",
+            },
+          ],
+        });
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchData();
+  }, [tableName, status, page, pageSize, navigate]);
+
+  function handlePageChange(newPage: number): void {
+    const newSearchParams = new URLSearchParams(searchParams);
+    newSearchParams.set("page", newPage.toString());
+    setSearchParams(newSearchParams);
+  }
+
+  function handlePageSizeChange(newPageSize: number): void {
+    const newSearchParams = new URLSearchParams(searchParams);
+    newSearchParams.set("page_size", newPageSize.toString());
+    newSearchParams.set("page", "0");
+    setSearchParams(newSearchParams);
+  }
+
+  function handleStatusChange(newStatus: string): void {
+    const newSearchParams = new URLSearchParams(searchParams);
+    if (newStatus === "all") {
+      newSearchParams.delete("status");
+    } else {
+      newSearchParams.set("status", newStatus);
+    }
+    newSearchParams.set("page", "0");
+    setSearchParams(newSearchParams);
+  }
+
+  function getRecordName(record: RecordCrossmatch): string {
+    return record.catalogs.designation?.name || record.record_id;
+  }
+
+  function getCandidates(record: RecordCrossmatch): string {
+    if (record.status === "new") {
+      return "NULL";
+    }
+
+    if (record.status === "existing" && record.metadata.pgc) {
+      return `PGC ${record.metadata.pgc}`;
+    }
+
+    if (record.status === "collided" && record.metadata.possible_matches) {
+      return record.metadata.possible_matches
+        .map((pgc: number) => `PGC ${pgc}`)
+        .join(", ");
+    }
+
+    return "NULL";
+  }
+
+  function getStatusLabel(status: RecordCrossmatchStatus): string {
+    const statusLabels: Record<RecordCrossmatchStatus, string> = {
+      unprocessed: "Unprocessed",
+      new: "New",
+      collided: "Collided",
+      existing: "Existing",
+    };
+    return statusLabels[status];
+  }
+
+  const columns: Column[] = [
+    { name: "Record Name" },
+    { name: "Status" },
+    { name: "Candidates" },
+  ];
+
+  const tableData: Record<string, CellPrimitive>[] =
+    data?.records.map((record: RecordCrossmatch) => ({
+      "Record Name": getRecordName(record),
+      Status: getStatusLabel(record.status),
+      Candidates: getCandidates(record),
+    })) || [];
+
+  if (loading) {
+    return (
+      <div className="p-8">
+        <div className="flex justify-center items-center h-64">
+          <p className="text-gray-300 text-lg">Loading crossmatch results...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-8">
+        <div className="bg-red-900 border border-red-700 rounded p-4">
+          <h2 className="text-xl font-bold text-red-200 mb-2">Error</h2>
+          <p className="text-red-300">
+            {error.detail?.map((err: ValidationError) => err.msg).join(", ") ||
+              "An error occurred"}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!tableName) {
+    return (
+      <div className="p-8">
+        <div className="bg-yellow-900 border border-yellow-700 rounded p-4">
+          <h2 className="text-xl font-bold text-yellow-200 mb-2">
+            Missing Table Name
+          </h2>
+          <p className="text-yellow-300">
+            Please provide a table_name parameter.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-8">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-white mb-4">
+          Crossmatch Results for {tableName}
+        </h1>
+
+        <div className="flex gap-4 mb-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">
+              Status Filter
+            </label>
+            <select
+              value={status || "all"}
+              onChange={(e) => handleStatusChange(e.target.value)}
+              className="bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white"
+            >
+              <option value="all">All Statuses</option>
+              <option value="unprocessed">Unprocessed</option>
+              <option value="new">New</option>
+              <option value="collided">Collided</option>
+              <option value="existing">Existing</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">
+              Page Size
+            </label>
+            <select
+              value={pageSize}
+              onChange={(e) => handlePageSizeChange(parseInt(e.target.value))}
+              className="bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white"
+            >
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <CommonTable columns={columns} data={tableData} className="mb-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-bold">Crossmatch Records</h2>
+          <div className="text-sm text-gray-400">
+            Showing {tableData.length} records
+          </div>
+        </div>
+      </CommonTable>
+
+      <div className="flex justify-between items-center">
+        <button
+          onClick={() => handlePageChange(page - 1)}
+          disabled={page === 0}
+          className="px-4 py-2 bg-gray-700 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600"
+        >
+          Previous
+        </button>
+
+        <span className="text-gray-300">Page {page + 1}</span>
+
+        <button
+          onClick={() => handlePageChange(page + 1)}
+          disabled={tableData.length < pageSize}
+          className="px-4 py-2 bg-gray-700 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
+}
