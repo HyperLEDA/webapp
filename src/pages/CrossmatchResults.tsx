@@ -33,6 +33,14 @@ export function CrossmatchResultsPage(): ReactElement {
   const page = parseInt(searchParams.get("page") || "0");
   const pageSize = parseInt(searchParams.get("page_size") || "25");
 
+  const [localStatus, setLocalStatus] = useState<string>(status || "all");
+  const [localPageSize, setLocalPageSize] = useState<number>(pageSize);
+
+  useEffect(() => {
+    setLocalStatus(status || "all");
+    setLocalPageSize(pageSize);
+  }, [status, pageSize]);
+
   useEffect(() => {
     async function fetchData() {
       if (!tableName) {
@@ -85,21 +93,18 @@ export function CrossmatchResultsPage(): ReactElement {
     setSearchParams(newSearchParams);
   }
 
-  function handlePageSizeChange(newPageSize: number): void {
+  function applyFilters(): void {
     const newSearchParams = new URLSearchParams(searchParams);
-    newSearchParams.set("page_size", newPageSize.toString());
-    newSearchParams.set("page", "0");
-    setSearchParams(newSearchParams);
-  }
 
-  function handleStatusChange(newStatus: string): void {
-    const newSearchParams = new URLSearchParams(searchParams);
-    if (newStatus === "all") {
+    if (localStatus === "all") {
       newSearchParams.delete("status");
     } else {
-      newSearchParams.set("status", newStatus);
+      newSearchParams.set("status", localStatus);
     }
+
+    newSearchParams.set("page_size", localPageSize.toString());
     newSearchParams.set("page", "0");
+
     setSearchParams(newSearchParams);
   }
 
@@ -208,8 +213,8 @@ export function CrossmatchResultsPage(): ReactElement {
               { value: "existing", label: "Existing" },
             ]}
             defaultValue="all"
-            value={status || "all"}
-            onChange={handleStatusChange}
+            value={localStatus}
+            onChange={setLocalStatus}
           />
 
           <Dropdown
@@ -221,9 +226,13 @@ export function CrossmatchResultsPage(): ReactElement {
               { value: "100" },
             ]}
             defaultValue="25"
-            value={pageSize.toString()}
-            onChange={(value) => handlePageSizeChange(parseInt(value))}
+            value={localPageSize.toString()}
+            onChange={(value) => setLocalPageSize(parseInt(value))}
           />
+
+          <div className="flex items-end">
+            <Button onClick={applyFilters}>Apply</Button>
+          </div>
         </div>
       </div>
 
