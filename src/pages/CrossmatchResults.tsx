@@ -5,6 +5,7 @@ import {
   Column,
   CellPrimitive,
 } from "../components/ui/common-table";
+import { CopyButton } from "../components/ui/copy-button";
 import { getCrossmatchRecordsAdminApiV1RecordsCrossmatchGet } from "../clients/admin/sdk.gen";
 import type {
   GetRecordsCrossmatchResponse,
@@ -101,22 +102,38 @@ export function CrossmatchResultsPage(): ReactElement {
     return record.catalogs.designation?.name || record.record_id;
   }
 
-  function getCandidates(record: RecordCrossmatch): string {
+  function renderCandidates(record: RecordCrossmatch): ReactElement {
     if (record.status === "new") {
-      return "NULL";
+      return <span>NULL</span>;
     }
 
     if (record.status === "existing" && record.metadata.pgc) {
-      return `PGC ${record.metadata.pgc}`;
+      const pgcText = `PGC ${record.metadata.pgc}`;
+      return (
+        <div className="inline-block bg-gray-600 rounded px-1.5 py-0.5 text-sm">
+          {pgcText}
+        </div>
+      );
     }
 
     if (record.status === "collided" && record.metadata.possible_matches) {
-      return record.metadata.possible_matches
-        .map((pgc: number) => `PGC ${pgc}`)
-        .join(", ");
+      const pgcNumbers = record.metadata.possible_matches;
+
+      return (
+        <div>
+          {pgcNumbers.map((pgc: number, index: number) => (
+            <div
+              key={`${pgc}-${index}`}
+              className="inline-block bg-gray-600 rounded px-1.5 py-0.5 text-sm mr-0.5 mb-0.5"
+            >
+              PGC {pgc}
+            </div>
+          ))}
+        </div>
+      );
     }
 
-    return "NULL";
+    return <span>NULL</span>;
   }
 
   function getStatusLabel(status: RecordCrossmatchStatus): string {
@@ -132,14 +149,22 @@ export function CrossmatchResultsPage(): ReactElement {
   const columns: Column[] = [
     { name: "Record Name" },
     { name: "Status" },
-    { name: "Candidates" },
+    {
+      name: "Candidates",
+      renderCell: (recordIndex: CellPrimitive) => {
+        if (typeof recordIndex === "number" && data?.records[recordIndex]) {
+          return renderCandidates(data.records[recordIndex]);
+        }
+        return <span>NULL</span>;
+      },
+    },
   ];
 
   const tableData: Record<string, CellPrimitive>[] =
-    data?.records.map((record: RecordCrossmatch) => ({
+    data?.records.map((record: RecordCrossmatch, index: number) => ({
       "Record Name": getRecordName(record),
       Status: getStatusLabel(record.status),
-      Candidates: getCandidates(record),
+      Candidates: index,
     })) || [];
 
   if (loading) {
