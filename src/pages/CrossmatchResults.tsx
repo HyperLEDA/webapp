@@ -219,6 +219,7 @@ export function CrossmatchResultsPage(): ReactElement {
               value={localTableName}
               onChange={setLocalTableName}
               placeholder="Enter table name"
+              onEnter={applyFilters}
             />
           </LinkButton>
           <DropdownFilter
