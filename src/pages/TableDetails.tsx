@@ -16,6 +16,7 @@ import { Button } from "../components/ui/button";
 import { CopyButton } from "../components/ui/copy-button";
 import { Badge } from "../components/ui/badge";
 import { Link } from "../components/ui/link";
+import { Loading } from "../components/ui/loading";
 import { getResource } from "../resources/resources";
 
 function renderBibliography(bib: Bibliography): ReactElement {
@@ -56,11 +57,7 @@ function renderUCD(ucd: CellPrimitive): ReactElement {
   const words: ReactElement[] = [];
 
   ucd.split(";").forEach((word, index) => {
-    words.push(
-      <Badge key={`${word}-${index}`}>
-        {word}
-      </Badge>,
-    );
+    words.push(<Badge key={`${word}-${index}`}>{word}</Badge>);
   });
 
   return (
@@ -309,9 +306,7 @@ export function TableDetailsPage(): ReactElement {
   return (
     <div className="p-8">
       {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <p className="text-gray-300 text-lg">Loading...</p>
-        </div>
+        <Loading />
       ) : table ? (
         <div>
           <TableMeta tableName={tableName ?? ""} table={table} />

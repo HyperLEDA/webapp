@@ -17,6 +17,7 @@ import type {
 } from "../clients/admin/types.gen";
 import { getResource } from "../resources/resources";
 import { Button } from "../components/ui/button";
+import { Loading } from "../components/ui/loading";
 
 export function CrossmatchResultsPage(): ReactElement {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -158,13 +159,7 @@ export function CrossmatchResultsPage(): ReactElement {
     })) || [];
 
   if (loading) {
-    return (
-      <div className="p-8">
-        <div className="flex justify-center items-center h-64">
-          <p className="text-gray-300 text-lg">Loading crossmatch results...</p>
-        </div>
-      </div>
-    );
+    return <Loading />;
   }
 
   if (error) {

@@ -4,6 +4,7 @@ import { SearchBar } from "../components/ui/searchbar";
 import { Button } from "../components/ui/button";
 import { AladinViewer } from "../components/ui/aladin";
 import { CommonTable } from "../components/ui/common-table";
+import { Loading } from "../components/ui/loading";
 import { querySimpleApiV1QuerySimpleGet } from "../clients/backend/sdk.gen";
 import { PgcObject, Schema } from "../clients/backend/types.gen";
 
@@ -230,9 +231,7 @@ export function ObjectDetailsPage(): ReactElement {
       />
 
       {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <p className="text-gray-300 text-lg">Loading...</p>
-        </div>
+        <Loading />
       ) : object ? (
         renderObjectDetails(object, schema)
       ) : (

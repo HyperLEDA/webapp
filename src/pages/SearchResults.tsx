@@ -8,6 +8,7 @@ import { SearchPGCObject, backendClient } from "../clients/backend";
 import { SearchBar } from "../components/ui/searchbar";
 import { AladinViewer } from "../components/ui/aladin";
 import { Card, CardContent } from "../components/ui/card";
+import { Loading } from "../components/ui/loading";
 
 function objectClickHandler(
   navigate: NavigateFunction,
@@ -72,7 +73,7 @@ export function SearchResultsPage(): ReactElement {
       />
 
       {loading ? (
-        <p className="text-center">Loading...</p>
+        <Loading />
       ) : (
         <div className="grid grid-cols-1 gap-4">
           {results.length > 0 ? (
