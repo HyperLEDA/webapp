@@ -27,7 +27,7 @@ export function DropdownFilter({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white"
+        className="bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white h-10 w-full"
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>

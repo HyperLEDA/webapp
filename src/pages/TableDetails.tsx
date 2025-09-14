@@ -145,7 +145,7 @@ function MarkingRules(props: MarkingRulesProps): ReactElement {
   return (
     <CommonTable columns={columns} data={values} className="pb-5">
       <h2 className="text-2xl font-bold">
-        Mapping of columns to catalog values for marking of records.
+        Mapping of columns to catalog values for marking of records
       </h2>
     </CommonTable>
   );
@@ -184,7 +184,7 @@ function CrossmatchStats(props: CrossmatchStatsProps): ReactElement {
 
   function handleViewCrossmatchResults(): void {
     props.navigate(
-      `/crossmatch?table_name=${encodeURIComponent(props.tableName)}`,
+      `/crossmatch?table_name=${encodeURIComponent(props.tableName)}&status=collided`,
     );
   }
 
@@ -193,7 +193,7 @@ function CrossmatchStats(props: CrossmatchStatsProps): ReactElement {
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Crossmatch Statistics</h2>
         <Button onClick={handleViewCrossmatchResults}>
-          View Crossmatch Results
+          View crossmatch results
         </Button>
       </div>
     </CommonTable>

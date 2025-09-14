@@ -254,7 +254,7 @@ export function CrossmatchResultsPage(): ReactElement {
 
       <CommonTable columns={columns} data={tableData} className="mb-6">
         <div className="flex justify-between items-center">
-          <h2 className="text-xl font-bold">Crossmatch Records</h2>
+          <h2 className="text-xl font-bold">Crossmatch records</h2>
           <div className="text-sm text-gray-400">
             Showing {tableData.length} records
           </div>
