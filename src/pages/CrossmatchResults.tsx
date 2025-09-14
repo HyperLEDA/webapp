@@ -5,7 +5,7 @@ import {
   Column,
   CellPrimitive,
 } from "../components/ui/common-table";
-import { CopyButton } from "../components/ui/copy-button";
+import { Badge } from "../components/ui/badge";
 import { getCrossmatchRecordsAdminApiV1RecordsCrossmatchGet } from "../clients/admin/sdk.gen";
 import type {
   GetRecordsCrossmatchResponse,
@@ -109,11 +109,7 @@ export function CrossmatchResultsPage(): ReactElement {
 
     if (record.status === "existing" && record.metadata.pgc) {
       const pgcText = `PGC ${record.metadata.pgc}`;
-      return (
-        <div className="inline-block bg-gray-600 rounded px-1.5 py-0.5 text-sm">
-          {pgcText}
-        </div>
-      );
+      return <Badge>{pgcText}</Badge>;
     }
 
     if (record.status === "collided" && record.metadata.possible_matches) {
@@ -122,12 +118,9 @@ export function CrossmatchResultsPage(): ReactElement {
       return (
         <div>
           {pgcNumbers.map((pgc: number, index: number) => (
-            <div
-              key={`${pgc}-${index}`}
-              className="inline-block bg-gray-600 rounded px-1.5 py-0.5 text-sm mr-0.5 mb-0.5"
-            >
+            <Badge key={`${pgc}-${index}`} className="mr-0.5 mb-0.5">
               PGC {pgc}
-            </div>
+            </Badge>
           ))}
         </div>
       );

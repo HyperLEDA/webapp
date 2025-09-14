@@ -14,6 +14,7 @@ import {
 } from "../components/ui/common-table";
 import { Button } from "../components/ui/button";
 import { CopyButton } from "../components/ui/copy-button";
+import { Badge } from "../components/ui/badge";
 import { Link } from "../components/ui/link";
 import { getResource } from "../resources/resources";
 
@@ -56,12 +57,9 @@ function renderUCD(ucd: CellPrimitive): ReactElement {
 
   ucd.split(";").forEach((word, index) => {
     words.push(
-      <div
-        key={`${word}-${index}`}
-        className="inline-block bg-gray-600 rounded px-1.5 py-0.5 text-sm mr-0.5 mb-0.5"
-      >
+      <Badge key={`${word}-${index}`} className="mr-0.5 mb-0.5">
         {word}
-      </div>,
+      </Badge>,
     );
   });
 
