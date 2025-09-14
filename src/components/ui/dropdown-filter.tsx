@@ -1,24 +1,24 @@
 import { ReactElement } from "react";
 
-interface DropdownOption {
+interface DropdownFilterOption {
   value: string;
   label?: string;
 }
 
-interface DropdownProps {
+interface DropdownFilterProps {
   title: string;
-  options: DropdownOption[];
+  options: DropdownFilterOption[];
   defaultValue: string;
   value: string;
   onChange: (value: string) => void;
 }
 
-export function Dropdown({
+export function DropdownFilter({
   title,
   options,
   value,
   onChange,
-}: DropdownProps): ReactElement {
+}: DropdownFilterProps): ReactElement {
   return (
     <div>
       <label className="block text-sm font-medium text-gray-300 mb-1">

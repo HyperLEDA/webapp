@@ -6,7 +6,7 @@ import {
   CellPrimitive,
 } from "../components/ui/common-table";
 import { Badge } from "../components/ui/badge";
-import { Dropdown } from "../components/ui/dropdown";
+import { DropdownFilter } from "../components/ui/dropdown-filter";
 import { TextFilter } from "../components/ui/text-filter";
 import { getCrossmatchRecordsAdminApiV1RecordsCrossmatchGet } from "../clients/admin/sdk.gen";
 import type {
@@ -219,7 +219,7 @@ export function CrossmatchResultsPage(): ReactElement {
             placeholder="Enter table name"
           />
 
-          <Dropdown
+          <DropdownFilter
             title="Status filter"
             options={[
               { value: "all", label: "All Statuses" },
@@ -233,7 +233,7 @@ export function CrossmatchResultsPage(): ReactElement {
             onChange={setLocalStatus}
           />
 
-          <Dropdown
+          <DropdownFilter
             title="Page size"
             options={[
               { value: "10" },
