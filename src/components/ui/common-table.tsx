@@ -19,6 +19,7 @@ interface CommonTableProps {
   columnHeaderClassName?: string;
   cellClassName?: string;
   children?: React.ReactNode;
+  onRowClick?: (row: Record<string, CellPrimitive>, rowIndex: number) => void;
 }
 
 export function CommonTable({
@@ -30,6 +31,7 @@ export function CommonTable({
   columnHeaderClassName = "bg-gray-600 text-white",
   cellClassName = "text-gray-200",
   children,
+  onRowClick,
 }: CommonTableProps): ReactElement {
   function renderCell(value: CellPrimitive, column: Column): ReactElement {
     if (column.renderCell) {
@@ -90,7 +92,9 @@ export function CommonTable({
                 key={rowIndex}
                 className={classNames(
                   "bg-gray-700 hover:bg-gray-800 transition-colors duration-150",
+                  onRowClick && "cursor-pointer",
                 )}
+                onClick={() => onRowClick?.(row, rowIndex)}
               >
                 {columns.map((column) => {
                   const cellValue = row[column.name];

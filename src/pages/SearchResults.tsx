@@ -1,4 +1,4 @@
-import { ReactElement, useEffect, useState } from "react";
+import React, { ReactElement, useEffect, useState } from "react";
 import {
   NavigateFunction,
   useNavigate,
@@ -6,8 +6,7 @@ import {
 } from "react-router-dom";
 import { SearchPGCObject, backendClient } from "../clients/backend";
 import { SearchBar } from "../components/ui/searchbar";
-import { AladinViewer } from "../components/ui/aladin";
-import { Card, CardContent } from "../components/ui/card";
+import { CommonTable, Column } from "../components/ui/common-table";
 import { Loading } from "../components/ui/loading";
 import { ErrorPage, ErrorPageHomeButton } from "../components/ui/error-page";
 
@@ -44,6 +43,39 @@ export function SearchResultsPage(): ReactElement {
   const page = parseInt(searchParams.get("page") || "1");
   const pageSize = parseInt(searchParams.get("pagesize") || "10");
 
+  const columns: Column[] = [
+    {
+      name: "PGC",
+      renderCell: (value: React.ReactElement | string | number) => (
+        <span className="font-mono text-blue-400 hover:text-blue-300 cursor-pointer">
+          {value}
+        </span>
+      ),
+    },
+    {
+      name: "Name",
+      renderCell: (value: React.ReactElement | string | number) => (
+        <span className="text-gray-200">{value || "N/A"}</span>
+      ),
+    },
+    {
+      name: "RA (deg)",
+      renderCell: (value: React.ReactElement | string | number) => (
+        <span className="font-mono text-gray-300">
+          {typeof value === "number" ? value.toFixed(6) : value}
+        </span>
+      ),
+    },
+    {
+      name: "Dec (deg)",
+      renderCell: (value: React.ReactElement | string | number) => (
+        <span className="font-mono text-gray-300">
+          {typeof value === "number" ? value.toFixed(6) : value}
+        </span>
+      ),
+    },
+  ];
+
   useEffect(() => {
     async function fetchResults() {
       if (!query.trim()) {
@@ -76,40 +108,26 @@ export function SearchResultsPage(): ReactElement {
       {loading ? (
         <Loading />
       ) : (
-        <div className="grid grid-cols-1 gap-4">
+        <div className="mt-4">
           {results.length > 0 ? (
             <>
-              {results.map((object) => (
-                <div key={object.pgc} className="flex items-center w-full">
-                  <AladinViewer
-                    ra={object.catalogs.icrs.ra}
-                    dec={object.catalogs.icrs.dec}
-                    fov={0.02}
-                    survey="P/DSS2/color"
-                    className="w-60 h-60"
-                  />
-                  <Card
-                    key={object.pgc}
-                    className="cursor-pointer hover:shadow-lg flex-grow ml-4"
-                    onClick={() => objectClickHandler(navigate, object)}
-                  >
-                    <CardContent>
-                      <h2 className="text-lg">PGC {object.pgc}</h2>
-                    </CardContent>
-                    <CardContent>
-                      <h2 className="text-lg">
-                        Name: {object.catalogs.designation.design}
-                      </h2>
-                    </CardContent>
-                    <CardContent>
-                      <h2 className="text-lg">
-                        J2000: {object.catalogs.icrs.ra} deg,{" "}
-                        {object.catalogs.icrs.dec} deg
-                      </h2>
-                    </CardContent>
-                  </Card>
-                </div>
-              ))}
+              <CommonTable
+                columns={columns}
+                data={results.map((object) => ({
+                  PGC: object.pgc,
+                  Name: object.catalogs.designation.design,
+                  "RA (deg)": object.catalogs.icrs.ra,
+                  "Dec (deg)": object.catalogs.icrs.dec,
+                }))}
+                className="w-full"
+                onRowClick={(row) => {
+                  const pgc = row.PGC as number;
+                  const object = results.find((obj) => obj.pgc === pgc);
+                  if (object) {
+                    objectClickHandler(navigate, object);
+                  }
+                }}
+              />
               <div className="flex justify-center items-center gap-4 mt-4">
                 <button
                   onClick={() =>
