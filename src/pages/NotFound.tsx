@@ -1,9 +1,14 @@
 import { useNavigate } from "react-router-dom";
 import { ErrorPage } from "../components/ui/error-page";
 import { Button } from "../components/ui/button";
+import { useEffect } from "react";
 
 export function NotFoundPage() {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    document.title = `404 | HyperLEDA`;
+  }, []);
 
   return (
     <ErrorPage

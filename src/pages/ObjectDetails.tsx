@@ -1,4 +1,4 @@
-import { ReactElement } from "react";
+import { ReactElement, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { AladinViewer } from "../components/ui/aladin";
 import { Loading } from "../components/ui/loading";
@@ -76,6 +76,10 @@ async function fetcher(
 
 export function ObjectDetailsPage(): ReactElement {
   const { pgcId } = useParams<{ pgcId: string }>();
+
+  useEffect(() => {
+    document.title = `PGC ${pgcId} | HyperLEDA`;
+  }, [pgcId]);
 
   const {
     data: payload,

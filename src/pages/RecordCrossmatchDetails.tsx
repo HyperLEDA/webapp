@@ -1,4 +1,4 @@
-import { ReactElement } from "react";
+import { ReactElement, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { AladinViewer } from "../components/ui/aladin";
 import { Loading } from "../components/ui/loading";
@@ -209,6 +209,10 @@ export function RecordCrossmatchDetailsPage(): ReactElement {
     () => fetcher(recordId),
     [recordId],
   );
+
+  useEffect(() => {
+    document.title = `Crossmatch - ${data?.crossmatch.catalogs.designation?.name ?? recordId} | HyperLEDA`;
+  }, [data, recordId]);
 
   function Content(): ReactElement {
     if (loading) return <Loading />;

@@ -201,6 +201,10 @@ export function CrossmatchResultsPage(): ReactElement {
   const page = parseInt(searchParams.get("page") || "0");
   const pageSize = parseInt(searchParams.get("page_size") || "25");
 
+  useEffect(() => {
+    document.title = `Crossmatch - ${tableName} | HyperLEDA`;
+  }, [tableName]);
+
   const { data, loading, error } = useDataFetching(
     () => fetcher(tableName, status, page, pageSize),
     [tableName, status, page, pageSize],

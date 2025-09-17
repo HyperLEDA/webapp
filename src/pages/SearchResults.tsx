@@ -1,4 +1,4 @@
-import { ReactElement } from "react";
+import { ReactElement, useEffect } from "react";
 import {
   NavigateFunction,
   useNavigate,
@@ -164,6 +164,10 @@ export function SearchResultsPage(): ReactElement {
   const query = searchParams.get("q") || "";
   const page = parseInt(searchParams.get("page") || "1");
   const pageSize = parseInt(searchParams.get("pagesize") || "10");
+
+  useEffect(() => {
+    document.title = `${query} | HyperLEDA`;
+  }, [query]);
 
   const {
     data: results,
