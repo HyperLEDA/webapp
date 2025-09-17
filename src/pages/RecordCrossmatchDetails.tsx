@@ -1,17 +1,18 @@
 import { ReactElement, useEffect, useState } from "react";
-import { NavigateFunction, useNavigate, useParams } from "react-router-dom";
+import {
+  Link,
+  NavigateFunction,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
 import { AladinViewer } from "../components/ui/aladin";
 import { Loading } from "../components/ui/loading";
-import {
-  ErrorPage,
-  ErrorPageHomeButton,
-} from "../components/ui/error-page";
+import { ErrorPage, ErrorPageHomeButton } from "../components/ui/error-page";
 import { CatalogData } from "../components/ui/catalog-data";
 import { getRecordCrossmatchAdminApiV1RecordCrossmatchGet } from "../clients/admin/sdk.gen";
 import {
   GetRecordCrossmatchResponse,
   RecordCrossmatch,
-  RecordCrossmatchStatus,
   PgcCandidate,
   Schema as AdminSchema,
 } from "../clients/admin/types.gen";
@@ -30,10 +31,6 @@ function renderNotFound(navigate: NavigateFunction) {
       <ErrorPageHomeButton onClick={() => navigate("/")} />
     </ErrorPage>
   );
-}
-
-function getStatusLabel(status: RecordCrossmatchStatus): string {
-  return getResource(`crossmatch.status.${status}`).Title;
 }
 
 function convertAdminSchemaToBackendSchema(
@@ -156,11 +153,17 @@ function renderCrossmatchDetails(
           <h2 className="text-2xl font-bold mb-2">
             Record ID: {crossmatch.record_id}
           </h2>
-          <p className="text-gray-300">
-            Status: {getStatusLabel(crossmatch.status)}
+          <p>
+            Status:{" "}
+            {getResource(`crossmatch.status.${crossmatch.status}`).Title}
           </p>
           {crossmatch.metadata.pgc && (
-            <p className="text-gray-300">PGC: {crossmatch.metadata.pgc}</p>
+            <p>
+              PGC:{" "}
+              <Link to={`/object/${crossmatch.metadata.pgc}`}>
+                {crossmatch.metadata.pgc}
+              </Link>
+            </p>
           )}
         </div>
       </div>
@@ -178,7 +181,8 @@ function renderCrossmatchDetails(
             return (
               <div key={candidate.pgc} className="border rounded-lg p-4">
                 <h3 className="text-lg font-semibold mb-4">
-                  Candidate {index + 1}: PGC {candidate.pgc}
+                  Candidate {index + 1}: PGC{" "}
+                  <Link to={`/objects/${candidate.pgc}`}>{candidate.pgc}</Link>
                 </h3>
                 <CatalogData object={candidateObject} schema={backendSchema} />
               </div>

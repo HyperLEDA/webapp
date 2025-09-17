@@ -13,47 +13,50 @@ export function CatalogData({
 }: CatalogDataProps): ReactElement {
   if (!object || !schema) return <div />;
 
+  function formatCoordinate(
+    value: number | undefined,
+    error: number | undefined,
+    unit: string | undefined,
+  ): string {
+    if (value === undefined) return "NULL";
+    const formattedValue = value.toFixed(2);
+    const formattedError = error?.toFixed(2) || "0.00";
+    const unitStr = unit || "deg";
+    return `${formattedValue} ${unitStr} +- ${formattedError} ${unitStr}`;
+  }
+
   const coordinatesColumns = [
-    { name: "Parameter" },
-    { name: "Value" },
-    { name: "Unit" },
-    { name: "Error" },
-    { name: "Error unit" },
+    { name: "Type" },
+    { name: "RA / l" },
+    { name: "Dec / b" },
   ];
 
   const coordinatesData = [
     {
-      Parameter: "Right ascension",
-      Value: object.catalogs?.coordinates?.equatorial?.ra?.toFixed(6) || "NULL",
-      Unit: schema.units.coordinates?.equatorial?.ra || "NULL",
-      Error:
-        object.catalogs?.coordinates?.equatorial?.e_ra?.toFixed(6) || "NULL",
-      "Error unit": schema.units.coordinates?.equatorial?.e_ra || "NULL",
+      Type: "Equatorial",
+      "RA / l": formatCoordinate(
+        object.catalogs?.coordinates?.equatorial?.ra,
+        object.catalogs?.coordinates?.equatorial?.e_ra,
+        schema.units.coordinates?.equatorial?.ra,
+      ),
+      "Dec / b": formatCoordinate(
+        object.catalogs?.coordinates?.equatorial?.dec,
+        object.catalogs?.coordinates?.equatorial?.e_dec,
+        schema.units.coordinates?.equatorial?.dec,
+      ),
     },
     {
-      Parameter: "Declination",
-      Value:
-        object.catalogs?.coordinates?.equatorial?.dec?.toFixed(6) || "NULL",
-      Unit: schema.units.coordinates?.equatorial?.dec || "NULL",
-      Error:
-        object.catalogs?.coordinates?.equatorial?.e_dec?.toFixed(6) || "NULL",
-      "Error unit": schema.units.coordinates?.equatorial?.e_dec || "NULL",
-    },
-    {
-      Parameter: "Galactic longitude",
-      Value: object.catalogs?.coordinates?.galactic?.lon?.toFixed(6) || "NULL",
-      Unit: schema.units.coordinates?.galactic?.lon || "NULL",
-      Error:
-        object.catalogs?.coordinates?.galactic?.e_lon?.toFixed(6) || "NULL",
-      "Error unit": schema.units.coordinates?.galactic?.e_lon || "NULL",
-    },
-    {
-      Parameter: "Galactic latitude",
-      Value: object.catalogs?.coordinates?.galactic?.lat?.toFixed(6) || "NULL",
-      Unit: schema.units.coordinates?.galactic?.lat || "NULL",
-      Error:
-        object.catalogs?.coordinates?.galactic?.e_lat?.toFixed(6) || "NULL",
-      "Error unit": schema.units.coordinates?.galactic?.e_lat || "NULL",
+      Type: "Galactic",
+      "RA / l": formatCoordinate(
+        object.catalogs?.coordinates?.galactic?.lon,
+        object.catalogs?.coordinates?.galactic?.e_lon,
+        schema.units.coordinates?.galactic?.lon,
+      ),
+      "Dec / b": formatCoordinate(
+        object.catalogs?.coordinates?.galactic?.lat,
+        object.catalogs?.coordinates?.galactic?.e_lat,
+        schema.units.coordinates?.galactic?.lat,
+      ),
     },
   ];
 
