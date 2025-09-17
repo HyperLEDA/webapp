@@ -87,22 +87,23 @@ export function ObjectDetailsPage(): ReactElement {
     fetchObjectDetails();
   }, [pgcId]);
 
+  function renderContent(): ReactElement {
+    if (loading) return <Loading />;
+    if (error) return <ErrorPage title={error} />;
+    if (object) return <ObjectDetails object={object} schema={schema} />;
+
+    return (
+      <ErrorPage
+        title="Object not found"
+        message={`Object with PGC ${pgcId} was not found`}
+      />
+    );
+  }
+
   return (
     <>
       <SearchBar />
-
-      {loading ? (
-        <Loading />
-      ) : error ? (
-        <ErrorPage title={error} />
-      ) : object ? (
-        <ObjectDetails object={object} schema={schema} />
-      ) : (
-        <ErrorPage
-          title="Object not found"
-          message={`Object with PGC ${pgcId} was not found`}
-        />
-      )}
+      {renderContent()}
     </>
   );
 }
