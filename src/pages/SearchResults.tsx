@@ -1,21 +1,16 @@
-import React, { ReactElement, useEffect, useState } from "react";
+import { ReactElement } from "react";
 import {
   NavigateFunction,
   useNavigate,
   useSearchParams,
 } from "react-router-dom";
-import { SearchPGCObject, backendClient } from "../clients/backend";
 import { SearchBar } from "../components/ui/searchbar";
 import { CommonTable, Column } from "../components/ui/common-table";
 import { Loading } from "../components/ui/loading";
 import { ErrorPage, ErrorPageHomeButton } from "../components/ui/error-page";
-
-function objectClickHandler(
-  navigate: NavigateFunction,
-  object: SearchPGCObject,
-) {
-  navigate(`/object/${object.pgc}`);
-}
+import { useDataFetching } from "../hooks/useDataFetching";
+import { querySimpleApiV1QuerySimpleGet } from "../clients/backend/sdk.gen";
+import { QuerySimpleResponse } from "../clients/backend/types.gen";
 
 function searchHandler(navigate: NavigateFunction) {
   return function f(query: string) {
@@ -34,15 +29,21 @@ function pageChangeHandler(
   );
 }
 
-export function SearchResultsPage(): ReactElement {
-  const [searchParams] = useSearchParams();
-  const [results, setResults] = useState<SearchPGCObject[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const navigate = useNavigate();
-  const query = searchParams.get("q") || "";
-  const page = parseInt(searchParams.get("page") || "1");
-  const pageSize = parseInt(searchParams.get("pagesize") || "10");
+interface SearchResultsProps {
+  results: QuerySimpleResponse;
+  query: string;
+  page: number;
+  pageSize: number;
+  navigate: NavigateFunction;
+}
 
+function SearchResults({
+  results,
+  query,
+  page,
+  pageSize,
+  navigate,
+}: SearchResultsProps): ReactElement {
   const columns: Column[] = [
     {
       name: "PGC",
@@ -76,84 +77,119 @@ export function SearchResultsPage(): ReactElement {
     },
   ];
 
-  useEffect(() => {
-    async function fetchResults() {
-      if (!query.trim()) {
-        navigate("/");
-        return;
-      }
-
-      setLoading(true);
-      try {
-        const response = await backendClient.query(query, page - 1, pageSize);
-        setResults(response.objects);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchResults();
-  }, [query, navigate, pageSize, page]);
-
-  function renderContent(): ReactElement {
-    if (loading) return <Loading />;
-
-    if (results.length > 0) {
-      return (
-        <div className="mt-4">
-          <CommonTable
-            columns={columns}
-            data={results.map((object) => ({
-              PGC: object.pgc,
-              Name: object.catalogs.designation.design,
-              "RA (deg)": object.catalogs.icrs.ra,
-              "Dec (deg)": object.catalogs.icrs.dec,
-            }))}
-            className="w-full"
-            onRowClick={(row) => {
-              const pgc = row.PGC as number;
-              const object = results.find((obj) => obj.pgc === pgc);
-              if (object) {
-                objectClickHandler(navigate, object);
-              }
-            }}
-          />
-          <div className="flex justify-center items-center gap-4 mt-4">
-            <button
-              onClick={() =>
-                pageChangeHandler(navigate, query, pageSize, page - 1)
-              }
-              disabled={page <= 1}
-              className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
-            >
-              Previous
-            </button>
-            <span>Page {page}</span>
-            <button
-              onClick={() =>
-                pageChangeHandler(navigate, query, pageSize, page + 1)
-              }
-              disabled={results.length < pageSize}
-              className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
-            >
-              Next
-            </button>
-          </div>
+  if (results.objects.length > 0) {
+    return (
+      <div className="mt-4">
+        <CommonTable
+          columns={columns}
+          data={results.objects.map((object) => ({
+            PGC: object.pgc,
+            Name: object.catalogs.designation?.name || "N/A",
+            "RA (deg)": object.catalogs.coordinates?.equatorial.ra || 0,
+            "Dec (deg)": object.catalogs.coordinates?.equatorial.dec || 0,
+          }))}
+          className="w-full"
+          onRowClick={(row) => {
+            const pgc = row.PGC as number;
+            navigate(`/object/${pgc}`);
+          }}
+        />
+        <div className="flex justify-center items-center gap-4 mt-4">
+          <button
+            onClick={() =>
+              pageChangeHandler(navigate, query, pageSize, page - 1)
+            }
+            disabled={page <= 1}
+            className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+          >
+            Previous
+          </button>
+          <span>Page {page}</span>
+          <button
+            onClick={() =>
+              pageChangeHandler(navigate, query, pageSize, page + 1)
+            }
+            disabled={results.objects.length < pageSize}
+            className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+          >
+            Next
+          </button>
         </div>
+      </div>
+    );
+  }
+
+  return (
+    <ErrorPage
+      title="No Results Found"
+      message={`No results found for "${query}"`}
+      className="p-4"
+    >
+      <ErrorPageHomeButton onClick={() => navigate("/")} />
+    </ErrorPage>
+  );
+}
+
+async function fetcher(
+  query: string,
+  page: number,
+  pageSize: number,
+): Promise<QuerySimpleResponse> {
+  if (!query.trim()) {
+    throw new Error("Empty query");
+  }
+
+  const response = await querySimpleApiV1QuerySimpleGet({
+    query: {
+      name: query,
+      page: page,
+      page_size: pageSize,
+    },
+  });
+
+  if (response.data?.data.objects.length === 0) {
+    throw new Error(`No objects found for query ${query}`);
+  }
+
+  if (response.error || !response.data) {
+    throw new Error(`Error during query: ${response.error}`);
+  }
+
+  return response.data.data;
+}
+
+export function SearchResultsPage(): ReactElement {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const query = searchParams.get("q") || "";
+  const page = parseInt(searchParams.get("page") || "1");
+  const pageSize = parseInt(searchParams.get("pagesize") || "10");
+
+  const {
+    data: results,
+    loading,
+    error,
+  } = useDataFetching(
+    () => fetcher(query, page, pageSize),
+    [query, page, pageSize],
+  );
+
+  function Content(): ReactElement {
+    if (loading) return <Loading />;
+    if (error) return <ErrorPage message={error} />;
+    if (results) {
+      return (
+        <SearchResults
+          results={results}
+          query={query}
+          page={page}
+          pageSize={pageSize}
+          navigate={navigate}
+        />
       );
     }
 
-    return (
-      <ErrorPage
-        title="No Results Found"
-        message={`No results found for "${query}"`}
-        className="p-4"
-      >
-        <ErrorPageHomeButton onClick={() => navigate("/")} />
-      </ErrorPage>
-    );
+    return <ErrorPage message="Unknown error" />;
   }
 
   return (
@@ -163,7 +199,7 @@ export function SearchResultsPage(): ReactElement {
         onSearch={searchHandler(navigate)}
         logoSize="small"
       />
-      {renderContent()}
+      <Content />
     </>
   );
 }
