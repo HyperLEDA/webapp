@@ -4,7 +4,6 @@ import { AladinViewer } from "../components/ui/aladin";
 import { Loading } from "../components/ui/loading";
 import {
   ErrorPage,
-  ErrorPageBackButton,
   ErrorPageHomeButton,
 } from "../components/ui/error-page";
 import { CatalogData } from "../components/ui/catalog-data";
@@ -22,19 +21,12 @@ import {
 } from "../clients/backend/types.gen";
 import { getResource } from "../resources/resources";
 
-function backToResultsHandler(navigate: NavigateFunction) {
-  return function f() {
-    navigate(-1);
-  };
-}
-
 function renderNotFound(navigate: NavigateFunction) {
   return (
     <ErrorPage
       title="Crossmatch Not Found"
       message="The requested crossmatch record could not be found."
     >
-      <ErrorPageBackButton onClick={backToResultsHandler(navigate)} />
       <ErrorPageHomeButton onClick={() => navigate("/")} />
     </ErrorPage>
   );
@@ -107,14 +99,31 @@ function convertRecordToPgcObject(record: RecordCrossmatch): PgcObject {
   };
 }
 
-function convertCandidatesToAdditionalSources(candidates: PgcCandidate[]) {
-  return candidates
+function convertCandidatesToAdditionalSources(
+  candidates: PgcCandidate[],
+  mainRecord: RecordCrossmatch,
+) {
+  const candidateSources = candidates
     .filter((candidate) => candidate.catalogs?.coordinates?.equatorial)
     .map((candidate) => ({
       ra: candidate.catalogs!.coordinates!.equatorial.ra,
       dec: candidate.catalogs!.coordinates!.equatorial.dec,
       label: `PGC ${candidate.pgc}`,
     }));
+
+  const mainRecordSource = mainRecord.catalogs?.coordinates?.equatorial
+    ? {
+        ra: mainRecord.catalogs.coordinates.equatorial.ra,
+        dec: mainRecord.catalogs.coordinates.equatorial.dec,
+        label:
+          mainRecord.catalogs.designation?.name ||
+          `Record ${mainRecord.record_id}`,
+      }
+    : null;
+
+  return mainRecordSource
+    ? [mainRecordSource, ...candidateSources]
+    : candidateSources;
 }
 
 function renderCrossmatchDetails(
@@ -123,7 +132,10 @@ function renderCrossmatchDetails(
   const { crossmatch, candidates, schema } = data;
   const recordObject = convertRecordToPgcObject(crossmatch);
   const backendSchema = convertAdminSchemaToBackendSchema(schema);
-  const candidateSources = convertCandidatesToAdditionalSources(candidates);
+  const candidateSources = convertCandidatesToAdditionalSources(
+    candidates,
+    crossmatch,
+  );
 
   return (
     <div className="space-y-6 rounded-lg">
@@ -138,11 +150,6 @@ function renderCrossmatchDetails(
               className="w-96 h-96"
               additionalSources={candidateSources}
             />
-            {candidateSources.length > 0 && (
-              <p className="text-sm text-gray-400 mt-2">
-                White labels show crossmatch candidates
-              </p>
-            )}
           </div>
         )}
         <div className="flex-1">
