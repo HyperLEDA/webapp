@@ -1,4 +1,4 @@
-import { ReactElement, useEffect, useState } from "react";
+import { ReactElement } from "react";
 import { useParams } from "react-router-dom";
 import { AladinViewer } from "../components/ui/aladin";
 import { Loading } from "../components/ui/loading";
@@ -7,6 +7,7 @@ import { CatalogData } from "../components/ui/catalog-data";
 import { Link } from "../components/ui/link";
 import { querySimpleApiV1QuerySimpleGet } from "../clients/backend/sdk.gen";
 import { PgcObject, Schema } from "../clients/backend/types.gen";
+import { useDataFetching } from "../hooks/useDataFetching";
 
 interface ObjectDetailsProps {
   object: PgcObject;
@@ -75,23 +76,12 @@ async function fetcher(
 
 export function ObjectDetailsPage(): ReactElement {
   const { pgcId } = useParams<{ pgcId: string }>();
-  const [payload, setPayload] = useState<[PgcObject, Schema] | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function fetch() {
-      try {
-        setPayload(await fetcher(pgcId));
-      } catch (error) {
-        setError(`${error}`);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetch();
-  }, [pgcId]);
+  const {
+    data: payload,
+    loading,
+    error,
+  } = useDataFetching(() => fetcher(pgcId), [pgcId]);
 
   const [object, schema] = payload || [null, null];
 

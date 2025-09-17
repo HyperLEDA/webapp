@@ -1,4 +1,4 @@
-import { ReactElement, useEffect, useState } from "react";
+import { ReactElement } from "react";
 import {
   Bibliography,
   GetTableResponse,
@@ -18,6 +18,7 @@ import { Link } from "../components/ui/link";
 import { Loading } from "../components/ui/loading";
 import { ErrorPage } from "../components/ui/error-page";
 import { getResource } from "../resources/resources";
+import { useDataFetching } from "../hooks/useDataFetching";
 
 function renderBibliography(bib: Bibliography): ReactElement {
   let authors = "";
@@ -277,24 +278,13 @@ async function fetcher(
 
 export function TableDetailsPage(): ReactElement {
   const { tableName } = useParams<{ tableName: string }>();
-  const [payload, setPayload] = useState<GetTableResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        setPayload(await fetcher(tableName));
-      } catch (error) {
-        setError(`${error}`);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchData();
-  }, [tableName, navigate]);
+  const {
+    data: payload,
+    loading,
+    error,
+  } = useDataFetching(() => fetcher(tableName), [tableName]);
 
   function RenderContent(): ReactElement {
     if (loading) return <Loading />;
