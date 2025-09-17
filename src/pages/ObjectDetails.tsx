@@ -61,8 +61,7 @@ function renderObjectDetails(
           <p className="text-gray-300">PGC: {object.pgc}</p>
         </div>
       </div>
-
-      <CatalogData object={object} schema={schema} />
+      <CatalogData catalogs={object.catalogs} schema={schema} />
     </div>
   );
 }

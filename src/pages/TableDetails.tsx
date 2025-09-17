@@ -38,7 +38,10 @@ function renderBibliography(bib: Bibliography): ReactElement {
   return (
     <CopyButton textToCopy={bib.bibcode}>
       <div>
-        <Link href={targetLink}>{bib.bibcode}</Link> | {authors}: "{bib.title}"
+        <Link href={targetLink} external>
+          {bib.bibcode}
+        </Link>{" "}
+        | {authors}: "{bib.title}"
       </div>
     </CopyButton>
   );
@@ -220,7 +223,7 @@ function ColumnInfo(props: ColumnInfoProps): ReactElement {
         <p>
           Unified Content Descriptor. Describes astronomical quantities in a
           structured way. For more information see{" "}
-          <Link href="https://www.ivoa.net/documents/latest/UCD.html">
+          <Link href="https://www.ivoa.net/documents/latest/UCD.html" external>
             IVOA Recommendation
           </Link>
           .
