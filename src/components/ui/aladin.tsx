@@ -46,13 +46,15 @@ export function AladinViewer({
       if (additionalSources && additionalSources.length > 0) {
         const nameCatalog = window.A.catalog({
           labelColumn: "name",
+          shape: "cross",
+          color: "black",
           displayLabel: true,
-          labelColor: "#fff",
+          labelColor: "lightgrey",
           labelFont: "14px sans-serif",
         });
         const descrCatalog = window.A.catalog({
-          sourceSize: 8,
-          displayLabel: true,
+          color: "black",
+          shape: "cross",
         });
         aladin.addCatalog(nameCatalog);
         aladin.addCatalog(descrCatalog);
@@ -115,6 +117,8 @@ declare global {
         labelColor?: string;
         labelFont?: string;
         sourceSize?: number;
+        shape?: string;
+        color?: string;
       }) => AladinCatalog;
       source: (
         ra: number,
