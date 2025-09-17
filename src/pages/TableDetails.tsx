@@ -321,7 +321,7 @@ export function TableDetailsPage(): ReactElement {
   }, [tableName, navigate]);
 
   return (
-    <div className="p-8">
+    <>
       {loading ? (
         <Loading />
       ) : table ? (
@@ -340,6 +340,6 @@ export function TableDetailsPage(): ReactElement {
       ) : (
         renderNotFound(navigate)
       )}
-    </div>
+    </>
   );
 }

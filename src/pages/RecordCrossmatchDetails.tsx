@@ -225,7 +225,7 @@ export function RecordCrossmatchDetailsPage(): ReactElement {
   }, [recordId, navigate]);
 
   return (
-    <div className="p-8">
+    <>
       {loading ? (
         <Loading />
       ) : data ? (
@@ -233,6 +233,6 @@ export function RecordCrossmatchDetailsPage(): ReactElement {
       ) : (
         renderNotFound(navigate)
       )}
-    </div>
+    </>
   );
 }

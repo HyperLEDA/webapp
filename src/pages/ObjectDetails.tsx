@@ -37,10 +37,12 @@ function renderNotFound(navigate: NavigateFunction) {
   );
 }
 
-function renderObjectDetails(
-  object: PgcObject,
-  schema: Schema | null,
-): ReactElement {
+interface ObjectDetailsProps {
+  object: PgcObject;
+  schema: Schema | null;
+}
+
+function ObjectDetails({ object, schema }: ObjectDetailsProps): ReactElement {
   if (!object || !schema) return <div />;
 
   return (
@@ -116,7 +118,7 @@ export function ObjectDetailsPage(): ReactElement {
   }, [pgcId, navigate]);
 
   return (
-    <div className="p-8">
+    <>
       <SearchBar
         onSearch={searchHandler(navigate)}
         logoSize="small"
@@ -126,10 +128,10 @@ export function ObjectDetailsPage(): ReactElement {
       {loading ? (
         <Loading />
       ) : object ? (
-        renderObjectDetails(object, schema)
+        <ObjectDetails object={object} schema={schema} />
       ) : (
         renderNotFound(navigate)
       )}
-    </div>
+    </>
   );
 }

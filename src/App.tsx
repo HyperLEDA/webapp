@@ -1,5 +1,4 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { Footer } from "./components/ui/footer";
 import { HomePage } from "./pages/Home";
 import { SearchResultsPage } from "./pages/SearchResults";
 import { ObjectDetailsPage } from "./pages/ObjectDetails";
@@ -7,15 +6,7 @@ import { NotFoundPage } from "./pages/NotFound";
 import { TableDetailsPage } from "./pages/TableDetails";
 import { CrossmatchResultsPage } from "./pages/CrossmatchResults";
 import { RecordCrossmatchDetailsPage } from "./pages/RecordCrossmatchDetails";
-
-function Layout({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="min-h-screen flex flex-col">
-      <div className="flex-grow">{children}</div>
-      <Footer />
-    </div>
-  );
-}
+import { Layout } from "./components/ui/layout";
 
 function App() {
   return (

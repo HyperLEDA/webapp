@@ -45,11 +45,11 @@ export function HomePage(): ReactElement {
   const navigate = useNavigate();
 
   return (
-    <div className="p-4">
+    <>
       <SearchBar onSearch={searchHandler(navigate)} logoSize="large" />
       <div className="max-w-4xl mx-auto mt-8 prose prose-invert leading-none prose-a:no-underline">
         {homePageHint}
       </div>
-    </div>
+    </>
   );
 }

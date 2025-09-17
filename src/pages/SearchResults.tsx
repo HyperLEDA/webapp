@@ -98,7 +98,7 @@ export function SearchResultsPage(): ReactElement {
   }, [query, navigate, pageSize, page]);
 
   return (
-    <div className="p-4">
+    <>
       <SearchBar
         initialValue={query}
         onSearch={searchHandler(navigate)}
@@ -161,6 +161,6 @@ export function SearchResultsPage(): ReactElement {
           )}
         </div>
       )}
-    </div>
+    </>
   );
 }
