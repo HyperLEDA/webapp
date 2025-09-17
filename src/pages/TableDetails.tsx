@@ -286,7 +286,7 @@ export function TableDetailsPage(): ReactElement {
     error,
   } = useDataFetching(() => fetcher(tableName), [tableName]);
 
-  function RenderContent(): ReactElement {
+  function Content(): ReactElement {
     if (loading) return <Loading />;
     if (error) return <ErrorPage message={error} />;
     if (payload) {
@@ -307,5 +307,5 @@ export function TableDetailsPage(): ReactElement {
     return <ErrorPage message="Unknown error" />;
   }
 
-  return <RenderContent />;
+  return <Content />;
 }

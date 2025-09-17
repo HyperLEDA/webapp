@@ -85,7 +85,7 @@ export function ObjectDetailsPage(): ReactElement {
 
   const [object, schema] = payload || [null, null];
 
-  function RenderContent(): ReactElement {
+  function Content(): ReactElement {
     if (loading) return <Loading />;
     if (error) return <ErrorPage message={error} />;
     if (object && schema)
@@ -94,5 +94,5 @@ export function ObjectDetailsPage(): ReactElement {
     return <ErrorPage message="Unknown error" />;
   }
 
-  return <RenderContent />;
+  return <Content />;
 }
