@@ -46,7 +46,7 @@ function renderObjectDetails(
   return (
     <div className="space-y-6 rounded-lg">
       <div className="flex items-start space-x-6">
-        {object.catalogs?.coordinates?.equatorial && (
+        {object.catalogs?.coordinates && (
           <AladinViewer
             ra={object.catalogs.coordinates.equatorial.ra}
             dec={object.catalogs.coordinates.equatorial.dec}
@@ -59,7 +59,7 @@ function renderObjectDetails(
           <h2 className="text-2xl font-bold mb-2">
             {object.catalogs?.designation?.name || `PGC ${object.pgc}`}
           </h2>
-          <p className="text-gray-300">PGC: {object.pgc}</p>
+          <p>PGC: {object.pgc}</p>
           <Link
             href={`http://atlas.obs-hp.fr/hyperleda/ledacat.cgi?o=%23${object.pgc}`}
             external
