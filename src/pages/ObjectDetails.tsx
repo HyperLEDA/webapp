@@ -1,41 +1,13 @@
 import { ReactElement, useEffect, useState } from "react";
-import { NavigateFunction, useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { SearchBar } from "../components/ui/searchbar";
 import { AladinViewer } from "../components/ui/aladin";
 import { Loading } from "../components/ui/loading";
-import {
-  ErrorPage,
-  ErrorPageBackButton,
-  ErrorPageHomeButton,
-} from "../components/ui/error-page";
+import { ErrorPage } from "../components/ui/error-page";
 import { CatalogData } from "../components/ui/catalog-data";
 import { Link } from "../components/ui/link";
 import { querySimpleApiV1QuerySimpleGet } from "../clients/backend/sdk.gen";
 import { PgcObject, Schema } from "../clients/backend/types.gen";
-
-function backToResultsHandler(navigate: NavigateFunction) {
-  return function f() {
-    navigate(-1);
-  };
-}
-
-function searchHandler(navigate: NavigateFunction) {
-  return function f(query: string) {
-    navigate(`/query?q=${encodeURIComponent(query)}`);
-  };
-}
-
-function renderNotFound(navigate: NavigateFunction) {
-  return (
-    <ErrorPage
-      title="Object Not Found"
-      message="The requested object could not be found."
-    >
-      <ErrorPageBackButton onClick={backToResultsHandler(navigate)} />
-      <ErrorPageHomeButton onClick={() => navigate("/")} />
-    </ErrorPage>
-  );
-}
 
 interface ObjectDetailsProps {
   object: PgcObject;
@@ -80,12 +52,12 @@ export function ObjectDetailsPage(): ReactElement {
   const [object, setObject] = useState<PgcObject | null>(null);
   const [schema, setSchema] = useState<Schema | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const navigate = useNavigate();
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchObjectDetails() {
       if (!pgcId || isNaN(Number(pgcId))) {
-        navigate("/");
+        setError("Invalid PGC number");
         return;
       }
 
@@ -104,33 +76,32 @@ export function ObjectDetailsPage(): ReactElement {
           const objectData = objects[0];
           setObject(objectData);
           setSchema(schema || null);
-        } else {
-          console.error("Object not found");
         }
       } catch (error) {
-        console.error("Error fetching object:", error);
+        setError(`Error fetching object: ${error}`);
       } finally {
         setLoading(false);
       }
     }
 
     fetchObjectDetails();
-  }, [pgcId, navigate]);
+  }, [pgcId]);
 
   return (
     <>
-      <SearchBar
-        onSearch={searchHandler(navigate)}
-        logoSize="small"
-        showLogo={true}
-      />
+      <SearchBar />
 
       {loading ? (
         <Loading />
+      ) : error ? (
+        <ErrorPage title={error} />
       ) : object ? (
         <ObjectDetails object={object} schema={schema} />
       ) : (
-        renderNotFound(navigate)
+        <ErrorPage
+          title="Object not found"
+          message={`Object with PGC ${pgcId} was not found`}
+        />
       )}
     </>
   );

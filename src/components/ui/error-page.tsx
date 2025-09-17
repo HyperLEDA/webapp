@@ -3,7 +3,7 @@ import { Button } from "./button";
 
 interface ErrorPageProps {
   title: string;
-  message: string;
+  message?: string;
   children?: ReactNode;
   className?: string;
   showLargeText?: boolean;
@@ -24,7 +24,7 @@ export function ErrorPage({
         <div className="mb-8">
           {showLargeText && <h1 className="text-9xl font-bold">404</h1>}
           <h2 className="text-2xl font-semibold mb-4">{title}</h2>
-          <p className="text-gray-400 mb-8">{message}</p>
+          {message && <p className="text-gray-400 mb-8">{message}</p>}
         </div>
 
         {children && (
