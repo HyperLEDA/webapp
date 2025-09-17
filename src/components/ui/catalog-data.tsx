@@ -25,10 +25,6 @@ function formatValueWithError(
   return `${formattedValue} ${unit} ± ${formattedError} ${unit}`;
 }
 
-function CatalogHeader({ title }: { title: string }): ReactElement {
-  return <h2 className="text-xl font-bold">{title}</h2>;
-}
-
 export function CatalogData({
   catalogs,
   schema,
@@ -38,6 +34,13 @@ export function CatalogData({
   const columns = [{ name: "Parameter" }, { name: "Value" }];
 
   const data = [];
+
+  if (catalogs?.designation?.name) {
+    data.push({
+      Parameter: "Name",
+      Value: catalogs.designation.name,
+    });
+  }
 
   if (catalogs?.coordinates) {
     data.push(
