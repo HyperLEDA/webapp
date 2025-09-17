@@ -1,10 +1,10 @@
 import { Tooltip } from "flowbite-react";
-import { ReactElement } from "react";
+import { ReactElement, ReactNode } from "react";
 import { MdHelpOutline } from "react-icons/md";
 
 interface HintProps {
   children: ReactElement;
-  hintContent: ReactElement;
+  hintContent: ReactNode;
   className?: string;
 }
 

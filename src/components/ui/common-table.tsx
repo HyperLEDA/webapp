@@ -52,7 +52,7 @@ export function CommonTable({
       {children && (
         <div
           className={classNames(
-            "mb-1 p-4 bg-gray-50 rounded-sm",
+            "mb-1 p-2 bg-gray-50 rounded-sm",
             headerClassName,
           )}
         >

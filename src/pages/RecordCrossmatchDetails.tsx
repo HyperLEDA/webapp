@@ -161,10 +161,7 @@ function renderCrossmatchDetails(
         </div>
       </div>
 
-      <div className="space-y-6">
-        <h2 className="text-xl font-bold">Record Catalog Data</h2>
-        <CatalogData catalogs={recordCatalogs} schema={backendSchema} />
-      </div>
+      <CatalogData catalogs={recordCatalogs} schema={backendSchema} />
 
       {candidates.length > 0 && (
         <div className="space-y-6">
