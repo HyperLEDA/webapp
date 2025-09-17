@@ -320,12 +320,11 @@ export function TableDetailsPage(): ReactElement {
     fetchData();
   }, [tableName, navigate]);
 
-  return (
-    <>
-      {loading ? (
-        <Loading />
-      ) : table ? (
-        <div>
+  function renderContent(): ReactElement {
+    if (loading) return <Loading />;
+    if (table) {
+      return (
+        <>
           <TableMeta tableName={tableName ?? ""} table={table} />
           <MarkingRules table={table} />
           <CrossmatchStats
@@ -334,12 +333,12 @@ export function TableDetailsPage(): ReactElement {
             navigate={navigate}
           />
           <ColumnInfo table={table} />
-        </div>
-      ) : error ? (
-        renderError(error, navigate)
-      ) : (
-        renderNotFound(navigate)
-      )}
-    </>
-  );
+        </>
+      );
+    }
+    if (error) return renderError(error, navigate);
+    return renderNotFound(navigate);
+  }
+
+  return <>{renderContent()}</>;
 }

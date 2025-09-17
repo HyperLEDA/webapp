@@ -211,8 +211,6 @@ export function RecordCrossmatchDetailsPage(): ReactElement {
 
         if (response.data?.data) {
           setData(response.data.data);
-        } else {
-          console.error("Crossmatch record not found");
         }
       } catch (error) {
         console.error("Error fetching crossmatch details:", error);
@@ -224,15 +222,11 @@ export function RecordCrossmatchDetailsPage(): ReactElement {
     fetchCrossmatchDetails();
   }, [recordId, navigate]);
 
-  return (
-    <>
-      {loading ? (
-        <Loading />
-      ) : data ? (
-        renderCrossmatchDetails(data)
-      ) : (
-        renderNotFound(navigate)
-      )}
-    </>
-  );
+  function renderContent(): ReactElement {
+    if (loading) return <Loading />;
+    if (data) return renderCrossmatchDetails(data);
+    return renderNotFound(navigate);
+  }
+
+  return <>{renderContent()}</>;
 }

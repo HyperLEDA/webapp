@@ -97,6 +97,65 @@ export function SearchResultsPage(): ReactElement {
     fetchResults();
   }, [query, navigate, pageSize, page]);
 
+  function renderContent(): ReactElement {
+    if (loading) return <Loading />;
+
+    if (results.length > 0) {
+      return (
+        <div className="mt-4">
+          <CommonTable
+            columns={columns}
+            data={results.map((object) => ({
+              PGC: object.pgc,
+              Name: object.catalogs.designation.design,
+              "RA (deg)": object.catalogs.icrs.ra,
+              "Dec (deg)": object.catalogs.icrs.dec,
+            }))}
+            className="w-full"
+            onRowClick={(row) => {
+              const pgc = row.PGC as number;
+              const object = results.find((obj) => obj.pgc === pgc);
+              if (object) {
+                objectClickHandler(navigate, object);
+              }
+            }}
+          />
+          <div className="flex justify-center items-center gap-4 mt-4">
+            <button
+              onClick={() =>
+                pageChangeHandler(navigate, query, pageSize, page - 1)
+              }
+              disabled={page <= 1}
+              className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <span>Page {page}</span>
+            <button
+              onClick={() =>
+                pageChangeHandler(navigate, query, pageSize, page + 1)
+              }
+              disabled={results.length < pageSize}
+              className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <ErrorPage
+        title="No Results Found"
+        message={`No results found for "${query}"`}
+        className="p-4"
+      >
+        <ErrorPageHomeButton onClick={() => navigate("/")} />
+      </ErrorPage>
+    );
+  }
+
   return (
     <>
       <SearchBar
@@ -104,63 +163,7 @@ export function SearchResultsPage(): ReactElement {
         onSearch={searchHandler(navigate)}
         logoSize="small"
       />
-
-      {loading ? (
-        <Loading />
-      ) : (
-        <div className="mt-4">
-          {results.length > 0 ? (
-            <>
-              <CommonTable
-                columns={columns}
-                data={results.map((object) => ({
-                  PGC: object.pgc,
-                  Name: object.catalogs.designation.design,
-                  "RA (deg)": object.catalogs.icrs.ra,
-                  "Dec (deg)": object.catalogs.icrs.dec,
-                }))}
-                className="w-full"
-                onRowClick={(row) => {
-                  const pgc = row.PGC as number;
-                  const object = results.find((obj) => obj.pgc === pgc);
-                  if (object) {
-                    objectClickHandler(navigate, object);
-                  }
-                }}
-              />
-              <div className="flex justify-center items-center gap-4 mt-4">
-                <button
-                  onClick={() =>
-                    pageChangeHandler(navigate, query, pageSize, page - 1)
-                  }
-                  disabled={page <= 1}
-                  className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
-                >
-                  Previous
-                </button>
-                <span>Page {page}</span>
-                <button
-                  onClick={() =>
-                    pageChangeHandler(navigate, query, pageSize, page + 1)
-                  }
-                  disabled={results.length < pageSize}
-                  className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
-                >
-                  Next
-                </button>
-              </div>
-            </>
-          ) : (
-            <ErrorPage
-              title="No Results Found"
-              message={`No results found for "${query}"`}
-              className="p-4"
-            >
-              <ErrorPageHomeButton onClick={() => navigate("/")} />
-            </ErrorPage>
-          )}
-        </div>
-      )}
+      {renderContent()}
     </>
   );
 }

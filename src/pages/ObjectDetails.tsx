@@ -57,7 +57,7 @@ export function ObjectDetailsPage(): ReactElement {
   useEffect(() => {
     async function fetchObjectDetails() {
       if (!pgcId || isNaN(Number(pgcId))) {
-        setError("Invalid PGC number");
+        setError(`Invalid PGC number ${pgcId}`);
         return;
       }
 

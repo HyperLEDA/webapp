@@ -187,106 +187,108 @@ export function CrossmatchResultsPage(): ReactElement {
       Candidates: index,
     })) || [];
 
-  if (loading) {
-    return <Loading />;
-  }
+  function renderContent(): ReactElement {
+    if (loading) return <Loading />;
 
-  if (error) {
+    if (error) {
+      return (
+        <ErrorPage
+          title="Error"
+          message={
+            error.detail?.map((err: ValidationError) => err.msg).join(", ") ||
+            "An error occurred"
+          }
+          className="p-8"
+        >
+          <ErrorPageHomeButton onClick={() => navigate("/")} />
+        </ErrorPage>
+      );
+    }
+
+    if (!tableName) {
+      return (
+        <ErrorPage
+          title="Missing table name"
+          message="Please provide a table_name parameter."
+          className="p-8"
+        >
+          <ErrorPageHomeButton onClick={() => navigate("/")} />
+        </ErrorPage>
+      );
+    }
+
     return (
-      <ErrorPage
-        title="Error"
-        message={
-          error.detail?.map((err: ValidationError) => err.msg).join(", ") ||
-          "An error occurred"
-        }
-        className="p-8"
-      >
-        <ErrorPageHomeButton onClick={() => navigate("/")} />
-      </ErrorPage>
-    );
-  }
+      <>
+        <div className="mb-6">
+          <h2 className="text-3xl font-bold mb-4">Crossmatch results</h2>
 
-  if (!tableName) {
-    return (
-      <ErrorPage
-        title="Missing table name"
-        message="Please provide a table_name parameter."
-        className="p-8"
-      >
-        <ErrorPageHomeButton onClick={() => navigate("/")} />
-      </ErrorPage>
-    );
-  }
-
-  return (
-    <>
-      <div className="mb-6">
-        <h2 className="text-3xl font-bold mb-4">Crossmatch results</h2>
-
-        <div className="flex gap-4 mb-4">
-          <TextFilter
-            title="Table name"
-            value={localTableName}
-            onChange={setLocalTableName}
-            placeholder="Enter table name"
-            onEnter={applyFilters}
-          />
-          <Link href={`/table/${localTableName.trim()}`} external />
-          <DropdownFilter
-            title="Status filter"
-            options={[
-              { value: "all", label: "All Statuses" },
-              { value: "unprocessed", label: "Unprocessed" },
-              { value: "new", label: "New" },
-              { value: "collided", label: "Collided" },
-              { value: "existing", label: "Existing" },
-            ]}
-            defaultValue="all"
-            value={localStatus}
-            onChange={setLocalStatus}
-          />
-          <DropdownFilter
-            title="Page size"
-            options={[
-              { value: "10" },
-              { value: "25" },
-              { value: "50" },
-              { value: "100" },
-            ]}
-            defaultValue="25"
-            value={localPageSize.toString()}
-            onChange={(value) => setLocalPageSize(parseInt(value))}
-          />
-          <div className="flex items-end">
-            <Button onClick={applyFilters}>Apply</Button>
+          <div className="flex gap-4 mb-4">
+            <TextFilter
+              title="Table name"
+              value={localTableName}
+              onChange={setLocalTableName}
+              placeholder="Enter table name"
+              onEnter={applyFilters}
+            />
+            <Link href={`/table/${localTableName.trim()}`} external />
+            <DropdownFilter
+              title="Status filter"
+              options={[
+                { value: "all", label: "All Statuses" },
+                { value: "unprocessed", label: "Unprocessed" },
+                { value: "new", label: "New" },
+                { value: "collided", label: "Collided" },
+                { value: "existing", label: "Existing" },
+              ]}
+              defaultValue="all"
+              value={localStatus}
+              onChange={setLocalStatus}
+            />
+            <DropdownFilter
+              title="Page size"
+              options={[
+                { value: "10" },
+                { value: "25" },
+                { value: "50" },
+                { value: "100" },
+              ]}
+              defaultValue="25"
+              value={localPageSize.toString()}
+              onChange={(value) => setLocalPageSize(parseInt(value))}
+            />
+            <div className="flex items-end">
+              <Button onClick={applyFilters}>Apply</Button>
+            </div>
           </div>
         </div>
-      </div>
 
-      <CommonTable columns={columns} data={tableData} className="mb-6">
+        <CommonTable columns={columns} data={tableData} className="mb-6">
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-bold">Crossmatch records</h2>
+            <div className="text-sm text-gray-400">
+              Showing {tableData.length} records
+            </div>
+          </div>
+        </CommonTable>
+
         <div className="flex justify-between items-center">
-          <h2 className="text-xl font-bold">Crossmatch records</h2>
-          <div className="text-sm text-gray-400">
-            Showing {tableData.length} records
-          </div>
+          <Button
+            onClick={() => handlePageChange(page - 1)}
+            disabled={page === 0}
+          >
+            Previous
+          </Button>
+          <span className="text-gray-300">Page {page + 1}</span>
+          <Button
+            onClick={() => handlePageChange(page + 1)}
+            disabled={tableData.length < pageSize}
+          >
+            Next
+          </Button>
         </div>
-      </CommonTable>
+      </>
+    );
+  }
 
-      <div className="flex justify-between items-center">
-        <Button
-          onClick={() => handlePageChange(page - 1)}
-          disabled={page === 0}
-        >
-          Previous
-        </Button>
-        <span className="text-gray-300">Page {page + 1}</span>
-        <Button
-          onClick={() => handlePageChange(page + 1)}
-          disabled={tableData.length < pageSize}
-        >
-          Next
-        </Button>
-      </div>
-    </>
-  );
+  return <>{renderContent()}</>;
 }
