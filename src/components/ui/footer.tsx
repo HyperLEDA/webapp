@@ -7,10 +7,16 @@ import { MdKeyboardArrowDown, MdKeyboardArrowUp } from "react-icons/md";
 const footerContent = (
   <div className="prose prose-invert prose-a:no-underline">
     <div>
-      Information: <Link href="https://hyperleda.github.io/" />
+      Information:{" "}
+      <Link href="https://hyperleda.github.io/" external>
+        The next generation of the HyperLeda database
+      </Link>
     </div>
     <div>
-      Original version: <Link href="http://leda.univ-lyon1.fr/" />
+      Original version:{" "}
+      <Link href="http://atlas.obs-hp.fr/hyperleda/" external>
+        OHP Mirror
+      </Link>
     </div>
   </div>
 );

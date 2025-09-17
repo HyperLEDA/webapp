@@ -2,31 +2,18 @@ import { ReactElement, useEffect, useState } from "react";
 import { NavigateFunction, useNavigate, useParams } from "react-router-dom";
 import { AladinViewer } from "../components/ui/aladin";
 import { Loading } from "../components/ui/loading";
-import {
-  ErrorPage,
-  ErrorPageBackButton,
-  ErrorPageHomeButton,
-} from "../components/ui/error-page";
+import { ErrorPage, ErrorPageHomeButton } from "../components/ui/error-page";
 import { CatalogData } from "../components/ui/catalog-data";
 import { getRecordCrossmatchAdminApiV1RecordCrossmatchGet } from "../clients/admin/sdk.gen";
 import {
   GetRecordCrossmatchResponse,
   RecordCrossmatch,
-  RecordCrossmatchStatus,
   PgcCandidate,
   Schema as AdminSchema,
 } from "../clients/admin/types.gen";
-import {
-  PgcObject,
-  Schema as BackendSchema,
-} from "../clients/backend/types.gen";
+import { Schema as BackendSchema } from "../clients/backend/types.gen";
 import { getResource } from "../resources/resources";
-
-function backToResultsHandler(navigate: NavigateFunction) {
-  return function f() {
-    navigate(-1);
-  };
-}
+import { Link } from "../components/ui/link";
 
 function renderNotFound(navigate: NavigateFunction) {
   return (
@@ -34,16 +21,12 @@ function renderNotFound(navigate: NavigateFunction) {
       title="Crossmatch Not Found"
       message="The requested crossmatch record could not be found."
     >
-      <ErrorPageBackButton onClick={backToResultsHandler(navigate)} />
       <ErrorPageHomeButton onClick={() => navigate("/")} />
     </ErrorPage>
   );
 }
 
-function getStatusLabel(status: RecordCrossmatchStatus): string {
-  return getResource(`crossmatch.status.${status}`).Title;
-}
-
+// TODO: remove when admin api uses the same structures as data api
 function convertAdminSchemaToBackendSchema(
   adminSchema: AdminSchema,
 ): BackendSchema {
@@ -93,90 +76,110 @@ function convertAdminSchemaToBackendSchema(
   };
 }
 
-function convertToPgcObject(candidate: PgcCandidate): PgcObject {
-  return {
-    pgc: candidate.pgc,
-    catalogs: candidate.catalogs,
-  };
+function createDescription(
+  velocity?: { v: number; e_v: number } | null,
+  redshift?: { z: number; e_z: number } | null,
+): string {
+  const parts = [];
+
+  if (velocity) {
+    parts.push(`v: ${velocity.v.toFixed(1)} ± ${velocity.e_v.toFixed(1)} km/s`);
+  }
+
+  if (redshift) {
+    parts.push(`z: ${redshift.z.toFixed(4)} ± ${redshift.e_z.toFixed(4)}`);
+  }
+
+  return parts.join(", ");
 }
 
-function convertRecordToPgcObject(record: RecordCrossmatch): PgcObject {
-  return {
-    pgc: record.metadata.pgc || 0,
-    catalogs: record.catalogs,
-  };
-}
-
-function convertCandidatesToAdditionalSources(candidates: PgcCandidate[]) {
-  return candidates
+function convertCandidatesToAdditionalSources(
+  candidates: PgcCandidate[],
+  mainRecord: RecordCrossmatch,
+) {
+  const candidateSources = candidates
     .filter((candidate) => candidate.catalogs?.coordinates?.equatorial)
     .map((candidate) => ({
       ra: candidate.catalogs!.coordinates!.equatorial.ra,
       dec: candidate.catalogs!.coordinates!.equatorial.dec,
       label: `PGC ${candidate.pgc}`,
+      description: createDescription(
+        candidate.catalogs?.velocity?.heliocentric,
+        candidate.catalogs?.redshift,
+      ),
     }));
+
+  const mainRecordSource = mainRecord.catalogs?.coordinates?.equatorial
+    ? {
+        ra: mainRecord.catalogs.coordinates.equatorial.ra,
+        dec: mainRecord.catalogs.coordinates.equatorial.dec,
+        label:
+          mainRecord.catalogs?.designation?.name ||
+          `Record ${mainRecord.record_id}`,
+      }
+    : null;
+
+  return mainRecordSource
+    ? [mainRecordSource, ...candidateSources]
+    : candidateSources;
 }
 
 function renderCrossmatchDetails(
   data: GetRecordCrossmatchResponse,
 ): ReactElement {
   const { crossmatch, candidates, schema } = data;
-  const recordObject = convertRecordToPgcObject(crossmatch);
+  const recordCatalogs = crossmatch.catalogs;
   const backendSchema = convertAdminSchemaToBackendSchema(schema);
-  const candidateSources = convertCandidatesToAdditionalSources(candidates);
+  const candidateSources = convertCandidatesToAdditionalSources(
+    candidates,
+    crossmatch,
+  );
 
   return (
     <div className="space-y-6 rounded-lg">
       <div className="flex items-start space-x-6">
         {crossmatch.catalogs?.coordinates?.equatorial && (
-          <div className="flex flex-col">
-            <AladinViewer
-              ra={crossmatch.catalogs.coordinates.equatorial.ra}
-              dec={crossmatch.catalogs.coordinates.equatorial.dec}
-              fov={0.02}
-              survey="P/DSS2/color"
-              className="w-96 h-96"
-              additionalSources={candidateSources}
-            />
-            {candidateSources.length > 0 && (
-              <p className="text-sm text-gray-400 mt-2">
-                White labels show crossmatch candidates
-              </p>
-            )}
-          </div>
+          <AladinViewer
+            ra={crossmatch.catalogs.coordinates.equatorial.ra}
+            dec={crossmatch.catalogs.coordinates.equatorial.dec}
+            fov={0.02}
+            survey="P/DSS2/color"
+            className="w-96 h-96"
+            additionalSources={candidateSources}
+          />
         )}
         <div className="flex-1">
-          <h2 className="text-2xl font-bold mb-2">
-            Record ID: {crossmatch.record_id}
-          </h2>
-          <p className="text-gray-300">
-            Status: {getStatusLabel(crossmatch.status)}
-          </p>
-          {crossmatch.metadata.pgc && (
-            <p className="text-gray-300">PGC: {crossmatch.metadata.pgc}</p>
+          {crossmatch.catalogs?.designation?.name && (
+            <h2 className="text-2xl font-bold mb-2">
+              {crossmatch.catalogs.designation.name}
+            </h2>
           )}
+          <p>
+            Status:{" "}
+            {getResource(`crossmatch.status.${crossmatch.status}`).Title}
+          </p>
         </div>
       </div>
 
-      <div className="space-y-6">
-        <h2 className="text-xl font-bold">Record Catalog Data</h2>
-        <CatalogData object={recordObject} schema={backendSchema} />
-      </div>
+      <CatalogData catalogs={recordCatalogs} schema={backendSchema} />
 
       {candidates.length > 0 && (
         <div className="space-y-6">
           <h2 className="text-xl font-bold">Crossmatch Candidates</h2>
-          {candidates.map((candidate, index) => {
-            const candidateObject = convertToPgcObject(candidate);
-            return (
-              <div key={candidate.pgc} className="border rounded-lg p-4">
-                <h3 className="text-lg font-semibold mb-4">
-                  Candidate {index + 1}: PGC {candidate.pgc}
-                </h3>
-                <CatalogData object={candidateObject} schema={backendSchema} />
-              </div>
-            );
-          })}
+          {candidates.map((candidate, index) => (
+            <div key={candidate.pgc} className="border rounded-lg p-4">
+              <h3 className="text-lg font-semibold mb-4">
+                Candidate {index + 1}:{" "}
+                <Link
+                  href={`/object/${candidate.pgc}`}
+                >{`PGC ${candidate.pgc}`}</Link>
+              </h3>
+              <CatalogData
+                catalogs={candidate.catalogs}
+                schema={backendSchema}
+              />
+            </div>
+          ))}
         </div>
       )}
     </div>

@@ -9,6 +9,7 @@ import {
   ErrorPageHomeButton,
 } from "../components/ui/error-page";
 import { CatalogData } from "../components/ui/catalog-data";
+import { Link } from "../components/ui/link";
 import { querySimpleApiV1QuerySimpleGet } from "../clients/backend/sdk.gen";
 import { PgcObject, Schema } from "../clients/backend/types.gen";
 
@@ -45,7 +46,7 @@ function renderObjectDetails(
   return (
     <div className="space-y-6 rounded-lg">
       <div className="flex items-start space-x-6">
-        {object.catalogs?.coordinates?.equatorial && (
+        {object.catalogs?.coordinates && (
           <AladinViewer
             ra={object.catalogs.coordinates.equatorial.ra}
             dec={object.catalogs.coordinates.equatorial.dec}
@@ -58,11 +59,16 @@ function renderObjectDetails(
           <h2 className="text-2xl font-bold mb-2">
             {object.catalogs?.designation?.name || `PGC ${object.pgc}`}
           </h2>
-          <p className="text-gray-300">PGC: {object.pgc}</p>
+          <p>PGC: {object.pgc}</p>
+          <Link
+            href={`http://atlas.obs-hp.fr/hyperleda/ledacat.cgi?o=%23${object.pgc}`}
+            external
+          >
+            OHP Mirror
+          </Link>
         </div>
       </div>
-
-      <CatalogData object={object} schema={schema} />
+      <CatalogData catalogs={object.catalogs} schema={schema} />
     </div>
   );
 }

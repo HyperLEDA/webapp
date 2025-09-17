@@ -20,7 +20,7 @@ import { getResource } from "../resources/resources";
 import { Button } from "../components/ui/button";
 import { Loading } from "../components/ui/loading";
 import { ErrorPage, ErrorPageHomeButton } from "../components/ui/error-page";
-import { LinkButton } from "../components/ui/link-button";
+import { Link } from "../components/ui/link";
 
 export function CrossmatchResultsPage(): ReactElement {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -121,9 +121,9 @@ export function CrossmatchResultsPage(): ReactElement {
   function getRecordName(record: RecordCrossmatch): ReactElement {
     const displayName = record.catalogs.designation?.name || record.record_id;
     return (
-      <LinkButton to={`/records/${record.record_id}/crossmatch`}>
+      <Link href={`/records/${record.record_id}/crossmatch`}>
         {displayName}
-      </LinkButton>
+      </Link>
     );
   }
 
@@ -224,15 +224,14 @@ export function CrossmatchResultsPage(): ReactElement {
         <h2 className="text-3xl font-bold mb-4">Crossmatch results</h2>
 
         <div className="flex gap-4 mb-4">
-          <LinkButton to={`/table/${localTableName.trim()}`}>
-            <TextFilter
-              title="Table name"
-              value={localTableName}
-              onChange={setLocalTableName}
-              placeholder="Enter table name"
-              onEnter={applyFilters}
-            />
-          </LinkButton>
+          <TextFilter
+            title="Table name"
+            value={localTableName}
+            onChange={setLocalTableName}
+            placeholder="Enter table name"
+            onEnter={applyFilters}
+          />
+          <Link href={`/table/${localTableName.trim()}`} external />
           <DropdownFilter
             title="Status filter"
             options={[

@@ -5,14 +5,14 @@ interface AdditionalSource {
   ra: number;
   dec: number;
   label: string;
+  description?: string;
 }
 
 interface AladinViewerProps {
-  ra?: number;
-  dec?: number;
+  ra: number;
+  dec: number;
   fov?: number;
   survey?: string;
-  target?: string;
   className?: string;
   additionalSources?: AdditionalSource[];
 }
@@ -22,7 +22,6 @@ export function AladinViewer({
   dec,
   fov = 0.5,
   survey = "P/DSS2/color",
-  target,
   className = "w-full h-96",
   additionalSources,
 }: AladinViewerProps) {
@@ -42,23 +41,35 @@ export function AladinViewer({
         showCooGridControl: false,
       });
 
-      if (target) {
-        aladin.gotoObject(target);
-      } else if (ra !== undefined && dec !== undefined) {
-        aladin.gotoRaDec(ra, dec);
-      }
+      aladin.gotoRaDec(ra, dec);
 
       if (additionalSources && additionalSources.length > 0) {
-        const catalog = window.A.catalog({
+        const nameCatalog = window.A.catalog({
           labelColumn: "name",
+          shape: "cross",
+          color: "black",
           displayLabel: true,
-          labelColor: "#fff",
+          labelColor: "lightgrey",
           labelFont: "14px sans-serif",
         });
-        aladin.addCatalog(catalog);
+        const descrCatalog = window.A.catalog({
+          color: "black",
+          shape: "cross",
+        });
+        aladin.addCatalog(nameCatalog);
+        aladin.addCatalog(descrCatalog);
 
         additionalSources.forEach((source) => {
-          catalog.addSources(
+          if (source.description) {
+            descrCatalog.addSources([
+              window.A.marker(source.ra, source.dec, {
+                name: source.label,
+                popupTitle: source.label,
+                popupDesc: source.description,
+              }),
+            ]);
+          }
+          nameCatalog.addSources(
             window.A.source(source.ra, source.dec, { name: source.label }),
           );
         });
@@ -66,19 +77,19 @@ export function AladinViewer({
     } catch (error) {
       console.error("Error initializing Aladin:", error);
     }
-  }, [ra, dec, fov, survey, target, additionalSources]);
+  }, [ra, dec, fov, survey, additionalSources]);
 
   return <div ref={aladinDivRef} className={classNames("border", className)} />;
 }
 
 interface AladinCatalog {
-  addSources: (sources: AladinSource) => void;
+  addSources: (sources: AladinSource | AladinSource[]) => void;
 }
 
 interface AladinSource {
   ra: number;
   dec: number;
-  properties?: { name?: string };
+  properties?: { name?: string; popupTitle?: string; popupDesc?: string };
 }
 
 declare global {
@@ -105,11 +116,19 @@ declare global {
         displayLabel?: boolean;
         labelColor?: string;
         labelFont?: string;
+        sourceSize?: number;
+        shape?: string;
+        color?: string;
       }) => AladinCatalog;
       source: (
         ra: number,
         dec: number,
         properties?: { name?: string },
+      ) => AladinSource;
+      marker: (
+        ra: number,
+        dec: number,
+        properties?: { name?: string; popupTitle?: string; popupDesc?: string },
       ) => AladinSource;
     };
   }
