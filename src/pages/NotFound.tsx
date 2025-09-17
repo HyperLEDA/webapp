@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import { ErrorPage, ErrorPageHomeButton } from "../components/ui/error-page";
+import { ErrorPage } from "../components/ui/error-page";
+import { Button } from "../components/ui/button";
 
 export function NotFoundPage() {
   const navigate = useNavigate();
@@ -10,7 +11,9 @@ export function NotFoundPage() {
       message="The page you're looking for doesn't exist or has been moved."
       showLargeText={true}
     >
-      <ErrorPageHomeButton onClick={() => navigate("/")} />
+      <Button onClick={() => navigate("/")} className="px-6 py-3 text-base">
+        Go to homepage
+      </Button>
     </ErrorPage>
   );
 }

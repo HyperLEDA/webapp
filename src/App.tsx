@@ -17,6 +17,7 @@ function App() {
           path="/"
           element={
             <Layout>
+              <SearchBar logoSize="large" />
               <HomePage />
             </Layout>
           }
