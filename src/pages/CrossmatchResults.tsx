@@ -1,5 +1,5 @@
 import { ReactElement, useEffect, useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import {
   CommonTable,
   Column,
@@ -18,7 +18,7 @@ import type {
 import { getResource } from "../resources/resources";
 import { Button } from "../components/ui/button";
 import { Loading } from "../components/ui/loading";
-import { ErrorPage, ErrorPageHomeButton } from "../components/ui/error-page";
+import { ErrorPage } from "../components/ui/error-page";
 import { Link } from "../components/ui/link";
 import { useDataFetching } from "../hooks/useDataFetching";
 
@@ -90,21 +90,10 @@ function CrossmatchFilters({
 }
 
 interface CrossmatchResultsProps {
-  data: GetRecordsCrossmatchResponse;
-  tableName: string;
-  status: RecordCrossmatchStatus | null;
-  page: number;
-  pageSize: number;
-  onPageChange: (newPage: number) => void;
-  onApplyFilters: (tableName: string, status: string, pageSize: number) => void;
+  data: GetRecordsCrossmatchResponse | null;
 }
 
-function CrossmatchResults({
-  data,
-  page,
-  pageSize,
-  onPageChange,
-}: CrossmatchResultsProps): ReactElement {
+function CrossmatchResults({ data }: CrossmatchResultsProps): ReactElement {
   function getRecordName(record: RecordCrossmatch): ReactElement {
     const displayName = record.catalogs.designation?.name || record.record_id;
     return (
@@ -167,31 +156,7 @@ function CrossmatchResults({
       Candidates: index,
     })) || [];
 
-  return (
-    <>
-      <CommonTable columns={columns} data={tableData} className="mb-6">
-        <div className="flex justify-between items-center">
-          <h2 className="text-xl font-bold">Crossmatch records</h2>
-          <div className="text-sm text-gray-400">
-            Showing {tableData.length} records
-          </div>
-        </div>
-      </CommonTable>
-
-      <div className="flex justify-between items-center">
-        <Button onClick={() => onPageChange(page - 1)} disabled={page === 0}>
-          Previous
-        </Button>
-        <span className="text-gray-300">Page {page + 1}</span>
-        <Button
-          onClick={() => onPageChange(page + 1)}
-          disabled={tableData.length < pageSize}
-        >
-          Next
-        </Button>
-      </div>
-    </>
-  );
+  return <CommonTable columns={columns} data={tableData} />;
 }
 
 async function fetcher(
@@ -230,7 +195,6 @@ async function fetcher(
 
 export function CrossmatchResultsPage(): ReactElement {
   const [searchParams, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
 
   const tableName = searchParams.get("table_name");
   const status = searchParams.get("status") as RecordCrossmatchStatus | null;
@@ -275,46 +239,29 @@ export function CrossmatchResultsPage(): ReactElement {
 
   function Content(): ReactElement {
     if (loading) return <Loading />;
-
-    if (error) {
-      return (
-        <ErrorPage title="Error" message={error} className="p-8">
-          <ErrorPageHomeButton onClick={() => navigate("/")} />
-        </ErrorPage>
-      );
-    }
-
-    if (!tableName) {
-      return (
-        <ErrorPage
-          title="Missing table name"
-          message="Please provide a table_name parameter."
-        />
-      );
-    }
-
-    if (!data) {
-      return (
-        <ErrorPage
-          title="No data"
-          message="No crossmatch data available."
-          className="p-8"
-        >
-          <ErrorPageHomeButton onClick={() => navigate("/")} />
-        </ErrorPage>
-      );
-    }
+    if (error) return <ErrorPage title="Error" message={error} />;
 
     return (
-      <CrossmatchResults
-        data={data}
-        tableName={tableName}
-        status={status}
-        page={page}
-        pageSize={pageSize}
-        onPageChange={handlePageChange}
-        onApplyFilters={handleApplyFilters}
-      />
+      <>
+        <CrossmatchResults data={data} />
+        <div className="flex justify-between items-center mt-4">
+          <Button
+            onClick={() => handlePageChange(page - 1)}
+            disabled={page === 0}
+          >
+            Previous
+          </Button>
+          <span>
+            Page {page + 1} (showing {data?.records.length} records)
+          </span>
+          <Button
+            onClick={() => handlePageChange(page + 1)}
+            disabled={(data?.records.length || 0) < pageSize}
+          >
+            Next
+          </Button>
+        </div>
+      </>
     );
   }
 
