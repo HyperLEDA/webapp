@@ -76,6 +76,23 @@ function convertAdminSchemaToBackendSchema(
   };
 }
 
+function createDescription(
+  velocity?: { v: number; e_v: number } | null,
+  redshift?: { z: number; e_z: number } | null,
+): string {
+  const parts = [];
+
+  if (velocity) {
+    parts.push(`v: ${velocity.v.toFixed(1)} ± ${velocity.e_v.toFixed(1)} km/s`);
+  }
+
+  if (redshift) {
+    parts.push(`z: ${redshift.z.toFixed(4)} ± ${redshift.e_z.toFixed(4)}`);
+  }
+
+  return parts.join(", ");
+}
+
 function convertCandidatesToAdditionalSources(
   candidates: PgcCandidate[],
   mainRecord: RecordCrossmatch,
@@ -86,6 +103,10 @@ function convertCandidatesToAdditionalSources(
       ra: candidate.catalogs!.coordinates!.equatorial.ra,
       dec: candidate.catalogs!.coordinates!.equatorial.dec,
       label: `PGC ${candidate.pgc}`,
+      description: createDescription(
+        candidate.catalogs?.velocity?.heliocentric,
+        candidate.catalogs?.redshift,
+      ),
     }));
 
   const mainRecordSource = mainRecord.catalogs?.coordinates?.equatorial
@@ -93,7 +114,7 @@ function convertCandidatesToAdditionalSources(
         ra: mainRecord.catalogs.coordinates.equatorial.ra,
         dec: mainRecord.catalogs.coordinates.equatorial.dec,
         label:
-          mainRecord.catalogs.designation?.name ||
+          mainRecord.catalogs?.designation?.name ||
           `Record ${mainRecord.record_id}`,
       }
     : null;
