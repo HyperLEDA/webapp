@@ -1,8 +1,8 @@
-import { ReactElement, useEffect, useState } from "react";
-import { NavigateFunction, useNavigate, useParams } from "react-router-dom";
+import { ReactElement } from "react";
+import { useParams } from "react-router-dom";
 import { AladinViewer } from "../components/ui/aladin";
 import { Loading } from "../components/ui/loading";
-import { ErrorPage, ErrorPageHomeButton } from "../components/ui/error-page";
+import { ErrorPage } from "../components/ui/error-page";
 import { CatalogData } from "../components/ui/catalog-data";
 import { getRecordCrossmatchAdminApiV1RecordCrossmatchGet } from "../clients/admin/sdk.gen";
 import {
@@ -14,17 +14,7 @@ import {
 import { Schema as BackendSchema } from "../clients/backend/types.gen";
 import { getResource } from "../resources/resources";
 import { Link } from "../components/ui/link";
-
-function renderNotFound(navigate: NavigateFunction) {
-  return (
-    <ErrorPage
-      title="Crossmatch Not Found"
-      message="The requested crossmatch record could not be found."
-    >
-      <ErrorPageHomeButton onClick={() => navigate("/")} />
-    </ErrorPage>
-  );
-}
+import { useDataFetching } from "../hooks/useDataFetching";
 
 // TODO: remove when admin api uses the same structures as data api
 function convertAdminSchemaToBackendSchema(
@@ -124,9 +114,13 @@ function convertCandidatesToAdditionalSources(
     : candidateSources;
 }
 
-function renderCrossmatchDetails(
-  data: GetRecordCrossmatchResponse,
-): ReactElement {
+interface RecordCrossmatchDetailsProps {
+  data: GetRecordCrossmatchResponse;
+}
+
+function RecordCrossmatchDetails({
+  data,
+}: RecordCrossmatchDetailsProps): ReactElement {
   const { crossmatch, candidates, schema } = data;
   const recordCatalogs = crossmatch.catalogs;
   const backendSchema = convertAdminSchemaToBackendSchema(schema);
@@ -186,47 +180,43 @@ function renderCrossmatchDetails(
   );
 }
 
-export function RecordCrossmatchDetailsPage(): ReactElement {
-  const { recordId } = useParams<{ recordId: string }>();
-  const [data, setData] = useState<GetRecordCrossmatchResponse | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    async function fetchCrossmatchDetails() {
-      if (!recordId) {
-        navigate("/");
-        return;
-      }
-
-      setLoading(true);
-      try {
-        const response = await getRecordCrossmatchAdminApiV1RecordCrossmatchGet(
-          {
-            query: {
-              record_id: recordId,
-            },
-          },
-        );
-
-        if (response.data?.data) {
-          setData(response.data.data);
-        }
-      } catch (error) {
-        console.error("Error fetching crossmatch details:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchCrossmatchDetails();
-  }, [recordId, navigate]);
-
-  function renderContent(): ReactElement {
-    if (loading) return <Loading />;
-    if (data) return renderCrossmatchDetails(data);
-    return renderNotFound(navigate);
+async function fetcher(
+  recordId: string | undefined,
+): Promise<GetRecordCrossmatchResponse> {
+  if (!recordId) {
+    throw new Error("Record ID is required");
   }
 
-  return <>{renderContent()}</>;
+  const response = await getRecordCrossmatchAdminApiV1RecordCrossmatchGet({
+    query: {
+      record_id: recordId,
+    },
+  });
+
+  if (response.error || !response.data?.data) {
+    throw new Error(
+      `Error fetching crossmatch details: ${response.error || "Unknown error"}`,
+    );
+  }
+
+  return response.data.data;
+}
+
+export function RecordCrossmatchDetailsPage(): ReactElement {
+  const { recordId } = useParams<{ recordId: string }>();
+
+  const { data, loading, error } = useDataFetching(
+    () => fetcher(recordId),
+    [recordId],
+  );
+
+  function Content(): ReactElement {
+    if (loading) return <Loading />;
+    if (error) return <ErrorPage message={error} />;
+    if (data) return <RecordCrossmatchDetails data={data} />;
+
+    return <ErrorPage message="Unknown error" />;
+  }
+
+  return <Content />;
 }

@@ -60,6 +60,7 @@ function App() {
           path="/records/:recordId/crossmatch"
           element={
             <Layout>
+              <SearchBar />
               <RecordCrossmatchDetailsPage />
             </Layout>
           }
@@ -68,6 +69,7 @@ function App() {
           path="*"
           element={
             <Layout>
+              <SearchBar />
               <NotFoundPage />
             </Layout>
           }
