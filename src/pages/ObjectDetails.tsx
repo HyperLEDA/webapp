@@ -9,6 +9,7 @@ import {
   ErrorPageHomeButton,
 } from "../components/ui/error-page";
 import { CatalogData } from "../components/ui/catalog-data";
+import { Link } from "../components/ui/link";
 import { querySimpleApiV1QuerySimpleGet } from "../clients/backend/sdk.gen";
 import { PgcObject, Schema } from "../clients/backend/types.gen";
 
@@ -59,6 +60,12 @@ function renderObjectDetails(
             {object.catalogs?.designation?.name || `PGC ${object.pgc}`}
           </h2>
           <p className="text-gray-300">PGC: {object.pgc}</p>
+          <Link
+            href={`http://atlas.obs-hp.fr/hyperleda/ledacat.cgi?o=%23${object.pgc}`}
+            external
+          >
+            OHP Mirror
+          </Link>
         </div>
       </div>
       <CatalogData catalogs={object.catalogs} schema={schema} />
