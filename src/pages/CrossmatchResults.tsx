@@ -118,8 +118,13 @@ export function CrossmatchResultsPage(): ReactElement {
     setSearchParams(newSearchParams);
   }
 
-  function getRecordName(record: RecordCrossmatch): string {
-    return record.catalogs.designation?.name || record.record_id;
+  function getRecordName(record: RecordCrossmatch): ReactElement {
+    const displayName = record.catalogs.designation?.name || record.record_id;
+    return (
+      <LinkButton to={`/records/${record.record_id}/crossmatch`}>
+        {displayName}
+      </LinkButton>
+    );
   }
 
   function renderCandidates(record: RecordCrossmatch): ReactElement {
@@ -154,7 +159,15 @@ export function CrossmatchResultsPage(): ReactElement {
   }
 
   const columns: Column[] = [
-    { name: "Record Name" },
+    {
+      name: "Record Name",
+      renderCell: (recordIndex: CellPrimitive) => {
+        if (typeof recordIndex === "number" && data?.records[recordIndex]) {
+          return getRecordName(data.records[recordIndex]);
+        }
+        return <span>NULL</span>;
+      },
+    },
     { name: "Status" },
     {
       name: "Candidates",
@@ -169,7 +182,7 @@ export function CrossmatchResultsPage(): ReactElement {
 
   const tableData: Record<string, CellPrimitive>[] =
     data?.records.map((record: RecordCrossmatch, index: number) => ({
-      "Record Name": getRecordName(record),
+      "Record Name": index,
       Status: getStatusLabel(record.status),
       Candidates: index,
     })) || [];

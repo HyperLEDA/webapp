@@ -6,6 +6,7 @@ import { ObjectDetailsPage } from "./pages/ObjectDetails";
 import { NotFoundPage } from "./pages/NotFound";
 import { TableDetailsPage } from "./pages/TableDetails";
 import { CrossmatchResultsPage } from "./pages/CrossmatchResults";
+import { RecordCrossmatchDetailsPage } from "./pages/RecordCrossmatchDetails";
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -57,6 +58,14 @@ function App() {
           element={
             <Layout>
               <CrossmatchResultsPage />
+            </Layout>
+          }
+        />
+        <Route
+          path="/records/:recordId/crossmatch"
+          element={
+            <Layout>
+              <RecordCrossmatchDetailsPage />
             </Layout>
           }
         />
