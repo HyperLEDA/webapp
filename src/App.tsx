@@ -7,6 +7,7 @@ import { TableDetailsPage } from "./pages/TableDetails";
 import { CrossmatchResultsPage } from "./pages/CrossmatchResults";
 import { RecordCrossmatchDetailsPage } from "./pages/RecordCrossmatchDetails";
 import { Layout } from "./components/ui/layout";
+import { SearchBar } from "./components/ui/searchbar";
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
           path="/object/:pgcId"
           element={
             <Layout>
+              <SearchBar />
               <ObjectDetailsPage />
             </Layout>
           }
@@ -40,6 +42,7 @@ function App() {
           path="/table/:tableName"
           element={
             <Layout>
+              <SearchBar />
               <TableDetailsPage />
             </Layout>
           }

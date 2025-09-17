@@ -2,7 +2,6 @@ import { ReactElement, useEffect, useState } from "react";
 import {
   Bibliography,
   GetTableResponse,
-  HttpValidationError,
   RecordCrossmatchStatus,
 } from "../clients/admin/types.gen";
 import { getTableAdminApiV1TableGet } from "../clients/admin/sdk.gen";
@@ -17,7 +16,7 @@ import { CopyButton } from "../components/ui/copy-button";
 import { Badge } from "../components/ui/badge";
 import { Link } from "../components/ui/link";
 import { Loading } from "../components/ui/loading";
-import { ErrorPage, ErrorPageHomeButton } from "../components/ui/error-page";
+import { ErrorPage } from "../components/ui/error-page";
 import { getResource } from "../resources/resources";
 
 function renderBibliography(bib: Bibliography): ReactElement {
@@ -259,59 +258,36 @@ function ColumnInfo(props: ColumnInfoProps): ReactElement {
   );
 }
 
-function renderNotFound(navigate: (path: string) => void): ReactElement {
-  return (
-    <ErrorPage
-      title="Table Not Found"
-      message="The requested table could not be found."
-    >
-      <ErrorPageHomeButton onClick={() => navigate("/")} />
-    </ErrorPage>
-  );
-}
+async function fetcher(
+  tableName: string | undefined,
+): Promise<GetTableResponse> {
+  if (!tableName) {
+    throw new Error("No table name provided");
+  }
 
-function renderError(
-  error: HttpValidationError,
-  navigate: (path: string) => void,
-): ReactElement {
-  return (
-    <ErrorPage
-      title="Error"
-      message={error.detail?.toString() || "An error occurred"}
-    >
-      <ErrorPageHomeButton onClick={() => navigate("/")} />
-    </ErrorPage>
-  );
+  const response = await getTableAdminApiV1TableGet({
+    query: { table_name: tableName },
+  });
+  if (response.error) {
+    throw new Error(JSON.stringify(response.error));
+  }
+
+  return response.data.data;
 }
 
 export function TableDetailsPage(): ReactElement {
   const { tableName } = useParams<{ tableName: string }>();
-  const [table, setTable] = useState<GetTableResponse | null>(null);
-  const [error, setError] = useState<HttpValidationError | null>(null);
+  const [payload, setPayload] = useState<GetTableResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     async function fetchData() {
-      if (!tableName) {
-        navigate("/");
-        return;
-      }
-
       try {
-        const response = await getTableAdminApiV1TableGet({
-          query: { table_name: tableName },
-        });
-        if (response.error) {
-          setError(response.error);
-          return;
-        }
-
-        if (response.data) {
-          setTable(response.data.data);
-        }
-      } catch (err) {
-        console.log("Error fetching table", err);
+        setPayload(await fetcher(tableName));
+      } catch (error) {
+        setError(`${error}`);
       } finally {
         setLoading(false);
       }
@@ -320,25 +296,26 @@ export function TableDetailsPage(): ReactElement {
     fetchData();
   }, [tableName, navigate]);
 
-  function renderContent(): ReactElement {
+  function RenderContent(): ReactElement {
     if (loading) return <Loading />;
-    if (table) {
+    if (error) return <ErrorPage message={error} />;
+    if (payload) {
       return (
         <>
-          <TableMeta tableName={tableName ?? ""} table={table} />
-          <MarkingRules table={table} />
+          <TableMeta tableName={tableName ?? ""} table={payload} />
+          <MarkingRules table={payload} />
           <CrossmatchStats
-            table={table}
+            table={payload}
             tableName={tableName ?? ""}
             navigate={navigate}
           />
-          <ColumnInfo table={table} />
+          <ColumnInfo table={payload} />
         </>
       );
     }
-    if (error) return renderError(error, navigate);
-    return renderNotFound(navigate);
+
+    return <ErrorPage message="Unknown error" />;
   }
 
-  return <>{renderContent()}</>;
+  return <RenderContent />;
 }

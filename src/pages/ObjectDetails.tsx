@@ -1,6 +1,5 @@
 import { ReactElement, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { SearchBar } from "../components/ui/searchbar";
 import { AladinViewer } from "../components/ui/aladin";
 import { Loading } from "../components/ui/loading";
 import { ErrorPage } from "../components/ui/error-page";
@@ -47,63 +46,63 @@ function ObjectDetails({ object, schema }: ObjectDetailsProps): ReactElement {
   );
 }
 
+async function fetcher(
+  pgcId: string | undefined,
+): Promise<[PgcObject, Schema]> {
+  if (!pgcId || isNaN(Number(pgcId))) {
+    throw new Error(`Invalid PGC number: ${pgcId}`);
+  }
+
+  const response = await querySimpleApiV1QuerySimpleGet({
+    query: {
+      pgcs: [Number(pgcId)],
+    },
+  });
+
+  if (response.error || !response.data) {
+    throw new Error(`Error during query: ${response.error}`);
+  }
+
+  const objects = response.data.data.objects;
+  const schema = response.data.data.schema;
+
+  if (!objects || objects.length === 0) {
+    throw new Error(`Object ${pgcId} not found`);
+  }
+
+  return [objects[0], schema];
+}
+
 export function ObjectDetailsPage(): ReactElement {
   const { pgcId } = useParams<{ pgcId: string }>();
-  const [object, setObject] = useState<PgcObject | null>(null);
-  const [schema, setSchema] = useState<Schema | null>(null);
+  const [payload, setPayload] = useState<[PgcObject, Schema] | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function fetchObjectDetails() {
-      if (!pgcId || isNaN(Number(pgcId))) {
-        setError(`Invalid PGC number ${pgcId}`);
-        return;
-      }
-
-      setLoading(true);
+    async function fetch() {
       try {
-        const response = await querySimpleApiV1QuerySimpleGet({
-          query: {
-            pgcs: [Number(pgcId)],
-          },
-        });
-
-        const objects = response.data?.data.objects;
-        const schema = response.data?.data.schema;
-
-        if (objects && objects.length > 0) {
-          const objectData = objects[0];
-          setObject(objectData);
-          setSchema(schema || null);
-        }
+        setPayload(await fetcher(pgcId));
       } catch (error) {
-        setError(`Error fetching object: ${error}`);
+        setError(`${error}`);
       } finally {
         setLoading(false);
       }
     }
 
-    fetchObjectDetails();
+    fetch();
   }, [pgcId]);
 
-  function renderContent(): ReactElement {
-    if (loading) return <Loading />;
-    if (error) return <ErrorPage title={error} />;
-    if (object) return <ObjectDetails object={object} schema={schema} />;
+  const [object, schema] = payload || [null, null];
 
-    return (
-      <ErrorPage
-        title="Object not found"
-        message={`Object with PGC ${pgcId} was not found`}
-      />
-    );
+  function RenderContent(): ReactElement {
+    if (loading) return <Loading />;
+    if (error) return <ErrorPage message={error} />;
+    if (object && schema)
+      return <ObjectDetails object={object} schema={schema} />;
+
+    return <ErrorPage message="Unknown error" />;
   }
 
-  return (
-    <>
-      <SearchBar />
-      {renderContent()}
-    </>
-  );
+  return <RenderContent />;
 }
