@@ -1,46 +1,20 @@
-import { ReactElement, useEffect, useState } from "react";
-import { NavigateFunction, useNavigate, useParams } from "react-router-dom";
-import { SearchBar } from "../components/ui/searchbar";
+import { ReactElement, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { AladinViewer } from "../components/ui/aladin";
 import { Loading } from "../components/ui/loading";
-import {
-  ErrorPage,
-  ErrorPageBackButton,
-  ErrorPageHomeButton,
-} from "../components/ui/error-page";
+import { ErrorPage } from "../components/ui/error-page";
 import { CatalogData } from "../components/ui/catalog-data";
 import { Link } from "../components/ui/link";
 import { querySimpleApiV1QuerySimpleGet } from "../clients/backend/sdk.gen";
 import { PgcObject, Schema } from "../clients/backend/types.gen";
+import { useDataFetching } from "../hooks/useDataFetching";
 
-function backToResultsHandler(navigate: NavigateFunction) {
-  return function f() {
-    navigate(-1);
-  };
+interface ObjectDetailsProps {
+  object: PgcObject;
+  schema: Schema | null;
 }
 
-function searchHandler(navigate: NavigateFunction) {
-  return function f(query: string) {
-    navigate(`/query?q=${encodeURIComponent(query)}`);
-  };
-}
-
-function renderNotFound(navigate: NavigateFunction) {
-  return (
-    <ErrorPage
-      title="Object Not Found"
-      message="The requested object could not be found."
-    >
-      <ErrorPageBackButton onClick={backToResultsHandler(navigate)} />
-      <ErrorPageHomeButton onClick={() => navigate("/")} />
-    </ErrorPage>
-  );
-}
-
-function renderObjectDetails(
-  object: PgcObject,
-  schema: Schema | null,
-): ReactElement {
+function ObjectDetails({ object, schema }: ObjectDetailsProps): ReactElement {
   if (!object || !schema) return <div />;
 
   return (
@@ -73,63 +47,56 @@ function renderObjectDetails(
   );
 }
 
+async function fetcher(
+  pgcId: string | undefined,
+): Promise<[PgcObject, Schema]> {
+  if (!pgcId || isNaN(Number(pgcId))) {
+    throw new Error(`Invalid PGC number: ${pgcId}`);
+  }
+
+  const response = await querySimpleApiV1QuerySimpleGet({
+    query: {
+      pgcs: [Number(pgcId)],
+    },
+  });
+
+  if (response.error || !response.data) {
+    throw new Error(`Error during query: ${response.error}`);
+  }
+
+  const objects = response.data.data.objects;
+  const schema = response.data.data.schema;
+
+  if (!objects || objects.length === 0) {
+    throw new Error(`Object ${pgcId} not found`);
+  }
+
+  return [objects[0], schema];
+}
+
 export function ObjectDetailsPage(): ReactElement {
   const { pgcId } = useParams<{ pgcId: string }>();
-  const [object, setObject] = useState<PgcObject | null>(null);
-  const [schema, setSchema] = useState<Schema | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const navigate = useNavigate();
 
   useEffect(() => {
-    async function fetchObjectDetails() {
-      if (!pgcId || isNaN(Number(pgcId))) {
-        navigate("/");
-        return;
-      }
+    document.title = `PGC ${pgcId} | HyperLEDA`;
+  }, [pgcId]);
 
-      setLoading(true);
-      try {
-        const response = await querySimpleApiV1QuerySimpleGet({
-          query: {
-            pgcs: [Number(pgcId)],
-          },
-        });
+  const {
+    data: payload,
+    loading,
+    error,
+  } = useDataFetching(() => fetcher(pgcId), [pgcId]);
 
-        const objects = response.data?.data.objects;
-        const schema = response.data?.data.schema;
+  const [object, schema] = payload || [null, null];
 
-        if (objects && objects.length > 0) {
-          const objectData = objects[0];
-          setObject(objectData);
-          setSchema(schema || null);
-        } else {
-          console.error("Object not found");
-        }
-      } catch (error) {
-        console.error("Error fetching object:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
+  function Content(): ReactElement {
+    if (loading) return <Loading />;
+    if (error) return <ErrorPage message={error} />;
+    if (object && schema)
+      return <ObjectDetails object={object} schema={schema} />;
 
-    fetchObjectDetails();
-  }, [pgcId, navigate]);
+    return <ErrorPage message="Unknown error" />;
+  }
 
-  return (
-    <div className="p-8">
-      <SearchBar
-        onSearch={searchHandler(navigate)}
-        logoSize="small"
-        showLogo={true}
-      />
-
-      {loading ? (
-        <Loading />
-      ) : object ? (
-        renderObjectDetails(object, schema)
-      ) : (
-        renderNotFound(navigate)
-      )}
-    </div>
-  );
+  return <Content />;
 }

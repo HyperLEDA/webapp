@@ -1,22 +1,16 @@
-import { ReactElement, useEffect, useState } from "react";
+import { ReactElement, useEffect } from "react";
 import {
   NavigateFunction,
   useNavigate,
   useSearchParams,
 } from "react-router-dom";
-import { SearchPGCObject, backendClient } from "../clients/backend";
 import { SearchBar } from "../components/ui/searchbar";
-import { AladinViewer } from "../components/ui/aladin";
-import { Card, CardContent } from "../components/ui/card";
+import { CommonTable, Column } from "../components/ui/common-table";
 import { Loading } from "../components/ui/loading";
 import { ErrorPage, ErrorPageHomeButton } from "../components/ui/error-page";
-
-function objectClickHandler(
-  navigate: NavigateFunction,
-  object: SearchPGCObject,
-) {
-  navigate(`/object/${object.pgc}`);
-}
+import { useDataFetching } from "../hooks/useDataFetching";
+import { querySimpleApiV1QuerySimpleGet } from "../clients/backend/sdk.gen";
+import { QuerySimpleResponse } from "../clients/backend/types.gen";
 
 function searchHandler(navigate: NavigateFunction) {
   return function f(query: string) {
@@ -35,114 +29,181 @@ function pageChangeHandler(
   );
 }
 
+interface SearchResultsProps {
+  results: QuerySimpleResponse;
+  query: string;
+  page: number;
+  pageSize: number;
+  navigate: NavigateFunction;
+}
+
+function SearchResults({
+  results,
+  query,
+  page,
+  pageSize,
+  navigate,
+}: SearchResultsProps): ReactElement {
+  const columns: Column[] = [
+    {
+      name: "PGC",
+      renderCell: (value: React.ReactElement | string | number) => (
+        <span className="font-mono text-blue-400 hover:text-blue-300 cursor-pointer">
+          {value}
+        </span>
+      ),
+    },
+    {
+      name: "Name",
+      renderCell: (value: React.ReactElement | string | number) => (
+        <span className="text-gray-200">{value || "N/A"}</span>
+      ),
+    },
+    {
+      name: "RA (deg)",
+      renderCell: (value: React.ReactElement | string | number) => (
+        <span className="font-mono text-gray-300">
+          {typeof value === "number" ? value.toFixed(6) : value}
+        </span>
+      ),
+    },
+    {
+      name: "Dec (deg)",
+      renderCell: (value: React.ReactElement | string | number) => (
+        <span className="font-mono text-gray-300">
+          {typeof value === "number" ? value.toFixed(6) : value}
+        </span>
+      ),
+    },
+  ];
+
+  if (results.objects.length > 0) {
+    return (
+      <div className="mt-4">
+        <CommonTable
+          columns={columns}
+          data={results.objects.map((object) => ({
+            PGC: object.pgc,
+            Name: object.catalogs.designation?.name || "N/A",
+            "RA (deg)": object.catalogs.coordinates?.equatorial.ra || 0,
+            "Dec (deg)": object.catalogs.coordinates?.equatorial.dec || 0,
+          }))}
+          className="w-full"
+          onRowClick={(row) => {
+            const pgc = row.PGC as number;
+            navigate(`/object/${pgc}`);
+          }}
+        />
+        <div className="flex justify-center items-center gap-4 mt-4">
+          <button
+            onClick={() =>
+              pageChangeHandler(navigate, query, pageSize, page - 1)
+            }
+            disabled={page <= 1}
+            className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+          >
+            Previous
+          </button>
+          <span>Page {page}</span>
+          <button
+            onClick={() =>
+              pageChangeHandler(navigate, query, pageSize, page + 1)
+            }
+            disabled={results.objects.length < pageSize}
+            className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <ErrorPage
+      title="No Results Found"
+      message={`No results found for "${query}"`}
+      className="p-4"
+    >
+      <ErrorPageHomeButton onClick={() => navigate("/")} />
+    </ErrorPage>
+  );
+}
+
+async function fetcher(
+  query: string,
+  page: number,
+  pageSize: number,
+): Promise<QuerySimpleResponse> {
+  if (!query.trim()) {
+    throw new Error("Empty query");
+  }
+
+  const response = await querySimpleApiV1QuerySimpleGet({
+    query: {
+      name: query,
+      page: page,
+      page_size: pageSize,
+    },
+  });
+
+  if (response.data?.data.objects.length === 0) {
+    throw new Error(`No objects found for query ${query}`);
+  }
+
+  if (response.error || !response.data) {
+    throw new Error(`Error during query: ${response.error}`);
+  }
+
+  return response.data.data;
+}
+
 export function SearchResultsPage(): ReactElement {
   const [searchParams] = useSearchParams();
-  const [results, setResults] = useState<SearchPGCObject[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
   const navigate = useNavigate();
   const query = searchParams.get("q") || "";
   const page = parseInt(searchParams.get("page") || "1");
   const pageSize = parseInt(searchParams.get("pagesize") || "10");
 
   useEffect(() => {
-    async function fetchResults() {
-      if (!query.trim()) {
-        navigate("/");
-        return;
-      }
+    document.title = `${query} | HyperLEDA`;
+  }, [query]);
 
-      setLoading(true);
-      try {
-        const response = await backendClient.query(query, page - 1, pageSize);
-        setResults(response.objects);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      } finally {
-        setLoading(false);
-      }
+  const {
+    data: results,
+    loading,
+    error,
+  } = useDataFetching(
+    () => fetcher(query, page, pageSize),
+    [query, page, pageSize],
+  );
+
+  function Content(): ReactElement {
+    if (loading) return <Loading />;
+    if (error) return <ErrorPage message={error} />;
+    if (results) {
+      return (
+        <SearchResults
+          results={results}
+          query={query}
+          page={page}
+          pageSize={pageSize}
+          navigate={navigate}
+        />
+      );
     }
 
-    fetchResults();
-  }, [query, navigate, pageSize, page]);
+    return <ErrorPage message="Unknown error" />;
+  }
 
   return (
-    <div className="p-4">
+    <>
       <SearchBar
         initialValue={query}
         onSearch={searchHandler(navigate)}
         logoSize="small"
       />
-
-      {loading ? (
-        <Loading />
-      ) : (
-        <div className="grid grid-cols-1 gap-4">
-          {results.length > 0 ? (
-            <>
-              {results.map((object) => (
-                <div key={object.pgc} className="flex items-center w-full">
-                  <AladinViewer
-                    ra={object.catalogs.icrs.ra}
-                    dec={object.catalogs.icrs.dec}
-                    fov={0.02}
-                    survey="P/DSS2/color"
-                    className="w-60 h-60"
-                  />
-                  <Card
-                    key={object.pgc}
-                    className="cursor-pointer hover:shadow-lg flex-grow ml-4"
-                    onClick={() => objectClickHandler(navigate, object)}
-                  >
-                    <CardContent>
-                      <h2 className="text-lg">PGC {object.pgc}</h2>
-                    </CardContent>
-                    <CardContent>
-                      <h2 className="text-lg">
-                        Name: {object.catalogs.designation.design}
-                      </h2>
-                    </CardContent>
-                    <CardContent>
-                      <h2 className="text-lg">
-                        J2000: {object.catalogs.icrs.ra} deg,{" "}
-                        {object.catalogs.icrs.dec} deg
-                      </h2>
-                    </CardContent>
-                  </Card>
-                </div>
-              ))}
-              <div className="flex justify-center items-center gap-4 mt-4">
-                <button
-                  onClick={() =>
-                    pageChangeHandler(navigate, query, pageSize, page - 1)
-                  }
-                  disabled={page <= 1}
-                  className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
-                >
-                  Previous
-                </button>
-                <span>Page {page}</span>
-                <button
-                  onClick={() =>
-                    pageChangeHandler(navigate, query, pageSize, page + 1)
-                  }
-                  disabled={results.length < pageSize}
-                  className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
-                >
-                  Next
-                </button>
-              </div>
-            </>
-          ) : (
-            <ErrorPage
-              title="No Results Found"
-              message={`No results found for "${query}"`}
-              className="p-4"
-            >
-              <ErrorPageHomeButton onClick={() => navigate("/")} />
-            </ErrorPage>
-          )}
-        </div>
-      )}
-    </div>
+      <Content />
+    </>
   );
 }

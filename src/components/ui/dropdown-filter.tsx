@@ -8,7 +8,6 @@ interface DropdownFilterOption {
 interface DropdownFilterProps {
   title: string;
   options: DropdownFilterOption[];
-  defaultValue: string;
   value: string;
   onChange: (value: string) => void;
 }

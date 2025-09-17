@@ -5,7 +5,6 @@ interface TextFieldProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
-  type?: "text" | "email" | "password" | "number";
   onEnter?: () => void;
 }
 
@@ -14,7 +13,6 @@ export function TextFilter({
   value,
   onChange,
   placeholder,
-  type = "text",
   onEnter,
 }: TextFieldProps): ReactElement {
   return (
@@ -23,7 +21,6 @@ export function TextFilter({
         {title}
       </label>
       <input
-        type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={(e) => {

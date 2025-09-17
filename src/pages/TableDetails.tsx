@@ -1,8 +1,7 @@
-import { ReactElement, useEffect, useState } from "react";
+import { ReactElement } from "react";
 import {
   Bibliography,
   GetTableResponse,
-  HttpValidationError,
   RecordCrossmatchStatus,
 } from "../clients/admin/types.gen";
 import { getTableAdminApiV1TableGet } from "../clients/admin/sdk.gen";
@@ -17,8 +16,9 @@ import { CopyButton } from "../components/ui/copy-button";
 import { Badge } from "../components/ui/badge";
 import { Link } from "../components/ui/link";
 import { Loading } from "../components/ui/loading";
-import { ErrorPage, ErrorPageHomeButton } from "../components/ui/error-page";
+import { ErrorPage } from "../components/ui/error-page";
 import { getResource } from "../resources/resources";
+import { useDataFetching } from "../hooks/useDataFetching";
 
 function renderBibliography(bib: Bibliography): ReactElement {
   let authors = "";
@@ -259,87 +259,53 @@ function ColumnInfo(props: ColumnInfoProps): ReactElement {
   );
 }
 
-function renderNotFound(navigate: (path: string) => void): ReactElement {
-  return (
-    <ErrorPage
-      title="Table Not Found"
-      message="The requested table could not be found."
-    >
-      <ErrorPageHomeButton onClick={() => navigate("/")} />
-    </ErrorPage>
-  );
-}
+async function fetcher(
+  tableName: string | undefined,
+): Promise<GetTableResponse> {
+  if (!tableName) {
+    throw new Error("No table name provided");
+  }
 
-function renderError(
-  error: HttpValidationError,
-  navigate: (path: string) => void,
-): ReactElement {
-  return (
-    <ErrorPage
-      title="Error"
-      message={error.detail?.toString() || "An error occurred"}
-    >
-      <ErrorPageHomeButton onClick={() => navigate("/")} />
-    </ErrorPage>
-  );
+  const response = await getTableAdminApiV1TableGet({
+    query: { table_name: tableName },
+  });
+  if (response.error) {
+    throw new Error(JSON.stringify(response.error));
+  }
+
+  return response.data.data;
 }
 
 export function TableDetailsPage(): ReactElement {
   const { tableName } = useParams<{ tableName: string }>();
-  const [table, setTable] = useState<GetTableResponse | null>(null);
-  const [error, setError] = useState<HttpValidationError | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    async function fetchData() {
-      if (!tableName) {
-        navigate("/");
-        return;
-      }
+  const {
+    data: payload,
+    loading,
+    error,
+  } = useDataFetching(() => fetcher(tableName), [tableName]);
 
-      try {
-        const response = await getTableAdminApiV1TableGet({
-          query: { table_name: tableName },
-        });
-        if (response.error) {
-          setError(response.error);
-          return;
-        }
-
-        if (response.data) {
-          setTable(response.data.data);
-        }
-      } catch (err) {
-        console.log("Error fetching table", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchData();
-  }, [tableName, navigate]);
-
-  return (
-    <div className="p-8">
-      {loading ? (
-        <Loading />
-      ) : table ? (
-        <div>
-          <TableMeta tableName={tableName ?? ""} table={table} />
-          <MarkingRules table={table} />
+  function Content(): ReactElement {
+    if (loading) return <Loading />;
+    if (error) return <ErrorPage message={error} />;
+    if (payload) {
+      return (
+        <>
+          <TableMeta tableName={tableName ?? ""} table={payload} />
+          <MarkingRules table={payload} />
           <CrossmatchStats
-            table={table}
+            table={payload}
             tableName={tableName ?? ""}
             navigate={navigate}
           />
-          <ColumnInfo table={table} />
-        </div>
-      ) : error ? (
-        renderError(error, navigate)
-      ) : (
-        renderNotFound(navigate)
-      )}
-    </div>
-  );
+          <ColumnInfo table={payload} />
+        </>
+      );
+    }
+
+    return <ErrorPage message="Unknown error" />;
+  }
+
+  return <Content />;
 }

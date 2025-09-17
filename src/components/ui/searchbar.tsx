@@ -1,29 +1,34 @@
 import { ReactElement, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, NavigateFunction, useNavigate } from "react-router-dom";
 import classNames from "classnames";
 import { Button } from "./button";
 
 interface SearchBarProps {
   initialValue?: string;
-  onSearch: (query: string) => void;
+  onSearch?: (query: string) => void;
   className?: string;
   logoSize?: "small" | "large";
-  showLogo?: boolean;
 }
 
-export function SearchBar(props: SearchBarProps): ReactElement {
-  const {
-    initialValue = "",
-    logoSize = "large",
-    showLogo = true,
-    onSearch,
-    className,
-  } = props;
+function searchHandler(navigate: NavigateFunction) {
+  return function f(query: string) {
+    navigate(`/query?q=${encodeURIComponent(query)}`);
+  };
+}
+
+export function SearchBar({
+  initialValue = "",
+  logoSize = "small",
+  onSearch,
+  className,
+}: SearchBarProps): ReactElement {
   const [searchQuery, setSearchQuery] = useState<string>(initialValue);
+  const navigate = useNavigate();
+  const onSearchHandler = onSearch ?? searchHandler(navigate);
 
   function handleSubmit() {
     if (searchQuery.trim()) {
-      onSearch(searchQuery);
+      onSearchHandler(searchQuery);
     }
   }
 
@@ -35,18 +40,16 @@ export function SearchBar(props: SearchBarProps): ReactElement {
         className,
       )}
     >
-      {showLogo && (
-        <Link to="/">
-          <img
-            src="/logo.png"
-            alt="HyperLeda Logo"
-            className={classNames({
-              "h-32 mx-auto mb-2": logoSize === "large",
-              "h-10": logoSize === "small",
-            })}
-          />
-        </Link>
-      )}
+      <Link to="/">
+        <img
+          src="/logo.png"
+          alt="HyperLeda Logo"
+          className={classNames({
+            "h-32 mx-auto mb-2": logoSize === "large",
+            "h-10": logoSize === "small",
+          })}
+        />
+      </Link>
       <div
         className={classNames("flex items-center w-full", {
           "ml-2": logoSize === "small",

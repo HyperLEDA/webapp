@@ -1,5 +1,5 @@
 import { ReactElement, useEffect, useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import {
   CommonTable,
   Column,
@@ -13,28 +13,28 @@ import type {
   GetRecordsCrossmatchResponse,
   RecordCrossmatch,
   RecordCrossmatchStatus,
-  HttpValidationError,
   ValidationError,
 } from "../clients/admin/types.gen";
 import { getResource } from "../resources/resources";
 import { Button } from "../components/ui/button";
 import { Loading } from "../components/ui/loading";
-import { ErrorPage, ErrorPageHomeButton } from "../components/ui/error-page";
+import { ErrorPage } from "../components/ui/error-page";
 import { Link } from "../components/ui/link";
+import { useDataFetching } from "../hooks/useDataFetching";
 
-export function CrossmatchResultsPage(): ReactElement {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
+interface CrossmatchFiltersProps {
+  tableName: string | null;
+  status: RecordCrossmatchStatus | null;
+  pageSize: number;
+  onApplyFilters: (tableName: string, status: string, pageSize: number) => void;
+}
 
-  const [data, setData] = useState<GetRecordsCrossmatchResponse | null>(null);
-  const [error, setError] = useState<HttpValidationError | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-
-  const tableName = searchParams.get("table_name");
-  const status = searchParams.get("status") as RecordCrossmatchStatus | null;
-  const page = parseInt(searchParams.get("page") || "0");
-  const pageSize = parseInt(searchParams.get("page_size") || "25");
-
+function CrossmatchFilters({
+  tableName,
+  status,
+  pageSize,
+  onApplyFilters,
+}: CrossmatchFiltersProps): ReactElement {
   const [localStatus, setLocalStatus] = useState<string>(status || "all");
   const [localPageSize, setLocalPageSize] = useState<number>(pageSize);
   const [localTableName, setLocalTableName] = useState<string>(tableName || "");
@@ -45,79 +45,55 @@ export function CrossmatchResultsPage(): ReactElement {
     setLocalTableName(tableName || "");
   }, [status, pageSize, tableName]);
 
-  useEffect(() => {
-    async function fetchData() {
-      if (!tableName) {
-        navigate("/");
-        return;
-      }
-
-      try {
-        setLoading(true);
-        const response =
-          await getCrossmatchRecordsAdminApiV1RecordsCrossmatchGet({
-            query: {
-              table_name: tableName,
-              status: status || undefined,
-              page: page,
-              page_size: pageSize,
-            },
-          });
-
-        if (response.error) {
-          setError(response.error);
-          return;
-        }
-
-        if (response.data) {
-          setData(response.data.data);
-        }
-      } catch (err) {
-        console.error("Error fetching crossmatch records", err);
-        setError({
-          detail: [
-            {
-              loc: [],
-              msg: "Failed to fetch crossmatch records",
-              type: "value_error",
-            },
-          ],
-        });
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchData();
-  }, [tableName, status, page, pageSize, navigate]);
-
-  function handlePageChange(newPage: number): void {
-    const newSearchParams = new URLSearchParams(searchParams);
-    newSearchParams.set("page", newPage.toString());
-    setSearchParams(newSearchParams);
-  }
-
   function applyFilters(): void {
-    const newSearchParams = new URLSearchParams(searchParams);
-
-    if (localTableName.trim()) {
-      newSearchParams.set("table_name", localTableName.trim());
-    } else {
-      newSearchParams.delete("table_name");
-    }
-
-    if (localStatus === "all") {
-      newSearchParams.delete("status");
-    } else {
-      newSearchParams.set("status", localStatus);
-    }
-
-    newSearchParams.set("page_size", localPageSize.toString());
-    newSearchParams.set("page", "0");
-
-    setSearchParams(newSearchParams);
+    onApplyFilters(localTableName, localStatus, localPageSize);
   }
 
+  return (
+    <div className="flex gap-4 mb-4">
+      <TextFilter
+        title="Table name"
+        value={localTableName}
+        onChange={setLocalTableName}
+        placeholder="Enter table name"
+        onEnter={applyFilters}
+      />
+      <Link href={`/table/${localTableName.trim()}`} external />
+      <DropdownFilter
+        title="Status"
+        options={[
+          { value: "all", label: "All Statuses" },
+          { value: "unprocessed", label: "Unprocessed" },
+          { value: "new", label: "New" },
+          { value: "collided", label: "Collided" },
+          { value: "existing", label: "Existing" },
+        ]}
+        value={localStatus}
+        onChange={setLocalStatus}
+      />
+      <DropdownFilter
+        title="Page size"
+        options={[
+          { value: "10" },
+          { value: "25" },
+          { value: "50" },
+          { value: "100" },
+        ]}
+        value={localPageSize.toString()}
+        onChange={(value) => setLocalPageSize(parseInt(value))}
+      />
+      <div className="flex items-end">
+        <Button onClick={applyFilters}>Apply</Button>
+      </div>
+    </div>
+  );
+}
+
+interface CrossmatchResultsProps {
+  data: GetRecordsCrossmatchResponse | null;
+}
+
+function CrossmatchResults({ data }: CrossmatchResultsProps): ReactElement {
   function getRecordName(record: RecordCrossmatch): ReactElement {
     const displayName = record.catalogs.designation?.name || record.record_id;
     return (
@@ -128,30 +104,23 @@ export function CrossmatchResultsPage(): ReactElement {
   }
 
   function renderCandidates(record: RecordCrossmatch): ReactElement {
-    if (record.status === "new") {
-      return <span>NULL</span>;
-    }
+    let pgcNumbers: number[] = [];
 
     if (record.status === "existing" && record.metadata.pgc) {
-      const pgcText = `${record.metadata.pgc}`;
-      return <Badge href={`/object/${record.metadata.pgc}`}>{pgcText}</Badge>;
+      pgcNumbers = [record.metadata.pgc];
+    } else if (record.status === "collided") {
+      pgcNumbers = record.metadata.possible_matches ?? [];
     }
 
-    if (record.status === "collided" && record.metadata.possible_matches) {
-      const pgcNumbers = record.metadata.possible_matches;
-
-      return (
-        <div>
-          {pgcNumbers.map((pgc: number, index: number) => (
-            <Badge key={`${pgc}-${index}`} href={`/object/${pgc}`}>
-              {pgc}
-            </Badge>
-          ))}
-        </div>
-      );
-    }
-
-    return <span>NULL</span>;
+    return (
+      <>
+        {pgcNumbers.map((pgc, index) => (
+          <Badge key={`${pgc}-${index}`} href={`/object/${pgc}`}>
+            {pgc}
+          </Badge>
+        ))}
+      </>
+    );
   }
 
   function getStatusLabel(status: RecordCrossmatchStatus): string {
@@ -160,7 +129,7 @@ export function CrossmatchResultsPage(): ReactElement {
 
   const columns: Column[] = [
     {
-      name: "Record Name",
+      name: "Record name",
       renderCell: (recordIndex: CellPrimitive) => {
         if (typeof recordIndex === "number" && data?.records[recordIndex]) {
           return getRecordName(data.records[recordIndex]);
@@ -182,111 +151,134 @@ export function CrossmatchResultsPage(): ReactElement {
 
   const tableData: Record<string, CellPrimitive>[] =
     data?.records.map((record: RecordCrossmatch, index: number) => ({
-      "Record Name": index,
+      "Record name": index,
       Status: getStatusLabel(record.status),
       Candidates: index,
     })) || [];
 
-  if (loading) {
-    return <Loading />;
+  return <CommonTable columns={columns} data={tableData} />;
+}
+
+async function fetcher(
+  tableName: string | null,
+  status: RecordCrossmatchStatus | null,
+  page: number,
+  pageSize: number,
+): Promise<GetRecordsCrossmatchResponse> {
+  if (!tableName) {
+    throw new Error("Table name is required");
   }
 
-  if (error) {
-    return (
-      <ErrorPage
-        title="Error"
-        message={
-          error.detail?.map((err: ValidationError) => err.msg).join(", ") ||
-          "An error occurred"
-        }
-        className="p-8"
-      >
-        <ErrorPageHomeButton onClick={() => navigate("/")} />
-      </ErrorPage>
+  const response = await getCrossmatchRecordsAdminApiV1RecordsCrossmatchGet({
+    query: {
+      table_name: tableName,
+      status: status,
+      page: page,
+      page_size: pageSize,
+    },
+  });
+
+  if (response.error) {
+    throw new Error(
+      response.error.detail
+        ?.map((err: ValidationError) => err.msg)
+        .join(", ") || "Failed to fetch crossmatch records",
     );
   }
 
-  if (!tableName) {
+  if (!response.data) {
+    throw new Error("No data received from server");
+  }
+
+  return response.data.data;
+}
+
+export function CrossmatchResultsPage(): ReactElement {
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const tableName = searchParams.get("table_name");
+  const status = searchParams.get("status") as RecordCrossmatchStatus | null;
+  const page = parseInt(searchParams.get("page") || "0");
+  const pageSize = parseInt(searchParams.get("page_size") || "25");
+
+  useEffect(() => {
+    document.title = `Crossmatch - ${tableName} | HyperLEDA`;
+  }, [tableName]);
+
+  const { data, loading, error } = useDataFetching(
+    () => fetcher(tableName, status, page, pageSize),
+    [tableName, status, page, pageSize],
+  );
+
+  function handlePageChange(newPage: number): void {
+    const newSearchParams = new URLSearchParams(searchParams);
+    newSearchParams.set("page", newPage.toString());
+    setSearchParams(newSearchParams);
+  }
+
+  function handleApplyFilters(
+    newTableName: string,
+    newStatus: string,
+    newPageSize: number,
+  ): void {
+    const newSearchParams = new URLSearchParams(searchParams);
+
+    if (newTableName.trim()) {
+      newSearchParams.set("table_name", newTableName.trim());
+    } else {
+      newSearchParams.delete("table_name");
+    }
+
+    if (newStatus === "all") {
+      newSearchParams.delete("status");
+    } else {
+      newSearchParams.set("status", newStatus);
+    }
+
+    newSearchParams.set("page_size", newPageSize.toString());
+    newSearchParams.set("page", "0");
+
+    setSearchParams(newSearchParams);
+  }
+
+  function Content(): ReactElement {
+    if (loading) return <Loading />;
+    if (error) return <ErrorPage title="Error" message={error} />;
+
     return (
-      <ErrorPage
-        title="Missing table name"
-        message="Please provide a table_name parameter."
-        className="p-8"
-      >
-        <ErrorPageHomeButton onClick={() => navigate("/")} />
-      </ErrorPage>
+      <>
+        <CrossmatchResults data={data} />
+        <div className="flex justify-between items-center mt-4">
+          <Button
+            onClick={() => handlePageChange(page - 1)}
+            disabled={page === 0}
+          >
+            Previous
+          </Button>
+          <span>
+            Page {page + 1} (showing {data?.records.length} records)
+          </span>
+          <Button
+            onClick={() => handlePageChange(page + 1)}
+            disabled={(data?.records.length || 0) < pageSize}
+          >
+            Next
+          </Button>
+        </div>
+      </>
     );
   }
 
   return (
-    <div className="p-8">
-      <div className="mb-6">
-        <h2 className="text-3xl font-bold mb-4">Crossmatch results</h2>
-
-        <div className="flex gap-4 mb-4">
-          <TextFilter
-            title="Table name"
-            value={localTableName}
-            onChange={setLocalTableName}
-            placeholder="Enter table name"
-            onEnter={applyFilters}
-          />
-          <Link href={`/table/${localTableName.trim()}`} external />
-          <DropdownFilter
-            title="Status filter"
-            options={[
-              { value: "all", label: "All Statuses" },
-              { value: "unprocessed", label: "Unprocessed" },
-              { value: "new", label: "New" },
-              { value: "collided", label: "Collided" },
-              { value: "existing", label: "Existing" },
-            ]}
-            defaultValue="all"
-            value={localStatus}
-            onChange={setLocalStatus}
-          />
-          <DropdownFilter
-            title="Page size"
-            options={[
-              { value: "10" },
-              { value: "25" },
-              { value: "50" },
-              { value: "100" },
-            ]}
-            defaultValue="25"
-            value={localPageSize.toString()}
-            onChange={(value) => setLocalPageSize(parseInt(value))}
-          />
-          <div className="flex items-end">
-            <Button onClick={applyFilters}>Apply</Button>
-          </div>
-        </div>
-      </div>
-
-      <CommonTable columns={columns} data={tableData} className="mb-6">
-        <div className="flex justify-between items-center">
-          <h2 className="text-xl font-bold">Crossmatch records</h2>
-          <div className="text-sm text-gray-400">
-            Showing {tableData.length} records
-          </div>
-        </div>
-      </CommonTable>
-
-      <div className="flex justify-between items-center">
-        <Button
-          onClick={() => handlePageChange(page - 1)}
-          disabled={page === 0}
-        >
-          Previous
-        </Button>
-        <span className="text-gray-300">Page {page + 1}</span>
-        <Button
-          onClick={() => handlePageChange(page + 1)}
-          disabled={tableData.length < pageSize}
-        >
-          Next
-        </Button>
-      </div>
-    </div>
+    <>
+      <h2 className="text-3xl font-bold mb-4">Crossmatch results</h2>
+      <CrossmatchFilters
+        tableName={tableName}
+        status={status}
+        pageSize={pageSize}
+        onApplyFilters={handleApplyFilters}
+      />
+      <Content />
+    </>
   );
 }

@@ -2,7 +2,7 @@ import { ReactElement, ReactNode } from "react";
 import { Button } from "./button";
 
 interface ErrorPageProps {
-  title: string;
+  title?: string;
   message: string;
   children?: ReactNode;
   className?: string;
@@ -10,7 +10,7 @@ interface ErrorPageProps {
 }
 
 export function ErrorPage({
-  title,
+  title = "Encountered error",
   message,
   children,
   className = "",

@@ -1,5 +1,4 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { Footer } from "./components/ui/footer";
 import { HomePage } from "./pages/Home";
 import { SearchResultsPage } from "./pages/SearchResults";
 import { ObjectDetailsPage } from "./pages/ObjectDetails";
@@ -7,15 +6,8 @@ import { NotFoundPage } from "./pages/NotFound";
 import { TableDetailsPage } from "./pages/TableDetails";
 import { CrossmatchResultsPage } from "./pages/CrossmatchResults";
 import { RecordCrossmatchDetailsPage } from "./pages/RecordCrossmatchDetails";
-
-function Layout({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="min-h-screen flex flex-col">
-      <div className="flex-grow">{children}</div>
-      <Footer />
-    </div>
-  );
-}
+import { Layout } from "./components/ui/layout";
+import { SearchBar } from "./components/ui/searchbar";
 
 function App() {
   return (
@@ -25,6 +17,7 @@ function App() {
           path="/"
           element={
             <Layout>
+              <SearchBar logoSize="large" />
               <HomePage />
             </Layout>
           }
@@ -41,6 +34,7 @@ function App() {
           path="/object/:pgcId"
           element={
             <Layout>
+              <SearchBar />
               <ObjectDetailsPage />
             </Layout>
           }
@@ -49,6 +43,7 @@ function App() {
           path="/table/:tableName"
           element={
             <Layout>
+              <SearchBar />
               <TableDetailsPage />
             </Layout>
           }
@@ -65,6 +60,7 @@ function App() {
           path="/records/:recordId/crossmatch"
           element={
             <Layout>
+              <SearchBar />
               <RecordCrossmatchDetailsPage />
             </Layout>
           }
@@ -73,6 +69,7 @@ function App() {
           path="*"
           element={
             <Layout>
+              <SearchBar />
               <NotFoundPage />
             </Layout>
           }
