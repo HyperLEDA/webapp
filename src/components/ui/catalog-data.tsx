@@ -103,8 +103,8 @@ export function CatalogData({
   }
 
   if (catalogs?.velocity) {
-    data.push(
-      {
+    if (catalogs.velocity.heliocentric?.v !== undefined) {
+      data.push({
         Parameter: "Heliocentric Velocity",
         Value: (
           <QuantityWithError
@@ -113,12 +113,15 @@ export function CatalogData({
           >
             <Quantity
               value={catalogs.velocity.heliocentric?.v?.toFixed(0)}
-              unit={schema.units.velocity.heliocentric?.v}
+              unit={schema.units.velocity?.heliocentric?.v}
             />
           </QuantityWithError>
         ),
-      },
-      {
+      });
+    }
+
+    if (catalogs.velocity.local_group?.v !== undefined) {
+      data.push({
         Parameter: "Local Group Velocity",
         Value: (
           <QuantityWithError
@@ -127,12 +130,15 @@ export function CatalogData({
           >
             <Quantity
               value={catalogs.velocity.local_group?.v?.toFixed(0)}
-              unit={schema.units.velocity.local_group?.v}
+              unit={schema.units.velocity?.local_group?.v}
             />
           </QuantityWithError>
         ),
-      },
-      {
+      });
+    }
+
+    if (catalogs.velocity.cmb_old?.v !== undefined) {
+      data.push({
         Parameter: "CMB (old) Velocity",
         Value: (
           <QuantityWithError
@@ -141,12 +147,15 @@ export function CatalogData({
           >
             <Quantity
               value={catalogs.velocity.cmb_old?.v?.toFixed(0)}
-              unit={schema.units.velocity.cmb_old?.v}
+              unit={schema.units.velocity?.cmb_old?.v}
             />
           </QuantityWithError>
         ),
-      },
-      {
+      });
+    }
+
+    if (catalogs.velocity.cmb?.v !== undefined) {
+      data.push({
         Parameter: "CMB Velocity",
         Value: (
           <QuantityWithError
@@ -155,12 +164,12 @@ export function CatalogData({
           >
             <Quantity
               value={catalogs.velocity.cmb?.v?.toFixed(0)}
-              unit={schema.units.velocity.cmb?.v}
+              unit={schema.units.velocity?.cmb?.v}
             />
           </QuantityWithError>
         ),
-      },
-    );
+      });
+    }
   }
 
   return <CommonTable columns={columns} data={data} />;
