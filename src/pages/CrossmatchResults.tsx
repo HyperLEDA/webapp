@@ -21,6 +21,7 @@ import { Loading } from "../components/ui/loading";
 import { ErrorPage } from "../components/ui/error-page";
 import { Link } from "../components/ui/link";
 import { useDataFetching } from "../hooks/useDataFetching";
+import { Pagination } from "../components/ui/pagination";
 
 interface CrossmatchFiltersProps {
   tableName: string | null;
@@ -244,27 +245,17 @@ export function CrossmatchResultsPage(): ReactElement {
   function Content(): ReactElement {
     if (loading) return <Loading />;
     if (error) return <ErrorPage title="Error" message={error} />;
+    if (!data?.records) return <ErrorPage title="Error" message="No records" />;
 
     return (
       <>
         <CrossmatchResults data={data} />
-        <div className="flex justify-between items-center mt-4">
-          <Button
-            onClick={() => handlePageChange(page - 1)}
-            disabled={page === 0}
-          >
-            Previous
-          </Button>
-          <span>
-            Page {page + 1} (showing {data?.records.length} records)
-          </span>
-          <Button
-            onClick={() => handlePageChange(page + 1)}
-            disabled={(data?.records.length || 0) < pageSize}
-          >
-            Next
-          </Button>
-        </div>
+        <Pagination
+          page={page}
+          pageSize={pageSize}
+          records={data?.records}
+          handlePageChange={handlePageChange}
+        />
       </>
     );
   }
