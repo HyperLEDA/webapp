@@ -4,8 +4,8 @@ import { Catalogs, Schema } from "../../clients/backend/types.gen";
 import {
   Declination,
   RightAscension,
-  Value,
-  ValueWithError,
+  Quantity,
+  QuantityWithError,
 } from "./astronomy";
 
 interface CatalogDataProps {
@@ -35,12 +35,12 @@ export function CatalogData({
       data.push({
         Parameter: "Equatorial RA",
         Value: (
-          <ValueWithError
+          <QuantityWithError
             error={catalogs.coordinates.equatorial?.e_ra}
             unit={schema.units.coordinates?.equatorial?.ra || "deg"}
           >
             <RightAscension value={catalogs.coordinates.equatorial.ra} />
-          </ValueWithError>
+          </QuantityWithError>
         ),
       });
     }
@@ -49,12 +49,12 @@ export function CatalogData({
       data.push({
         Parameter: "Equatorial Dec",
         Value: (
-          <ValueWithError
+          <QuantityWithError
             error={catalogs.coordinates.equatorial?.e_dec}
             unit={schema.units.coordinates?.equatorial?.dec || "deg"}
           >
             <Declination value={catalogs.coordinates.equatorial.dec} />
-          </ValueWithError>
+          </QuantityWithError>
         ),
       });
     }
@@ -63,29 +63,29 @@ export function CatalogData({
       {
         Parameter: "Galactic l",
         Value: (
-          <ValueWithError
+          <QuantityWithError
             error={catalogs.coordinates.galactic?.e_lon}
             unit={schema.units.coordinates?.galactic?.lon}
           >
-            <Value
+            <Quantity
               value={catalogs.coordinates.galactic?.lon?.toFixed(2)}
               unit={schema.units.coordinates?.galactic?.lon}
             />
-          </ValueWithError>
+          </QuantityWithError>
         ),
       },
       {
         Parameter: "Galactic b",
         Value: (
-          <ValueWithError
+          <QuantityWithError
             error={catalogs.coordinates.galactic?.e_lat}
             unit={schema.units.coordinates?.galactic?.lat}
           >
-            <Value
+            <Quantity
               value={catalogs.coordinates.galactic?.lat?.toFixed(2)}
               unit={schema.units.coordinates?.galactic?.lat}
             />
-          </ValueWithError>
+          </QuantityWithError>
         ),
       },
     );
@@ -95,9 +95,9 @@ export function CatalogData({
     data.push({
       Parameter: "Redshift z",
       Value: (
-        <ValueWithError error={catalogs.redshift.e_z} decimalPlaces={5}>
+        <QuantityWithError error={catalogs.redshift.e_z} decimalPlaces={5}>
           {catalogs.redshift.z?.toFixed(5) || "N/A"}
-        </ValueWithError>
+        </QuantityWithError>
       ),
     });
   }
@@ -107,57 +107,57 @@ export function CatalogData({
       {
         Parameter: "Heliocentric Velocity",
         Value: (
-          <ValueWithError
+          <QuantityWithError
             error={catalogs.velocity.heliocentric?.e_v}
             unit={schema.units.velocity?.heliocentric?.v}
           >
-            <Value
+            <Quantity
               value={catalogs.velocity.heliocentric?.v?.toFixed(0)}
               unit={schema.units.velocity.heliocentric?.v}
             />
-          </ValueWithError>
+          </QuantityWithError>
         ),
       },
       {
         Parameter: "Local Group Velocity",
         Value: (
-          <ValueWithError
+          <QuantityWithError
             error={catalogs.velocity.local_group?.e_v}
             unit={schema.units.velocity?.local_group?.v}
           >
-            <Value
+            <Quantity
               value={catalogs.velocity.local_group?.v?.toFixed(0)}
               unit={schema.units.velocity.local_group?.v}
             />
-          </ValueWithError>
+          </QuantityWithError>
         ),
       },
       {
         Parameter: "CMB (old) Velocity",
         Value: (
-          <ValueWithError
+          <QuantityWithError
             error={catalogs.velocity.cmb_old?.e_v}
             unit={schema.units.velocity?.cmb_old?.v}
           >
-            <Value
+            <Quantity
               value={catalogs.velocity.cmb_old?.v?.toFixed(0)}
               unit={schema.units.velocity.cmb_old?.v}
             />
-          </ValueWithError>
+          </QuantityWithError>
         ),
       },
       {
         Parameter: "CMB Velocity",
         Value: (
-          <ValueWithError
+          <QuantityWithError
             error={catalogs.velocity.cmb?.e_v}
             unit={schema.units.velocity?.cmb?.v}
           >
-            <Value
+            <Quantity
               value={catalogs.velocity.cmb?.v?.toFixed(0)}
               unit={schema.units.velocity.cmb?.v}
             />
-          </ValueWithError>
+          </QuantityWithError>
         ),
       },
     );

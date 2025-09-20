@@ -1,18 +1,18 @@
 import React, { ReactElement, ReactNode } from "react";
 
-interface ValueProps {
+interface QuantityProps {
   value: string | number;
   unit?: string;
   className?: string;
   spaced?: boolean;
 }
 
-export function Value({
+export function Quantity({
   value,
   unit,
   className,
   spaced = true,
-}: ValueProps): React.ReactElement {
+}: QuantityProps): React.ReactElement {
   return (
     <span className={className}>
       {value}
@@ -28,22 +28,22 @@ export function Value({
   );
 }
 
-interface ValueWithErrorProps {
+interface QuantityWithErrorProps {
   children: ReactNode;
   error: number;
   unit?: string;
   decimalPlaces?: number;
 }
 
-export function ValueWithError({
+export function QuantityWithError({
   children,
   error,
   unit,
   decimalPlaces = 2,
-}: ValueWithErrorProps): ReactElement {
+}: QuantityWithErrorProps): ReactElement {
   return (
     <div className="flex items-center gap-2">
-      {children} ± <Value value={error.toFixed(decimalPlaces)} unit={unit} />
+      {children} ± <Quantity value={error.toFixed(decimalPlaces)} unit={unit} />
     </div>
   );
 }
@@ -68,9 +68,9 @@ export function RightAscension({
 
   return (
     <span className={className}>
-      <Value value={hours} unit="h" spaced={false} />{" "}
-      <Value value={minutes} unit="m" spaced={false} />{" "}
-      <Value value={seconds} unit="s" spaced={false} />
+      <Quantity value={hours} unit="h" spaced={false} />{" "}
+      <Quantity value={minutes} unit="m" spaced={false} />{" "}
+      <Quantity value={seconds} unit="s" spaced={false} />
     </span>
   );
 }
@@ -93,9 +93,9 @@ export function Declination({
   return (
     <span className={className}>
       {sign}
-      <Value value={degrees} unit="°" spaced={false} />{" "}
-      <Value value={minutes} unit="'" spaced={false} />{" "}
-      <Value value={seconds.toFixed(2)} unit={'"'} spaced={false} />
+      <Quantity value={degrees} unit="°" spaced={false} />{" "}
+      <Quantity value={minutes} unit="'" spaced={false} />{" "}
+      <Quantity value={seconds.toFixed(2)} unit={'"'} spaced={false} />
     </span>
   );
 }
