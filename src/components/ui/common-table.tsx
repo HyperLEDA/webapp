@@ -33,7 +33,7 @@ export function CommonTable({
   children,
   onRowClick,
 }: CommonTableProps): ReactElement {
-  function renderCell(value: CellPrimitive, column: Column): ReactElement {
+  function renderCell(value: CellPrimitive, column: Column): ReactNode {
     if (column.renderCell) {
       return column.renderCell(value);
     }

@@ -12,41 +12,13 @@ import { useDataFetching } from "../hooks/useDataFetching";
 import { querySimpleApiV1QuerySimpleGet } from "../clients/backend/sdk.gen";
 import { QuerySimpleResponse } from "../clients/backend/types.gen";
 import { Link } from "../components/ui/link";
+import { Declination, RightAscension } from "../components/ui/astronomy";
 
 function searchHandler(navigate: NavigateFunction) {
   return function f(query: string) {
     navigate(`/query?q=${encodeURIComponent(query)}`);
   };
 }
-
-function renderRightAscension(
-  value: React.ReactElement | string | number,
-): React.ReactNode {
-  const raDegrees =
-    typeof value === "number" ? value : parseFloat(value as string);
-  if (isNaN(raDegrees)) return "N/A";
-  const totalSeconds = raDegrees * 240;
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = (totalSeconds % 60).toFixed(2);
-  return `${hours}h ${minutes}m ${seconds}s`;
-}
-
-function renderDeclination(
-  value: React.ReactElement | string | number,
-): React.ReactNode {
-  const decDegrees =
-    typeof value === "number" ? value : parseFloat(value as string);
-  if (isNaN(decDegrees)) return "N/A";
-  const sign = decDegrees < 0 ? "-" : "+";
-  const absDec = Math.abs(decDegrees);
-  const degrees = Math.floor(absDec);
-  const minutesFloat = (absDec - degrees) * 60;
-  const minutes = Math.floor(minutesFloat);
-  const seconds = (minutesFloat - minutes) * 60;
-  return `${sign}${degrees}° ${minutes}' ${seconds.toFixed(2)}"`;
-}
-
 
 function pageChangeHandler(
   navigate: NavigateFunction,
@@ -82,8 +54,26 @@ function SearchResults({
       ),
     },
     { name: "Name" },
-    { name: "RA", renderCell: renderRightAscension },
-    { name: "Dec", renderCell: renderDeclination },
+    {
+      name: "RA",
+      renderCell: (value: React.ReactElement | string | number) => (
+        <RightAscension
+          value={
+            typeof value === "number" ? value : parseFloat(value as string)
+          }
+        />
+      ),
+    },
+    {
+      name: "Dec",
+      renderCell: (value: React.ReactElement | string | number) => (
+        <Declination
+          value={
+            typeof value === "number" ? value : parseFloat(value as string)
+          }
+        />
+      ),
+    },
   ];
 
   if (results.objects.length > 0) {
