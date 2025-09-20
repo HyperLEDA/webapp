@@ -1,4 +1,4 @@
-import React, { ReactElement } from "react";
+import React, { ReactElement, ReactNode } from "react";
 import classNames from "classnames";
 import { Hint } from "./hint";
 
@@ -6,7 +6,7 @@ export type CellPrimitive = ReactElement | string | number;
 
 export interface Column {
   name: string;
-  renderCell?: (value: CellPrimitive) => ReactElement;
+  renderCell?: (value: CellPrimitive) => ReactNode;
   hint?: ReactElement;
 }
 

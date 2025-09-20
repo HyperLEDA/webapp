@@ -11,12 +11,42 @@ import { ErrorPage, ErrorPageHomeButton } from "../components/ui/error-page";
 import { useDataFetching } from "../hooks/useDataFetching";
 import { querySimpleApiV1QuerySimpleGet } from "../clients/backend/sdk.gen";
 import { QuerySimpleResponse } from "../clients/backend/types.gen";
+import { Link } from "../components/ui/link";
 
 function searchHandler(navigate: NavigateFunction) {
   return function f(query: string) {
     navigate(`/query?q=${encodeURIComponent(query)}`);
   };
 }
+
+function renderRightAscension(
+  value: React.ReactElement | string | number,
+): React.ReactNode {
+  const raDegrees =
+    typeof value === "number" ? value : parseFloat(value as string);
+  if (isNaN(raDegrees)) return "N/A";
+  const totalSeconds = raDegrees * 240;
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = (totalSeconds % 60).toFixed(2);
+  return `${hours}h ${minutes}m ${seconds}s`;
+}
+
+function renderDeclination(
+  value: React.ReactElement | string | number,
+): React.ReactNode {
+  const decDegrees =
+    typeof value === "number" ? value : parseFloat(value as string);
+  if (isNaN(decDegrees)) return "N/A";
+  const sign = decDegrees < 0 ? "-" : "+";
+  const absDec = Math.abs(decDegrees);
+  const degrees = Math.floor(absDec);
+  const minutesFloat = (absDec - degrees) * 60;
+  const minutes = Math.floor(minutesFloat);
+  const seconds = (minutesFloat - minutes) * 60;
+  return `${sign}${degrees}° ${minutes}' ${seconds.toFixed(2)}"`;
+}
+
 
 function pageChangeHandler(
   navigate: NavigateFunction,
@@ -48,33 +78,12 @@ function SearchResults({
     {
       name: "PGC",
       renderCell: (value: React.ReactElement | string | number) => (
-        <span className="font-mono text-blue-400 hover:text-blue-300 cursor-pointer">
-          {value}
-        </span>
+        <Link href={`/object/${value}`}>{value}</Link>
       ),
     },
-    {
-      name: "Name",
-      renderCell: (value: React.ReactElement | string | number) => (
-        <span className="text-gray-200">{value || "N/A"}</span>
-      ),
-    },
-    {
-      name: "RA (deg)",
-      renderCell: (value: React.ReactElement | string | number) => (
-        <span className="font-mono text-gray-300">
-          {typeof value === "number" ? value.toFixed(6) : value}
-        </span>
-      ),
-    },
-    {
-      name: "Dec (deg)",
-      renderCell: (value: React.ReactElement | string | number) => (
-        <span className="font-mono text-gray-300">
-          {typeof value === "number" ? value.toFixed(6) : value}
-        </span>
-      ),
-    },
+    { name: "Name" },
+    { name: "RA", renderCell: renderRightAscension },
+    { name: "Dec", renderCell: renderDeclination },
   ];
 
   if (results.objects.length > 0) {
@@ -85,14 +94,10 @@ function SearchResults({
           data={results.objects.map((object) => ({
             PGC: object.pgc,
             Name: object.catalogs.designation?.name || "N/A",
-            "RA (deg)": object.catalogs.coordinates?.equatorial.ra || 0,
-            "Dec (deg)": object.catalogs.coordinates?.equatorial.dec || 0,
+            RA: object.catalogs.coordinates?.equatorial.ra || 0,
+            Dec: object.catalogs.coordinates?.equatorial.dec || 0,
           }))}
           className="w-full"
-          onRowClick={(row) => {
-            const pgc = row.PGC as number;
-            navigate(`/object/${pgc}`);
-          }}
         />
         <div className="flex justify-center items-center gap-4 mt-4">
           <button
