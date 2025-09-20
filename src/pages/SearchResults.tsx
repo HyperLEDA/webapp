@@ -13,6 +13,7 @@ import { querySimpleApiV1QuerySimpleGet } from "../clients/backend/sdk.gen";
 import { QuerySimpleResponse } from "../clients/backend/types.gen";
 import { Link } from "../components/ui/link";
 import { Declination, RightAscension } from "../components/ui/astronomy";
+import { Pagination } from "../components/ui/pagination";
 
 function searchHandler(navigate: NavigateFunction) {
   return function f(query: string) {
@@ -76,9 +77,13 @@ function SearchResults({
     },
   ];
 
+  function handlePageChange(newPage: number): void {
+    pageChangeHandler(navigate, query, pageSize, newPage);
+  }
+
   if (results.objects.length > 0) {
     return (
-      <div className="mt-4">
+      <>
         <CommonTable
           columns={columns}
           data={results.objects.map((object) => ({
@@ -89,28 +94,13 @@ function SearchResults({
           }))}
           className="w-full"
         />
-        <div className="flex justify-center items-center gap-4 mt-4">
-          <button
-            onClick={() =>
-              pageChangeHandler(navigate, query, pageSize, page - 1)
-            }
-            disabled={page <= 1}
-            className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
-          >
-            Previous
-          </button>
-          <span>Page {page}</span>
-          <button
-            onClick={() =>
-              pageChangeHandler(navigate, query, pageSize, page + 1)
-            }
-            disabled={results.objects.length < pageSize}
-            className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
-      </div>
+        <Pagination
+          page={page}
+          pageSize={pageSize}
+          records={results.objects}
+          handlePageChange={handlePageChange}
+        />
+      </>
     );
   }
 
@@ -158,7 +148,7 @@ export function SearchResultsPage(): ReactElement {
   const navigate = useNavigate();
   const query = searchParams.get("q") || "";
   const page = parseInt(searchParams.get("page") || "1");
-  const pageSize = parseInt(searchParams.get("pagesize") || "10");
+  const pageSize = parseInt(searchParams.get("pagesize") || "25");
 
   useEffect(() => {
     document.title = `${query} | HyperLEDA`;
