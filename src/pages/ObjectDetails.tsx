@@ -8,6 +8,7 @@ import { Link } from "../components/ui/link";
 import { querySimpleApiV1QuerySimpleGet } from "../clients/backend/sdk.gen";
 import { PgcObject, Schema } from "../clients/backend/types.gen";
 import { useDataFetching } from "../hooks/useDataFetching";
+import { backendClient } from "../clients/config";
 
 interface ObjectDetailsProps {
   object: PgcObject;
@@ -55,6 +56,7 @@ async function fetcher(
   }
 
   const response = await querySimpleApiV1QuerySimpleGet({
+    client: backendClient,
     query: {
       pgcs: [Number(pgcId)],
     },

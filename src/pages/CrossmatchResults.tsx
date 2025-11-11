@@ -22,6 +22,7 @@ import { ErrorPage } from "../components/ui/error-page";
 import { Link } from "../components/ui/link";
 import { useDataFetching } from "../hooks/useDataFetching";
 import { Pagination } from "../components/ui/pagination";
+import { adminClient } from "../clients/config";
 
 interface CrossmatchFiltersProps {
   tableName: string | null;
@@ -171,6 +172,7 @@ async function fetcher(
   }
 
   const response = await getCrossmatchRecordsAdminApiV1RecordsCrossmatchGet({
+    client: adminClient,
     query: {
       table_name: tableName,
       status: status,

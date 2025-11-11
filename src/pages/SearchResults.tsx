@@ -14,6 +14,7 @@ import { QuerySimpleResponse } from "../clients/backend/types.gen";
 import { Link } from "../components/ui/link";
 import { Declination, RightAscension } from "../components/ui/astronomy";
 import { Pagination } from "../components/ui/pagination";
+import { backendClient } from "../clients/config";
 
 function searchHandler(navigate: NavigateFunction) {
   return function f(query: string) {
@@ -125,6 +126,7 @@ async function fetcher(
   }
 
   const response = await querySimpleApiV1QuerySimpleGet({
+    client: backendClient,
     query: {
       name: query,
       page: page,
