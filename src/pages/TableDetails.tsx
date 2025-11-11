@@ -19,6 +19,7 @@ import { Loading } from "../components/ui/loading";
 import { ErrorPage } from "../components/ui/error-page";
 import { getResource } from "../resources/resources";
 import { useDataFetching } from "../hooks/useDataFetching";
+import { backendClient } from "../clients/config";
 
 function renderBibliography(bib: Bibliography): ReactElement {
   let authors = "";
@@ -267,6 +268,7 @@ async function fetcher(
   }
 
   const response = await getTableAdminApiV1TableGet({
+    client: backendClient,
     query: { table_name: tableName },
   });
   if (response.error) {

@@ -15,6 +15,7 @@ import { Schema as BackendSchema } from "../clients/backend/types.gen";
 import { getResource } from "../resources/resources";
 import { Link } from "../components/ui/link";
 import { useDataFetching } from "../hooks/useDataFetching";
+import { adminClient } from "../clients/config";
 
 // TODO: remove when admin api uses the same structures as data api
 function convertAdminSchemaToBackendSchema(
@@ -188,6 +189,7 @@ async function fetcher(
   }
 
   const response = await getRecordCrossmatchAdminApiV1RecordCrossmatchGet({
+    client: adminClient,
     query: {
       record_id: recordId,
     },
