@@ -10,10 +10,12 @@ declare global {
 }
 
 function getConfig(): AppConfig {
-  if (typeof window === 'undefined' || !window.__APP_CONFIG__) {
-    throw new Error('App configuration is required. Please set window.__APP_CONFIG__');
+  if (typeof window === "undefined" || !window.__APP_CONFIG__) {
+    throw new Error(
+      "App configuration is required. Please set window.__APP_CONFIG__"
+    );
   }
-  
+
   return window.__APP_CONFIG__;
 }
 
