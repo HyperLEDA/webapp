@@ -15,8 +15,8 @@ fix:
 	yarn eslint --fix src
 
 gen:
-	yarn run openapi-ts -i http://dm2.sao.ru:81/api/openapi.json -o ./src/clients/backend
-	yarn run openapi-ts -i http://dm2.sao.ru:81/admin/api/openapi.json -o ./src/clients/admin
+	yarn run openapi-ts -i http://leda.sao.ru/api/openapi.json -o ./src/clients/backend
+	yarn run openapi-ts -i http://leda.sao.ru/admin/api/openapi.json -o ./src/clients/admin
 
 image-build:
 	docker build . -t ghcr.io/hyperleda/hyperleda-webapp:$(GIT_VERSION)
