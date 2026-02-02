@@ -42,7 +42,7 @@ export function QuantityWithError({
   decimalPlaces = 2,
 }: QuantityWithErrorProps): ReactElement {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center  whitespace-pre-wrap">
       {children} ± <Quantity value={error.toFixed(decimalPlaces)} unit={unit} />
     </div>
   );

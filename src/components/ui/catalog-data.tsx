@@ -31,38 +31,33 @@ export function CatalogData({
   }
 
   if (catalogs?.coordinates) {
-    if (catalogs.coordinates.equatorial?.ra !== undefined) {
-      data.push({
-        Parameter: "Equatorial RA",
-        Value: (
+    data.push({
+      Parameter: "Equatorial coordinates",
+      Value: (
+        <span className="flex whitespace-pre-wrap">
+          &alpha; ={" "}
           <QuantityWithError
             error={catalogs.coordinates.equatorial?.e_ra}
             unit={schema.units.coordinates?.equatorial?.ra || "deg"}
           >
             <RightAscension value={catalogs.coordinates.equatorial.ra} />
           </QuantityWithError>
-        ),
-      });
-    }
-
-    if (catalogs.coordinates.equatorial?.dec !== undefined) {
-      data.push({
-        Parameter: "Equatorial Dec",
-        Value: (
+          , &delta; ={" "}
           <QuantityWithError
             error={catalogs.coordinates.equatorial?.e_dec}
             unit={schema.units.coordinates?.equatorial?.dec || "deg"}
           >
             <Declination value={catalogs.coordinates.equatorial.dec} />
           </QuantityWithError>
-        ),
-      });
-    }
+        </span>
+      ),
+    });
 
-    data.push(
-      {
-        Parameter: "Galactic l",
-        Value: (
+    data.push({
+      Parameter: "Galactic coordinates",
+      Value: (
+        <span className="flex whitespace-pre-wrap">
+          l ={" "}
           <QuantityWithError
             error={catalogs.coordinates.galactic?.e_lon}
             unit={schema.units.coordinates?.galactic?.lon}
@@ -72,11 +67,7 @@ export function CatalogData({
               unit={schema.units.coordinates?.galactic?.lon}
             />
           </QuantityWithError>
-        ),
-      },
-      {
-        Parameter: "Galactic b",
-        Value: (
+          , b ={" "}
           <QuantityWithError
             error={catalogs.coordinates.galactic?.e_lat}
             unit={schema.units.coordinates?.galactic?.lat}
@@ -86,9 +77,9 @@ export function CatalogData({
               unit={schema.units.coordinates?.galactic?.lat}
             />
           </QuantityWithError>
-        ),
-      },
-    );
+        </span>
+      ),
+    });
   }
 
   if (catalogs?.redshift) {
