@@ -116,7 +116,7 @@ function TablesResults({ data, loading }: TablesResultsProps): ReactElement {
 async function fetcher(
   query: string | null,
   page: number,
-  pageSize: number
+  pageSize: number,
 ): Promise<GetTableListResponse> {
   const response = await getTableList({
     client: adminClient,
@@ -131,7 +131,7 @@ async function fetcher(
     throw new Error(
       (response.error as { detail?: ValidationError[] }).detail
         ?.map((err: ValidationError) => err.msg)
-        .join(", ") || "Failed to fetch tables"
+        .join(", ") || "Failed to fetch tables",
     );
   }
 
@@ -155,7 +155,7 @@ export function TablesPage(): ReactElement {
 
   const { data, loading, error } = useDataFetching(
     () => fetcher(query, page, pageSize),
-    [query, page, pageSize]
+    [query, page, pageSize],
   );
 
   function handlePageChange(newPage: number): void {
@@ -164,10 +164,7 @@ export function TablesPage(): ReactElement {
     setSearchParams(newSearchParams);
   }
 
-  function updateParams(updates: {
-    q?: string;
-    page_size?: number;
-  }): void {
+  function updateParams(updates: { q?: string; page_size?: number }): void {
     const newSearchParams = new URLSearchParams(searchParams);
     if (updates.q !== undefined) {
       if (updates.q.trim()) {

@@ -96,7 +96,10 @@ interface CrossmatchResultsProps {
   loading?: boolean;
 }
 
-function CrossmatchResults({ data, loading }: CrossmatchResultsProps): ReactElement {
+function CrossmatchResults({
+  data,
+  loading,
+}: CrossmatchResultsProps): ReactElement {
   function getRecordName(record: RecordCrossmatch): ReactElement {
     const displayName = record.catalogs.designation?.name || record.record_id;
     return (
