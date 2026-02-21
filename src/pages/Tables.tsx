@@ -1,4 +1,4 @@
-import { ReactElement, useEffect, useState } from "react";
+import { ReactElement, useEffect, useState, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   CommonTable,
@@ -13,7 +13,6 @@ import type {
   TableListItem,
   ValidationError,
 } from "../clients/admin/types.gen";
-import { Button } from "../components/ui/button";
 import { Loading } from "../components/ui/loading";
 import { ErrorPage } from "../components/ui/error-page";
 import { Link } from "../components/ui/link";
@@ -21,27 +20,42 @@ import { useDataFetching } from "../hooks/useDataFetching";
 import { Pagination } from "../components/ui/pagination";
 import { adminClient } from "../clients/config";
 
+const SEARCH_DEBOUNCE_MS = 300;
+
 interface TablesFiltersProps {
   query: string | null;
   pageSize: number;
-  onApplyFilters: (query: string, pageSize: number) => void;
+  onQueryChange: (query: string) => void;
+  onPageSizeChange: (pageSize: number) => void;
 }
 
 function TablesFilters({
   query,
   pageSize,
-  onApplyFilters,
+  onQueryChange,
+  onPageSizeChange,
 }: TablesFiltersProps): ReactElement {
   const [localQuery, setLocalQuery] = useState<string>(query || "");
-  const [localPageSize, setLocalPageSize] = useState<number>(pageSize);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    setLocalQuery(query || "");
-    setLocalPageSize(pageSize);
-  }, [query, pageSize]);
+    setLocalQuery(query ?? "");
+  }, [query]);
 
-  function applyFilters(): void {
-    onApplyFilters(localQuery, localPageSize);
+  useEffect(
+    () => () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    },
+    [],
+  );
+
+  function handleQueryChange(value: string): void {
+    setLocalQuery(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      debounceRef.current = null;
+      onQueryChange(value);
+    }, SEARCH_DEBOUNCE_MS);
   }
 
   return (
@@ -49,9 +63,8 @@ function TablesFilters({
       <TextFilter
         title="Search"
         value={localQuery}
-        onChange={setLocalQuery}
+        onChange={handleQueryChange}
         placeholder="Search by name or description"
-        onEnter={applyFilters}
       />
       <DropdownFilter
         title="Page size"
@@ -61,12 +74,9 @@ function TablesFilters({
           { value: "50" },
           { value: "100" },
         ]}
-        value={localPageSize.toString()}
-        onChange={(value) => setLocalPageSize(parseInt(value))}
+        value={pageSize.toString()}
+        onChange={(value) => onPageSizeChange(parseInt(value))}
       />
-      <div className="flex items-end">
-        <Button onClick={applyFilters}>Apply</Button>
-      </div>
     </div>
   );
 }
@@ -153,18 +163,22 @@ export function TablesPage(): ReactElement {
     setSearchParams(newSearchParams);
   }
 
-  function handleApplyFilters(newQuery: string, newPageSize: number): void {
+  function updateParams(updates: {
+    q?: string;
+    page_size?: number;
+  }): void {
     const newSearchParams = new URLSearchParams(searchParams);
-
-    if (newQuery.trim()) {
-      newSearchParams.set("q", newQuery.trim());
-    } else {
-      newSearchParams.delete("q");
+    if (updates.q !== undefined) {
+      if (updates.q.trim()) {
+        newSearchParams.set("q", updates.q.trim());
+      } else {
+        newSearchParams.delete("q");
+      }
     }
-
-    newSearchParams.set("page_size", newPageSize.toString());
+    if (updates.page_size !== undefined) {
+      newSearchParams.set("page_size", updates.page_size.toString());
+    }
     newSearchParams.set("page", "0");
-
     setSearchParams(newSearchParams);
   }
 
@@ -192,7 +206,8 @@ export function TablesPage(): ReactElement {
       <TablesFilters
         query={query}
         pageSize={pageSize}
-        onApplyFilters={handleApplyFilters}
+        onQueryChange={(q) => updateParams({ q })}
+        onPageSizeChange={(size) => updateParams({ page_size: size })}
       />
       <Content />
     </>
