@@ -1,4 +1,4 @@
 window.__APP_CONFIG__ = {
-    backendBaseUrl: "http://leda.kraysent.dev",
-    adminBaseUrl: "http://leda.kraysent.dev"
+    backendBaseUrl: "http://leda.sao.ru",
+    adminBaseUrl: "http://leda.sao.ru"
 };

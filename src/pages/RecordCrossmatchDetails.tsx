@@ -4,7 +4,7 @@ import { AladinViewer } from "../components/ui/aladin";
 import { Loading } from "../components/ui/loading";
 import { ErrorPage } from "../components/ui/error-page";
 import { CatalogData } from "../components/ui/catalog-data";
-import { getRecordCrossmatchAdminApiV1RecordCrossmatchGet } from "../clients/admin/sdk.gen";
+import { getRecordCrossmatch } from "../clients/admin/sdk.gen";
 import {
   GetRecordCrossmatchResponse,
   RecordCrossmatch,
@@ -188,7 +188,7 @@ async function fetcher(
     throw new Error("Record ID is required");
   }
 
-  const response = await getRecordCrossmatchAdminApiV1RecordCrossmatchGet({
+  const response = await getRecordCrossmatch({
     client: adminClient,
     query: {
       record_id: recordId,

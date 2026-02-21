@@ -8,7 +8,7 @@ import {
 import { Badge } from "../components/ui/badge";
 import { DropdownFilter } from "../components/ui/dropdown-filter";
 import { TextFilter } from "../components/ui/text-filter";
-import { getCrossmatchRecordsAdminApiV1RecordsCrossmatchGet } from "../clients/admin/sdk.gen";
+import { getCrossmatchRecords } from "../clients/admin/sdk.gen";
 import type {
   GetRecordsCrossmatchResponse,
   RecordCrossmatch,
@@ -171,7 +171,7 @@ async function fetcher(
     throw new Error("Table name is required");
   }
 
-  const response = await getCrossmatchRecordsAdminApiV1RecordsCrossmatchGet({
+  const response = await getCrossmatchRecords({
     client: adminClient,
     query: {
       table_name: tableName,
