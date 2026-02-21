@@ -4,7 +4,7 @@ import {
   GetTableResponse,
   RecordCrossmatchStatus,
 } from "../clients/admin/types.gen";
-import { getTableAdminApiV1TableGet } from "../clients/admin/sdk.gen";
+import { getTable } from "../clients/admin/sdk.gen";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   CellPrimitive,
@@ -267,7 +267,7 @@ async function fetcher(
     throw new Error("No table name provided");
   }
 
-  const response = await getTableAdminApiV1TableGet({
+  const response = await getTable({
     client: backendClient,
     query: { table_name: tableName },
   });

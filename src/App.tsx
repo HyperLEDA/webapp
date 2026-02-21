@@ -6,6 +6,7 @@ import { NotFoundPage } from "./pages/NotFound";
 import { TableDetailsPage } from "./pages/TableDetails";
 import { CrossmatchResultsPage } from "./pages/CrossmatchResults";
 import { RecordCrossmatchDetailsPage } from "./pages/RecordCrossmatchDetails";
+import { TablesPage } from "./pages/Tables";
 import { Layout } from "./components/ui/layout";
 import { SearchBar } from "./components/ui/searchbar";
 
@@ -45,6 +46,15 @@ function App() {
             <Layout>
               <SearchBar />
               <TableDetailsPage />
+            </Layout>
+          }
+        />
+        <Route
+          path="/tables"
+          element={
+            <Layout>
+              <SearchBar />
+              <TablesPage />
             </Layout>
           }
         />

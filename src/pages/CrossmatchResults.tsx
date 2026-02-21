@@ -8,7 +8,7 @@ import {
 import { Badge } from "../components/ui/badge";
 import { DropdownFilter } from "../components/ui/dropdown-filter";
 import { TextFilter } from "../components/ui/text-filter";
-import { getCrossmatchRecordsAdminApiV1RecordsCrossmatchGet } from "../clients/admin/sdk.gen";
+import { getCrossmatchRecords } from "../clients/admin/sdk.gen";
 import type {
   GetRecordsCrossmatchResponse,
   RecordCrossmatch,
@@ -93,9 +93,13 @@ function CrossmatchFilters({
 
 interface CrossmatchResultsProps {
   data: GetRecordsCrossmatchResponse | null;
+  loading?: boolean;
 }
 
-function CrossmatchResults({ data }: CrossmatchResultsProps): ReactElement {
+function CrossmatchResults({
+  data,
+  loading,
+}: CrossmatchResultsProps): ReactElement {
   function getRecordName(record: RecordCrossmatch): ReactElement {
     const displayName = record.catalogs.designation?.name || record.record_id;
     return (
@@ -158,7 +162,7 @@ function CrossmatchResults({ data }: CrossmatchResultsProps): ReactElement {
       Candidates: index,
     })) || [];
 
-  return <CommonTable columns={columns} data={tableData} />;
+  return <CommonTable columns={columns} data={tableData} loading={loading} />;
 }
 
 async function fetcher(
@@ -171,7 +175,7 @@ async function fetcher(
     throw new Error("Table name is required");
   }
 
-  const response = await getCrossmatchRecordsAdminApiV1RecordsCrossmatchGet({
+  const response = await getCrossmatchRecords({
     client: adminClient,
     query: {
       table_name: tableName,
@@ -245,13 +249,13 @@ export function CrossmatchResultsPage(): ReactElement {
   }
 
   function Content(): ReactElement {
-    if (loading) return <Loading />;
-    if (error) return <ErrorPage title="Error" message={error} />;
+    if (error && !data) return <ErrorPage title="Error" message={error} />;
+    if (!data?.records && loading) return <Loading />;
     if (!data?.records) return <ErrorPage title="Error" message="No records" />;
 
     return (
       <>
-        <CrossmatchResults data={data} />
+        <CrossmatchResults data={data} loading={loading} />
         <Pagination
           page={page}
           pageSize={pageSize}

@@ -9,7 +9,7 @@ import { CommonTable, Column } from "../components/ui/common-table";
 import { Loading } from "../components/ui/loading";
 import { ErrorPage, ErrorPageHomeButton } from "../components/ui/error-page";
 import { useDataFetching } from "../hooks/useDataFetching";
-import { querySimpleApiV1QuerySimpleGet } from "../clients/backend/sdk.gen";
+import { querySimple } from "../clients/backend/sdk.gen";
 import { QuerySimpleResponse } from "../clients/backend/types.gen";
 import { Link } from "../components/ui/link";
 import { Declination, RightAscension } from "../components/ui/astronomy";
@@ -125,7 +125,7 @@ async function fetcher(
     throw new Error("Empty query");
   }
 
-  const response = await querySimpleApiV1QuerySimpleGet({
+  const response = await querySimple({
     client: backendClient,
     query: {
       name: query,
