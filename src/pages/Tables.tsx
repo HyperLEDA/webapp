@@ -87,16 +87,16 @@ function TablesResults({ data }: TablesResultsProps): ReactElement {
       },
     },
     { name: "Description" },
-    { name: "Entries" },
-    { name: "Fields" },
+    { name: "Number of records" },
+    { name: "Number of columns" },
   ];
 
   const tableData: Record<string, CellPrimitive>[] =
     data?.tables.map((table: TableListItem) => ({
       Name: table.name,
       Description: table.description,
-      Entries: table.num_entries,
-      Fields: table.num_fields,
+      "Number of records": table.num_entries,
+      "Number of columns": table.num_fields,
     })) ?? [];
 
   return <CommonTable columns={columns} data={tableData} />;
@@ -105,7 +105,7 @@ function TablesResults({ data }: TablesResultsProps): ReactElement {
 async function fetcher(
   query: string | null,
   page: number,
-  pageSize: number,
+  pageSize: number
 ): Promise<GetTableListResponse> {
   const response = await getTableList({
     client: adminClient,
@@ -120,7 +120,7 @@ async function fetcher(
     throw new Error(
       (response.error as { detail?: ValidationError[] }).detail
         ?.map((err: ValidationError) => err.msg)
-        .join(", ") || "Failed to fetch tables",
+        .join(", ") || "Failed to fetch tables"
     );
   }
 
@@ -144,7 +144,7 @@ export function TablesPage(): ReactElement {
 
   const { data, loading, error } = useDataFetching(
     () => fetcher(query, page, pageSize),
-    [query, page, pageSize],
+    [query, page, pageSize]
   );
 
   function handlePageChange(newPage: number): void {
