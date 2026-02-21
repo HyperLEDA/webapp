@@ -15,6 +15,8 @@ export function useDataFetching<T>(
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    setLoading(true);
+    setError(null);
     async function fetchData(): Promise<void> {
       try {
         const result = await fetcher();

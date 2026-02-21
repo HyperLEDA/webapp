@@ -83,9 +83,10 @@ function TablesFilters({
 
 interface TablesResultsProps {
   data: GetTableListResponse | null;
+  loading?: boolean;
 }
 
-function TablesResults({ data }: TablesResultsProps): ReactElement {
+function TablesResults({ data, loading }: TablesResultsProps): ReactElement {
   const columns: Column[] = [
     {
       name: "Name",
@@ -109,7 +110,7 @@ function TablesResults({ data }: TablesResultsProps): ReactElement {
       "Number of columns": table.num_fields,
     })) ?? [];
 
-  return <CommonTable columns={columns} data={tableData} />;
+  return <CommonTable columns={columns} data={tableData} loading={loading} />;
 }
 
 async function fetcher(
@@ -183,13 +184,13 @@ export function TablesPage(): ReactElement {
   }
 
   function Content(): ReactElement {
-    if (loading) return <Loading />;
-    if (error) return <ErrorPage title="Error" message={error} />;
+    if (error && !data) return <ErrorPage title="Error" message={error} />;
+    if (!data?.tables && loading) return <Loading />;
     if (!data?.tables) return <ErrorPage title="Error" message="No tables" />;
 
     return (
       <>
-        <TablesResults data={data} />
+        <TablesResults data={data} loading={loading} />
         <Pagination
           page={page}
           pageSize={pageSize}

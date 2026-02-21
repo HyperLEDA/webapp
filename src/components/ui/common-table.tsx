@@ -1,6 +1,7 @@
 import React, { ReactElement, ReactNode } from "react";
 import classNames from "classnames";
 import { Hint } from "./hint";
+import { Loading } from "./loading";
 
 export type CellPrimitive = ReactElement | string | number;
 
@@ -13,6 +14,7 @@ export interface Column {
 interface CommonTableProps {
   columns: Column[];
   data: Record<string, CellPrimitive>[];
+  loading?: boolean;
   className?: string;
   tableClassName?: string;
   headerClassName?: string;
@@ -25,6 +27,7 @@ interface CommonTableProps {
 export function CommonTable({
   columns,
   data,
+  loading = false,
   className = "",
   tableClassName = "",
   headerClassName = "bg-gray-700 border-gray-600",
@@ -62,58 +65,71 @@ export function CommonTable({
         </div>
       )}
 
-      <div className={classNames("overflow-x-auto", tableClassName)}>
-        <table className="w-full border-collapse border border-gray-300 rounded-sm">
-          <thead>
-            <tr className="bg-gray-100">
-              {columns.map((column) => (
-                <th
-                  key={column.name}
-                  className={classNames(
-                    "border border-gray-300 px-2 py-1 text-center font-semibold text-gray-700",
-                    columnHeaderClassName,
-                  )}
-                >
-                  {column.hint ? (
-                    <Hint hintContent={column.hint}>
-                      <span>{column.name}</span>
-                    </Hint>
-                  ) : (
-                    column.name
-                  )}
-                </th>
-              ))}
-            </tr>
-          </thead>
-
-          <tbody>
-            {data.map((row, rowIndex) => (
-              <tr
-                key={rowIndex}
-                className={classNames(
-                  "bg-gray-700 hover:bg-gray-800 transition-colors duration-150",
-                  onRowClick && "cursor-pointer",
-                )}
-                onClick={() => onRowClick?.(row, rowIndex)}
-              >
-                {columns.map((column) => {
-                  const cellValue = row[column.name];
-                  return (
-                    <td
-                      key={column.name}
-                      className={classNames(
-                        "border border-gray-300 px-2 py-1",
-                        cellClassName,
-                      )}
-                    >
-                      {renderCell(cellValue, column)}
-                    </td>
-                  );
-                })}
+      <div className="relative">
+        <div
+          className={classNames(
+            "overflow-x-auto",
+            tableClassName,
+            loading && "opacity-50 pointer-events-none",
+          )}
+        >
+          <table className="w-full border-collapse border border-gray-300 rounded-sm">
+            <thead>
+              <tr className="bg-gray-100">
+                {columns.map((column) => (
+                  <th
+                    key={column.name}
+                    className={classNames(
+                      "border border-gray-300 px-2 py-1 text-center font-semibold text-gray-700",
+                      columnHeaderClassName,
+                    )}
+                  >
+                    {column.hint ? (
+                      <Hint hintContent={column.hint}>
+                        <span>{column.name}</span>
+                      </Hint>
+                    ) : (
+                      column.name
+                    )}
+                  </th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+
+            <tbody>
+              {data.map((row, rowIndex) => (
+                <tr
+                  key={rowIndex}
+                  className={classNames(
+                    "bg-gray-700 hover:bg-gray-800 transition-colors duration-150",
+                    onRowClick && "cursor-pointer",
+                  )}
+                  onClick={() => onRowClick?.(row, rowIndex)}
+                >
+                  {columns.map((column) => {
+                    const cellValue = row[column.name];
+                    return (
+                      <td
+                        key={column.name}
+                        className={classNames(
+                          "border border-gray-300 px-2 py-1",
+                          cellClassName,
+                        )}
+                      >
+                        {renderCell(cellValue, column)}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {loading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-900/60">
+            <Loading />
+          </div>
+        )}
       </div>
     </div>
   );
