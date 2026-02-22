@@ -6,7 +6,7 @@ import {
   RightAscension,
   Quantity,
   QuantityWithError,
-} from "./Astronomy";
+} from "../core/Astronomy";
 
 interface CatalogDataProps {
   catalogs: Catalogs;

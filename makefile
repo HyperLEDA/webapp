@@ -1,18 +1,17 @@
+check:
+	@output=$$(yarn run --silent prettier --check src 2>&1) || { echo "$$output"; exit 1; }
+	@output=$$(yarn run --silent eslint src 2>&1) || { echo "$$output"; exit 1; }
+	@yarn build
+
+fix:
+	@output=$$(yarn run --silent prettier --write src 2>&1) || { echo "$$output"; exit 1; }
+	@output=$$(yarn run --silent eslint --fix src 2>&1) || { echo "$$output"; exit 1; }
+
+
 GIT_VERSION = `git rev-parse --short HEAD`
 
 run:
 	yarn dev
-
-build:
-	yarn build
-
-check:
-	yarn run prettier --check src
-	yarn eslint src
-
-fix:
-	yarn run prettier --write src
-	yarn eslint --fix src
 
 gen:
 	yarn run openapi-ts -i http://leda.sao.ru/api/openapi.json -o ./src/clients/backend

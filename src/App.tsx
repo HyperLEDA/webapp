@@ -14,76 +14,48 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route
-          path="/"
-          element={
-            <Layout>
-              <SearchBar logoSize="large" />
-              <HomePage />
-            </Layout>
-          }
-        />
-        <Route
-          path="/query"
-          element={
-            <Layout>
-              <SearchResultsPage />
-            </Layout>
-          }
-        />
-        <Route
-          path="/object/:pgcId"
-          element={
-            <Layout>
-              <SearchBar />
-              <ObjectDetailsPage />
-            </Layout>
-          }
-        />
-        <Route
-          path="/table/:tableName"
-          element={
-            <Layout>
-              <SearchBar />
-              <TableDetailsPage />
-            </Layout>
-          }
-        />
-        <Route
-          path="/tables"
-          element={
-            <Layout>
-              <SearchBar />
-              <TablesPage />
-            </Layout>
-          }
-        />
-        <Route
-          path="/crossmatch"
-          element={
-            <Layout>
-              <CrossmatchResultsPage />
-            </Layout>
-          }
-        />
-        <Route
-          path="/records/:recordId/crossmatch"
-          element={
-            <Layout>
-              <SearchBar />
-              <RecordCrossmatchDetailsPage />
-            </Layout>
-          }
-        />
-        <Route
-          path="*"
-          element={
-            <Layout>
-              <SearchBar />
-              <NotFoundPage />
-            </Layout>
-          }
-        />
+        <Route element={<Layout />}>
+          <Route
+            path="/"
+            element={
+              <>
+                <SearchBar logoSize="large" />
+                <HomePage />
+              </>
+            }
+          />
+          <Route path="/query" element={<SearchResultsPage />} />
+          <Route
+            path="/object/:pgcId"
+            element={
+              <>
+                <SearchBar />
+                <ObjectDetailsPage />
+              </>
+            }
+          />
+          <Route path="/table/:tableName" element={<TableDetailsPage />} />
+          <Route path="/tables" element={<TablesPage />} />
+          <Route path="/crossmatch" element={<CrossmatchResultsPage />} />
+          <Route
+            path="/records/:recordId/crossmatch"
+            element={
+              <>
+                <SearchBar />
+                <RecordCrossmatchDetailsPage />
+              </>
+            }
+          />
+          <Route
+            path="*"
+            element={
+              <>
+                <SearchBar />
+                <NotFoundPage />
+              </>
+            }
+          />
+        </Route>
       </Routes>
     </BrowserRouter>
   );

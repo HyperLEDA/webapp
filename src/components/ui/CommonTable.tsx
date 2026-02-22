@@ -1,7 +1,7 @@
 import React, { ReactElement, ReactNode } from "react";
 import classNames from "classnames";
-import { Hint } from "./Hint";
-import { Loading } from "./Loading";
+import { Hint } from "../core/Hint";
+import { Loading } from "../core/Loading";
 
 export type CellPrimitive = ReactElement | string | number;
 

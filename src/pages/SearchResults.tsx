@@ -6,13 +6,13 @@ import {
 } from "react-router-dom";
 import { SearchBar } from "../components/ui/Searchbar";
 import { CommonTable, Column } from "../components/ui/CommonTable";
-import { Loading } from "../components/ui/Loading";
+import { Loading } from "../components/core/Loading";
 import { ErrorPage, ErrorPageHomeButton } from "../components/ui/ErrorPage";
 import { useDataFetching } from "../hooks/useDataFetching";
 import { querySimple } from "../clients/backend/sdk.gen";
 import { QuerySimpleResponse } from "../clients/backend/types.gen";
-import { Link } from "../components/ui/Link";
-import { Declination, RightAscension } from "../components/ui/Astronomy";
+import { Link } from "../components/core/Link";
+import { Declination, RightAscension } from "../components/core/Astronomy";
 import { Pagination } from "../components/ui/Pagination";
 import { backendClient } from "../clients/config";
 
@@ -139,7 +139,10 @@ async function fetcher(
   }
 
   if (response.error || !response.data) {
-    throw new Error(`Error during query: ${response.error}`);
+    const err = response.error;
+    throw new Error(
+      `Error during query: ${typeof err === "object" ? JSON.stringify(err) : err}`,
+    );
   }
 
   return response.data.data;

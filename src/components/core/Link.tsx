@@ -1,4 +1,5 @@
 import { ReactElement, ReactNode } from "react";
+import { Link as RouterLink } from "react-router-dom";
 import { MdOpenInNew } from "react-icons/md";
 
 interface LinkProps {
@@ -14,22 +15,25 @@ export function Link(props: LinkProps): ReactElement {
   const className = props.className
     ? `${baseClass} ${props.className}`
     : baseClass;
+  const combinedClassName = `${className} inline-flex items-center gap-1`;
 
-  const linkProps = props.external
-    ? {
-        target: "_blank",
-        rel: "noopener noreferrer",
-      }
-    : {};
+  if (props.external) {
+    return (
+      <a
+        target="_blank"
+        rel="noopener noreferrer"
+        href={props.href}
+        className={combinedClassName}
+      >
+        {content}
+        <MdOpenInNew />
+      </a>
+    );
+  }
 
   return (
-    <a
-      {...linkProps}
-      href={props.href}
-      className={`${className} inline-flex items-center gap-1`}
-    >
+    <RouterLink to={props.href} className={combinedClassName}>
       {content}
-      {props.external && <MdOpenInNew />}
-    </a>
+    </RouterLink>
   );
 }

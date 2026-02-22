@@ -1,5 +1,5 @@
 import { ReactElement } from "react";
-import { Link } from "../components/ui/Link";
+import { Link } from "../components/core/Link";
 
 const homePageHint: ReactElement = (
   <div>

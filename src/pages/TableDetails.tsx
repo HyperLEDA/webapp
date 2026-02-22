@@ -11,11 +11,11 @@ import {
   Column,
   CommonTable,
 } from "../components/ui/CommonTable";
-import { Button } from "../components/ui/Button";
+import { Button } from "../components/core/Button";
 import { CopyButton } from "../components/ui/CopyButton";
 import { Badge } from "../components/ui/Badge";
-import { Link } from "../components/ui/Link";
-import { Loading } from "../components/ui/Loading";
+import { Link } from "../components/core/Link";
+import { Loading } from "../components/core/Loading";
 import { ErrorPage } from "../components/ui/ErrorPage";
 import { getResource } from "../resources/resources";
 import { useDataFetching } from "../hooks/useDataFetching";

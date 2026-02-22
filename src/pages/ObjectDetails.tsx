@@ -1,10 +1,10 @@
 import { ReactElement, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { AladinViewer } from "../components/ui/Aladin";
-import { Loading } from "../components/ui/Loading";
+import { AladinViewer } from "../components/core/Aladin";
+import { Loading } from "../components/core/Loading";
 import { ErrorPage } from "../components/ui/ErrorPage";
 import { CatalogData } from "../components/ui/CatalogData";
-import { Link } from "../components/ui/Link";
+import { Link } from "../components/core/Link";
 import { querySimple } from "../clients/backend/sdk.gen";
 import { PgcObject, Schema } from "../clients/backend/types.gen";
 import { useDataFetching } from "../hooks/useDataFetching";
@@ -63,7 +63,10 @@ async function fetcher(
   });
 
   if (response.error || !response.data) {
-    throw new Error(`Error during query: ${response.error}`);
+    const err = response.error;
+    throw new Error(
+      `Error during query: ${typeof err === "object" ? JSON.stringify(err) : err}`,
+    );
   }
 
   const objects = response.data.data.objects;
