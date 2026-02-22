@@ -1,10 +1,10 @@
 import { ReactElement, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { AladinViewer } from "../components/ui/aladin";
-import { Loading } from "../components/ui/loading";
-import { ErrorPage } from "../components/ui/error-page";
-import { CatalogData } from "../components/ui/catalog-data";
-import { Link } from "../components/ui/link";
+import { AladinViewer } from "../components/ui/Aladin";
+import { Loading } from "../components/ui/Loading";
+import { ErrorPage } from "../components/ui/ErrorPage";
+import { CatalogData } from "../components/ui/CatalogData";
+import { Link } from "../components/ui/Link";
 import { querySimple } from "../clients/backend/sdk.gen";
 import { PgcObject, Schema } from "../clients/backend/types.gen";
 import { useDataFetching } from "../hooks/useDataFetching";

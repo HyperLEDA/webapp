@@ -1,9 +1,9 @@
 import { ReactElement, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { AladinViewer } from "../components/ui/aladin";
-import { Loading } from "../components/ui/loading";
-import { ErrorPage } from "../components/ui/error-page";
-import { CatalogData } from "../components/ui/catalog-data";
+import { AladinViewer } from "../components/ui/Aladin";
+import { Loading } from "../components/ui/Loading";
+import { ErrorPage } from "../components/ui/ErrorPage";
+import { CatalogData } from "../components/ui/CatalogData";
 import { getRecordCrossmatch } from "../clients/admin/sdk.gen";
 import {
   GetRecordCrossmatchResponse,
@@ -13,7 +13,8 @@ import {
 } from "../clients/admin/types.gen";
 import { Schema as BackendSchema } from "../clients/backend/types.gen";
 import { getResource } from "../resources/resources";
-import { Link } from "../components/ui/link";
+import { Link } from "../components/ui/Link";
+import { CopyButton } from "../components/ui/CopyButton";
 import { useDataFetching } from "../hooks/useDataFetching";
 import { adminClient } from "../clients/config";
 
@@ -149,6 +150,12 @@ function RecordCrossmatchDetails({
               {crossmatch.catalogs.designation.name}
             </h2>
           )}
+          <p className="flex items-center gap-2 mb-2">
+            Record ID:{" "}
+            <CopyButton textToCopy={crossmatch.record_id}>
+              <span className="font-mono">{crossmatch.record_id}</span>
+            </CopyButton>
+          </p>
           <p>
             Status:{" "}
             {getResource(`crossmatch.status.${crossmatch.status}`).Title}

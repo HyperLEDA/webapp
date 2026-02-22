@@ -4,16 +4,16 @@ import {
   useNavigate,
   useSearchParams,
 } from "react-router-dom";
-import { SearchBar } from "../components/ui/searchbar";
-import { CommonTable, Column } from "../components/ui/common-table";
-import { Loading } from "../components/ui/loading";
-import { ErrorPage, ErrorPageHomeButton } from "../components/ui/error-page";
+import { SearchBar } from "../components/ui/Searchbar";
+import { CommonTable, Column } from "../components/ui/CommonTable";
+import { Loading } from "../components/ui/Loading";
+import { ErrorPage, ErrorPageHomeButton } from "../components/ui/ErrorPage";
 import { useDataFetching } from "../hooks/useDataFetching";
 import { querySimple } from "../clients/backend/sdk.gen";
 import { QuerySimpleResponse } from "../clients/backend/types.gen";
-import { Link } from "../components/ui/link";
-import { Declination, RightAscension } from "../components/ui/astronomy";
-import { Pagination } from "../components/ui/pagination";
+import { Link } from "../components/ui/Link";
+import { Declination, RightAscension } from "../components/ui/Astronomy";
+import { Pagination } from "../components/ui/Pagination";
 import { backendClient } from "../clients/config";
 
 function searchHandler(navigate: NavigateFunction) {

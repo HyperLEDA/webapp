@@ -1,5 +1,5 @@
 import { ReactElement, useState } from "react";
-import { Button } from "./button";
+import { Button } from "./Button";
 import { MdCheck, MdContentCopy } from "react-icons/md";
 
 interface CopyButtonProps {

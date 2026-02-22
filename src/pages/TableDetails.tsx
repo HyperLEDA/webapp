@@ -10,13 +10,13 @@ import {
   CellPrimitive,
   Column,
   CommonTable,
-} from "../components/ui/common-table";
-import { Button } from "../components/ui/button";
-import { CopyButton } from "../components/ui/copy-button";
-import { Badge } from "../components/ui/badge";
-import { Link } from "../components/ui/link";
-import { Loading } from "../components/ui/loading";
-import { ErrorPage } from "../components/ui/error-page";
+} from "../components/ui/CommonTable";
+import { Button } from "../components/ui/Button";
+import { CopyButton } from "../components/ui/CopyButton";
+import { Badge } from "../components/ui/Badge";
+import { Link } from "../components/ui/Link";
+import { Loading } from "../components/ui/Loading";
+import { ErrorPage } from "../components/ui/ErrorPage";
 import { getResource } from "../resources/resources";
 import { useDataFetching } from "../hooks/useDataFetching";
 import { backendClient } from "../clients/config";

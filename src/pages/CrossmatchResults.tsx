@@ -4,10 +4,10 @@ import {
   CommonTable,
   Column,
   CellPrimitive,
-} from "../components/ui/common-table";
-import { Badge } from "../components/ui/badge";
-import { DropdownFilter } from "../components/ui/dropdown-filter";
-import { TextFilter } from "../components/ui/text-filter";
+} from "../components/ui/CommonTable";
+import { Badge } from "../components/ui/Badge";
+import { DropdownFilter } from "../components/ui/DropdownFilter";
+import { TextFilter } from "../components/ui/TextFilter";
 import { getCrossmatchRecords } from "../clients/admin/sdk.gen";
 import type {
   GetRecordsCrossmatchResponse,
@@ -16,12 +16,12 @@ import type {
   ValidationError,
 } from "../clients/admin/types.gen";
 import { getResource } from "../resources/resources";
-import { Button } from "../components/ui/button";
-import { Loading } from "../components/ui/loading";
-import { ErrorPage } from "../components/ui/error-page";
-import { Link } from "../components/ui/link";
+import { Button } from "../components/ui/Button";
+import { Loading } from "../components/ui/Loading";
+import { ErrorPage } from "../components/ui/ErrorPage";
+import { Link } from "../components/ui/Link";
 import { useDataFetching } from "../hooks/useDataFetching";
-import { Pagination } from "../components/ui/pagination";
+import { Pagination } from "../components/ui/Pagination";
 import { adminClient } from "../clients/config";
 
 interface CrossmatchFiltersProps {
