@@ -1,4 +1,3 @@
-import { Footer } from "./Footer";
 import { Navbar } from "./Navbar";
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -7,7 +6,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <Navbar />
       <div className="ml-12 flex flex-col flex-grow min-h-screen">
         <div className="flex-grow p-8">{children}</div>
-        <Footer />
       </div>
     </div>
   );
