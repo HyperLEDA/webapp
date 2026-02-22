@@ -1,10 +1,14 @@
 import { Footer } from "./Footer";
+import { Navbar } from "./Navbar";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen flex flex-col">
-      <div className="flex-grow p-8">{children}</div>
-      <Footer />
+    <div className="min-h-screen flex">
+      <Navbar />
+      <div className="ml-12 flex flex-col flex-grow min-h-screen">
+        <div className="flex-grow p-8">{children}</div>
+        <Footer />
+      </div>
     </div>
   );
 }
