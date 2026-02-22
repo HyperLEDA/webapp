@@ -6,6 +6,8 @@
     "crossmatch.status.unprocessed": "Unprocessed",
     "crossmatch.status.new": "New",
     "crossmatch.status.collided": "Collided",
-    "crossmatch.status.existing": "Existing"
+    "crossmatch.status.existing": "Existing",
+    "crossmatch.triage.pending": "Pending",
+    "crossmatch.triage.resolved": "Resolved"
   }
 }
