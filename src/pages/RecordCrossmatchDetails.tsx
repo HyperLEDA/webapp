@@ -20,6 +20,7 @@ import { Schema as BackendSchema } from "../clients/backend/types.gen";
 import { getResource } from "../resources/resources";
 import { Link } from "../components/ui/Link";
 import { CopyButton } from "../components/ui/CopyButton";
+import { Accordion } from "../components/ui/Accordion";
 import { useDataFetching } from "../hooks/useDataFetching";
 import { adminClient } from "../clients/config";
 
@@ -196,28 +197,28 @@ function RecordCrossmatchDetails({
       <CatalogData catalogs={recordCatalogs} schema={backendSchema} />
 
       {originalData && (
-        <div className="space-y-2">
-          <h2 className="text-xl font-bold">Original Data</h2>
+        <Accordion title="Original Data">
           <OriginalData data={originalData} />
-        </div>
+        </Accordion>
       )}
 
       {candidates.length > 0 && (
         <div className="space-y-6">
           <h2 className="text-xl font-bold">Crossmatch Candidates</h2>
           {candidates.map((candidate, index) => (
-            <div key={candidate.pgc} className="border rounded-lg p-4">
-              <h3 className="text-lg font-semibold mb-4">
-                Candidate {index + 1}:{" "}
-                <Link
-                  href={`/object/${candidate.pgc}`}
-                >{`PGC ${candidate.pgc}`}</Link>
-              </h3>
+            <Accordion
+              key={candidate.pgc}
+              title={`Candidate ${index + 1}: PGC ${candidate.pgc}`}
+              defaultOpen
+            >
+              <Link
+                href={`/object/${candidate.pgc}`}
+              >{`PGC ${candidate.pgc}`}</Link>
               <CatalogData
                 catalogs={candidate.catalogs}
                 schema={backendSchema}
               />
-            </div>
+            </Accordion>
           ))}
         </div>
       )}
