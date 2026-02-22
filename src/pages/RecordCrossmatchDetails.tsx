@@ -14,6 +14,7 @@ import {
 import { Schema as BackendSchema } from "../clients/backend/types.gen";
 import { getResource } from "../resources/resources";
 import { Link } from "../components/ui/link";
+import { CopyButton } from "../components/ui/copy-button";
 import { useDataFetching } from "../hooks/useDataFetching";
 import { adminClient } from "../clients/config";
 
@@ -149,6 +150,12 @@ function RecordCrossmatchDetails({
               {crossmatch.catalogs.designation.name}
             </h2>
           )}
+          <p className="flex items-center gap-2 mb-2">
+            Record ID:{" "}
+            <CopyButton textToCopy={crossmatch.record_id}>
+              <span className="font-mono">{crossmatch.record_id}</span>
+            </CopyButton>
+          </p>
           <p>
             Status:{" "}
             {getResource(`crossmatch.status.${crossmatch.status}`).Title}
