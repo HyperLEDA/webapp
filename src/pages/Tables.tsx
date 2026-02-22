@@ -86,6 +86,17 @@ interface TablesResultsProps {
   loading?: boolean;
 }
 
+function formatModificationDate(isoString: string): string {
+  const d = new Date(isoString);
+  return d
+    .toLocaleDateString("en-US", {
+      month: "short",
+      day: "2-digit",
+      year: "numeric",
+    })
+    .replace(",", "");
+}
+
 function TablesResults({ data, loading }: TablesResultsProps): ReactElement {
   const columns: Column[] = [
     {
@@ -100,6 +111,7 @@ function TablesResults({ data, loading }: TablesResultsProps): ReactElement {
     { name: "Description" },
     { name: "Number of records" },
     { name: "Number of columns" },
+    { name: "Modification date" },
   ];
 
   const tableData: Record<string, CellPrimitive>[] =
@@ -108,6 +120,9 @@ function TablesResults({ data, loading }: TablesResultsProps): ReactElement {
       Description: table.description,
       "Number of records": table.num_entries,
       "Number of columns": table.num_fields,
+      "Modification date": table.modification_dt
+        ? formatModificationDate(table.modification_dt)
+        : "—",
     })) ?? [];
 
   return <CommonTable columns={columns} data={tableData} loading={loading} />;
