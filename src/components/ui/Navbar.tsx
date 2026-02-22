@@ -1,4 +1,5 @@
 import { NavLink } from "react-router-dom";
+import { Tooltip } from "flowbite-react";
 import { MdSearch, MdTableChart } from "react-icons/md";
 
 const navItems = [
@@ -10,21 +11,27 @@ export function Navbar() {
   return (
     <nav className="fixed left-0 top-0 h-screen w-12 flex flex-col items-center pt-4 gap-2 bg-[#1a1a1a] z-20">
       {navItems.map((item) => (
-        <NavLink
+        <Tooltip
           key={item.to}
-          to={item.to}
-          end
-          title={item.label}
-          className={({ isActive }) =>
-            `w-9 h-9 flex items-center justify-center rounded-md transition-colors duration-200 ${
-              isActive
-                ? "bg-green-600 text-white"
-                : "text-neutral-400 hover:bg-neutral-700 hover:text-white"
-            }`
-          }
+          content={item.label}
+          placement="right"
+          arrow={false}
+          className="bg-gray-600 z-10 backdrop-blur-sm bg-opacity-99 border-1"
         >
-          {item.icon}
-        </NavLink>
+          <NavLink
+            to={item.to}
+            end
+            className={({ isActive }) =>
+              `w-9 h-9 flex items-center justify-center rounded-lg transition-colors duration-300 ${
+                isActive
+                  ? "bg-[#646cff] text-white"
+                  : "text-neutral-400 hover:bg-neutral-700 hover:text-white"
+              }`
+            }
+          >
+            {item.icon}
+          </NavLink>
+        </Tooltip>
       ))}
     </nav>
   );

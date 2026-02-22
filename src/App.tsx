@@ -44,7 +44,6 @@ function App() {
           path="/table/:tableName"
           element={
             <Layout>
-              <SearchBar />
               <TableDetailsPage />
             </Layout>
           }
@@ -53,7 +52,6 @@ function App() {
           path="/tables"
           element={
             <Layout>
-              <SearchBar />
               <TablesPage />
             </Layout>
           }
