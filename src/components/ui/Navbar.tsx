@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { Tooltip } from "flowbite-react";
 import { MdInfo, MdSearch, MdTableChart } from "react-icons/md";
@@ -11,6 +11,24 @@ const navItems = [
 
 export function Navbar() {
   const [footerOpen, setFooterOpen] = useState(false);
+  const infoPanelRef = useRef<HTMLDivElement>(null);
+  const infoButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      const clickedInside =
+        infoPanelRef.current?.contains(e.target as Node) ||
+        infoButtonRef.current?.contains(e.target as Node);
+      if (!clickedInside) {
+        setFooterOpen(false);
+      }
+    }
+
+    if (footerOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [footerOpen]);
 
   return (
     <>
@@ -40,27 +58,22 @@ export function Navbar() {
         ))}
 
         <div className="mt-auto">
-          <Tooltip
-            content="Info"
-            placement="right"
-            arrow={false}
-            className="bg-gray-600 z-10 backdrop-blur-sm bg-opacity-99 border-1"
+          <button
+            ref={infoButtonRef}
+            onClick={() => setFooterOpen(!footerOpen)}
+            className={`w-9 h-9 flex items-center justify-center rounded-lg transition-colors duration-300 cursor-pointer ${
+              footerOpen
+                ? "bg-[#646cff] text-white"
+                : "text-neutral-400 hover:bg-neutral-700 hover:text-white"
+            }`}
           >
-            <button
-              onClick={() => setFooterOpen(!footerOpen)}
-              className={`w-9 h-9 flex items-center justify-center rounded-lg transition-colors duration-300 cursor-pointer ${
-                footerOpen
-                  ? "bg-[#646cff] text-white"
-                  : "text-neutral-400 hover:bg-neutral-700 hover:text-white"
-              }`}
-            >
-              <MdInfo size={20} />
-            </button>
-          </Tooltip>
+            <MdInfo size={20} />
+          </button>
         </div>
       </nav>
 
       <div
+        ref={infoPanelRef}
         className={`fixed left-14 bottom-4 z-20 border-1 rounded-lg py-3 px-4 shadow-lg backdrop-blur-sm bg-[#1a1a1a] transition-all duration-300 ease-in-out ${
           footerOpen
             ? "opacity-100 translate-y-0"
