@@ -5,17 +5,17 @@ import {
   Column,
   CellPrimitive,
 } from "../components/ui/CommonTable";
-import { DropdownFilter } from "../components/ui/DropdownFilter";
-import { TextFilter } from "../components/ui/TextFilter";
+import { DropdownFilter } from "../components/core/DropdownFilter";
+import { TextFilter } from "../components/core/TextFilter";
 import { getTableList } from "../clients/admin/sdk.gen";
 import type {
   GetTableListResponse,
   TableListItem,
   ValidationError,
 } from "../clients/admin/types.gen";
-import { Loading } from "../components/ui/Loading";
+import { Loading } from "../components/core/Loading";
 import { ErrorPage } from "../components/ui/ErrorPage";
-import { Link } from "../components/ui/Link";
+import { Link } from "../components/core/Link";
 import { useDataFetching } from "../hooks/useDataFetching";
 import { Pagination } from "../components/ui/Pagination";
 import { adminClient } from "../clients/config";

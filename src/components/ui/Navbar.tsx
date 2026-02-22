@@ -2,7 +2,7 @@ import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { Tooltip } from "flowbite-react";
 import { MdInfo, MdSearch, MdTableChart } from "react-icons/md";
-import { Link } from "./Link";
+import { Link } from "../core/Link";
 
 const navItems = [
   { to: "/", icon: <MdSearch size={20} />, label: "Object search" },

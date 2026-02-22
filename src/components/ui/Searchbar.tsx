@@ -1,7 +1,7 @@
 import { ReactElement, useState } from "react";
 import { Link, NavigateFunction, useNavigate } from "react-router-dom";
 import classNames from "classnames";
-import { Button } from "./Button";
+import { Button } from "../core/Button";
 
 interface SearchBarProps {
   initialValue?: string;

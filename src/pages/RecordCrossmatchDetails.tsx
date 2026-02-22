@@ -1,7 +1,7 @@
 import { ReactElement, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { AladinViewer } from "../components/ui/Aladin";
-import { Loading } from "../components/ui/Loading";
+import { AladinViewer } from "../components/core/Aladin";
+import { Loading } from "../components/core/Loading";
 import { ErrorPage } from "../components/ui/ErrorPage";
 import { CatalogData } from "../components/ui/CatalogData";
 import {
@@ -18,9 +18,9 @@ import {
 } from "../clients/admin/types.gen";
 import { Schema as BackendSchema } from "../clients/backend/types.gen";
 import { getResource } from "../resources/resources";
-import { Link } from "../components/ui/Link";
+import { Link } from "../components/core/Link";
 import { CopyButton } from "../components/ui/CopyButton";
-import { Accordion } from "../components/ui/Accordion";
+import { Accordion } from "../components/core/Accordion";
 import { useDataFetching } from "../hooks/useDataFetching";
 import { adminClient } from "../clients/config";
 
