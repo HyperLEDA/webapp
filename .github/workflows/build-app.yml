@@ -1,4 +1,4 @@
-name: Build Docker Image
+name: Build Application
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  image-build:
+  build:
     runs-on: ubuntu-latest
     
     steps:
@@ -25,5 +25,5 @@ jobs:
     - name: Generate code
       run: make gen
       
-    - name: Build Docker image
-      run: make image-build
+    - name: Build application
+      run: make build
