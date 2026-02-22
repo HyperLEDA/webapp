@@ -1,12 +1,12 @@
 import { ReactElement } from "react";
-import { CommonTable, Column } from "./common-table";
+import { CommonTable, Column } from "./CommonTable";
 import { Catalogs, Schema } from "../../clients/backend/types.gen";
 import {
   Declination,
   RightAscension,
   Quantity,
   QuantityWithError,
-} from "./astronomy";
+} from "./Astronomy";
 
 interface CatalogDataProps {
   catalogs: Catalogs;

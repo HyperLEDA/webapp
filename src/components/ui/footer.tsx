@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link as ReactDomLink } from "react-router-dom";
-import { Button } from "./button";
-import { Link } from "./link";
+import { Button } from "./Button";
+import { Link } from "./Link";
 import { MdKeyboardArrowDown, MdKeyboardArrowUp } from "react-icons/md";
 
 const footerContent = (

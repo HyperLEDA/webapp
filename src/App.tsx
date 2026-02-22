@@ -7,8 +7,8 @@ import { TableDetailsPage } from "./pages/TableDetails";
 import { CrossmatchResultsPage } from "./pages/CrossmatchResults";
 import { RecordCrossmatchDetailsPage } from "./pages/RecordCrossmatchDetails";
 import { TablesPage } from "./pages/Tables";
-import { Layout } from "./components/ui/layout";
-import { SearchBar } from "./components/ui/searchbar";
+import { Layout } from "./components/ui/Layout";
+import { SearchBar } from "./components/ui/Searchbar";
 
 function App() {
   return (

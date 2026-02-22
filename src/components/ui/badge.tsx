@@ -1,5 +1,5 @@
 import { ReactElement } from "react";
-import { Link } from "./link";
+import { Link } from "./Link";
 
 interface BadgeProps {
   children: React.ReactNode;

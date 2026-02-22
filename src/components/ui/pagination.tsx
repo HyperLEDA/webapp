@@ -1,5 +1,5 @@
 import { ReactElement } from "react";
-import { Button } from "./button";
+import { Button } from "./Button";
 
 type PaginationProps = {
   page: number;

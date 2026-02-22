@@ -4,20 +4,20 @@ import {
   CommonTable,
   Column,
   CellPrimitive,
-} from "../components/ui/common-table";
-import { DropdownFilter } from "../components/ui/dropdown-filter";
-import { TextFilter } from "../components/ui/text-filter";
+} from "../components/ui/CommonTable";
+import { DropdownFilter } from "../components/ui/DropdownFilter";
+import { TextFilter } from "../components/ui/TextFilter";
 import { getTableList } from "../clients/admin/sdk.gen";
 import type {
   GetTableListResponse,
   TableListItem,
   ValidationError,
 } from "../clients/admin/types.gen";
-import { Loading } from "../components/ui/loading";
-import { ErrorPage } from "../components/ui/error-page";
-import { Link } from "../components/ui/link";
+import { Loading } from "../components/ui/Loading";
+import { ErrorPage } from "../components/ui/ErrorPage";
+import { Link } from "../components/ui/Link";
 import { useDataFetching } from "../hooks/useDataFetching";
-import { Pagination } from "../components/ui/pagination";
+import { Pagination } from "../components/ui/Pagination";
 import { adminClient } from "../clients/config";
 
 const SEARCH_DEBOUNCE_MS = 300;
