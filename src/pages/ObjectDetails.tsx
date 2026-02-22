@@ -63,8 +63,9 @@ async function fetcher(
   });
 
   if (response.error || !response.data) {
+    const err = response.error;
     throw new Error(
-      `Error during query: ${typeof response.error === "object" ? JSON.stringify(response.error) : response.error}`,
+      `Error during query: ${typeof err === "object" ? JSON.stringify(err) : err}`,
     );
   }
 
