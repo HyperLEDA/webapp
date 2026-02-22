@@ -242,7 +242,7 @@ async function fetcher(
 
   if (response.error || !response.data?.data) {
     throw new Error(
-      `Error fetching crossmatch details: ${response.error || "Unknown error"}`,
+      `Error fetching crossmatch details: ${typeof response.error === "object" ? JSON.stringify(response.error) : response.error || "Unknown error"}`,
     );
   }
 

@@ -139,7 +139,9 @@ async function fetcher(
   }
 
   if (response.error || !response.data) {
-    throw new Error(`Error during query: ${response.error}`);
+    throw new Error(
+      `Error during query: ${typeof response.error === "object" ? JSON.stringify(response.error) : response.error}`,
+    );
   }
 
   return response.data.data;
