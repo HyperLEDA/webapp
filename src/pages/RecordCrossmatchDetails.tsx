@@ -4,6 +4,11 @@ import { AladinViewer } from "../components/ui/Aladin";
 import { Loading } from "../components/ui/Loading";
 import { ErrorPage } from "../components/ui/ErrorPage";
 import { CatalogData } from "../components/ui/CatalogData";
+import {
+  CommonTable,
+  Column,
+  CellPrimitive,
+} from "../components/ui/CommonTable";
 import { getRecordCrossmatch } from "../clients/admin/sdk.gen";
 import {
   GetRecordCrossmatchResponse,
@@ -15,6 +20,7 @@ import { Schema as BackendSchema } from "../clients/backend/types.gen";
 import { getResource } from "../resources/resources";
 import { Link } from "../components/ui/Link";
 import { CopyButton } from "../components/ui/CopyButton";
+import { Accordion } from "../components/ui/Accordion";
 import { useDataFetching } from "../hooks/useDataFetching";
 import { adminClient } from "../clients/config";
 
@@ -120,10 +126,32 @@ interface RecordCrossmatchDetailsProps {
   data: GetRecordCrossmatchResponse;
 }
 
+function OriginalData({
+  data,
+}: {
+  data: { [key: string]: unknown };
+}): ReactElement {
+  const columns: Column[] = [{ name: "Column" }, { name: "Value" }];
+  const tableData: Record<string, CellPrimitive>[] = Object.entries(data).map(
+    ([key, value]) => ({
+      Column: key,
+      Value: value === null || value === undefined ? "NULL" : String(value),
+    }),
+  );
+
+  return <CommonTable columns={columns} data={tableData} />;
+}
+
 function RecordCrossmatchDetails({
   data,
 }: RecordCrossmatchDetailsProps): ReactElement {
-  const { crossmatch, candidates, schema } = data;
+  const {
+    crossmatch,
+    candidates,
+    schema,
+    table_name: tableName,
+    original_data: originalData,
+  } = data;
   const recordCatalogs = crossmatch.catalogs;
   const backendSchema = convertAdminSchemaToBackendSchema(schema);
   const candidateSources = convertCandidatesToAdditionalSources(
@@ -156,6 +184,9 @@ function RecordCrossmatchDetails({
               <span className="font-mono">{crossmatch.record_id}</span>
             </CopyButton>
           </p>
+          <p className="mb-2">
+            Table: <Link href={`/table/${tableName}`}>{tableName}</Link>
+          </p>
           <p>
             Status:{" "}
             {getResource(`crossmatch.status.${crossmatch.status}`).Title}
@@ -165,22 +196,29 @@ function RecordCrossmatchDetails({
 
       <CatalogData catalogs={recordCatalogs} schema={backendSchema} />
 
+      {originalData && (
+        <Accordion title="Original Data">
+          <OriginalData data={originalData} />
+        </Accordion>
+      )}
+
       {candidates.length > 0 && (
         <div className="space-y-6">
           <h2 className="text-xl font-bold">Crossmatch Candidates</h2>
           {candidates.map((candidate, index) => (
-            <div key={candidate.pgc} className="border rounded-lg p-4">
-              <h3 className="text-lg font-semibold mb-4">
-                Candidate {index + 1}:{" "}
-                <Link
-                  href={`/object/${candidate.pgc}`}
-                >{`PGC ${candidate.pgc}`}</Link>
-              </h3>
+            <Accordion
+              key={candidate.pgc}
+              title={`Candidate ${index + 1}: PGC ${candidate.pgc}`}
+              defaultOpen
+            >
+              <Link
+                href={`/object/${candidate.pgc}`}
+              >{`PGC ${candidate.pgc}`}</Link>
               <CatalogData
                 catalogs={candidate.catalogs}
                 schema={backendSchema}
               />
-            </div>
+            </Accordion>
           ))}
         </div>
       )}
