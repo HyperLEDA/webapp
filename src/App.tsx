@@ -5,6 +5,7 @@ import { ObjectDetailsPage } from "./pages/ObjectDetails";
 import { NotFoundPage } from "./pages/NotFound";
 import { TableDetailsPage } from "./pages/TableDetails";
 import { CrossmatchResultsPage } from "./pages/CrossmatchResults";
+import { RecordsPage } from "./pages/Records";
 import { RecordCrossmatchDetailsPage } from "./pages/RecordCrossmatchDetails";
 import { TablesPage } from "./pages/Tables";
 import { Layout } from "./components/ui/Layout";
@@ -37,6 +38,7 @@ function App() {
           <Route path="/table/:tableName" element={<TableDetailsPage />} />
           <Route path="/tables" element={<TablesPage />} />
           <Route path="/crossmatch" element={<CrossmatchResultsPage />} />
+          <Route path="/records" element={<RecordsPage />} />
           <Route
             path="/records/:recordId/crossmatch"
             element={
