@@ -13,6 +13,7 @@ interface HintProps {
 }
 
 const tooltipClassName = "bg-gray-600 z-10 border-1 max-w-xl";
+const tooltipTheme = { hidden: "invisible opacity-0 pointer-events-none" };
 
 export function Hint(props: HintProps): ReactElement {
   const placement = props.position ?? "top";
@@ -25,6 +26,7 @@ export function Hint(props: HintProps): ReactElement {
         arrow={false}
         placement={placement}
         className={tooltipClassName}
+        theme={tooltipTheme}
       >
         {props.children}
       </Tooltip>
@@ -42,6 +44,7 @@ export function Hint(props: HintProps): ReactElement {
           arrow={false}
           placement={placement}
           className={tooltipClassName}
+          theme={tooltipTheme}
         >
           <MdHelpOutline />
         </Tooltip>
