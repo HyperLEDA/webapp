@@ -129,9 +129,12 @@ function RecordsTable({
     );
   }
 
+  const nameHint = data?.schema?.catalogs?.designation?.description?.name;
+
   const columns: Column[] = [
     {
       name: "Name",
+      hint: nameHint ? <p>{nameHint}</p> : undefined,
       renderCell: (recordIndex: CellPrimitive) => {
         if (typeof recordIndex === "number" && data?.records[recordIndex]) {
           return getRecordName(data.records[recordIndex]);
@@ -182,9 +185,9 @@ function RecordsTable({
   const tableData: Record<string, CellPrimitive>[] =
     data?.records.map((_record: RecordType, index: number) => {
       const row: Record<string, CellPrimitive> = {
-        "Name": index,
+        Name: index,
         "Manual check status": index,
-        "Nature": index,
+        Nature: index,
       };
       if (showCandidates) {
         row["Candidates"] = index;
