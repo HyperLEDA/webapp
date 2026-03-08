@@ -6,28 +6,15 @@ const homePageHint: ReactElement = (
     <div>Examples:</div>
     <ul>
       <li>
-        Search by name: <Link href="/query?q=name:IC1445">name:IC1445</Link>
+        By name (string match): <Link href="/query?q=IC1445">IC1445</Link>
       </li>
       <li>
-        Search by PGC number: <Link href="/query?q=pgc:112642">pgc:112642</Link>
-      </li>
-    </ul>
-    <div>
-      The search conditions can be concatenated with AND or OR operators. For
-      example:
-    </div>
-    <ul>
-      <li>
-        Search by name and PGC number:{" "}
-        <Link href="/query?q=name:IC1445%20AND%20pgc:112642">
-          name:IC1445 and pgc:112642
-        </Link>
+        By coordinates (hms+dms):{" "}
+        <Link href="/query?q=12h32m22s%2B15d22m45s">12h32m22s+15d22m45s</Link>
       </li>
       <li>
-        Search by name or PGC number:{" "}
-        <Link href="/query?q=name:IC1445%20OR%20pgc:112642">
-          name:IC4445 or pgc:87422
-        </Link>
+        By coordinates (J2000):{" "}
+        <Link href="/query?q=J001122.33%2B443322.1">J001122.33+443322.1</Link>
       </li>
     </ul>
   </div>

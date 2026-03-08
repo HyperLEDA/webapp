@@ -21,7 +21,7 @@ export function AladinViewer({
   ra,
   dec,
   fov = 0.5,
-  survey = "P/DSS2/color",
+  survey = "CDS/P/DESI-Legacy-Surveys/DR10/color",
   className = "w-full h-96",
   additionalSources,
 }: AladinViewerProps) {
@@ -37,7 +37,7 @@ export function AladinViewer({
         showReticle: false,
         showZoomControl: true,
         showFullscreenControl: false,
-        showLayersControl: false,
+        showLayersControl: true,
         showCooGridControl: false,
       });
 

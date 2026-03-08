@@ -167,7 +167,6 @@ function RecordCrossmatchDetails({
             ra={crossmatch.catalogs.coordinates.equatorial.ra}
             dec={crossmatch.catalogs.coordinates.equatorial.dec}
             fov={0.02}
-            survey="P/DSS2/color"
             className="w-96 h-96"
             additionalSources={candidateSources}
           />

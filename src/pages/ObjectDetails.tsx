@@ -26,7 +26,6 @@ function ObjectDetails({ object, schema }: ObjectDetailsProps): ReactElement {
             ra={object.catalogs.coordinates.equatorial.ra}
             dec={object.catalogs.coordinates.equatorial.dec}
             fov={0.02}
-            survey="P/DSS2/color"
             className="w-96 h-96"
           />
         )}
