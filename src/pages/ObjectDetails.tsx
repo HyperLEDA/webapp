@@ -4,6 +4,7 @@ import { AladinViewer } from "../components/core/Aladin";
 import { Loading } from "../components/core/Loading";
 import { ErrorPage } from "../components/ui/ErrorPage";
 import { CatalogData } from "../components/ui/CatalogData";
+import { Hint } from "../components/core/Hint";
 import { Link } from "../components/core/Link";
 import { querySimple } from "../clients/backend/sdk.gen";
 import { PgcObject, Schema } from "../clients/backend/types.gen";
@@ -40,6 +41,29 @@ function ObjectDetails({ object, schema }: ObjectDetailsProps): ReactElement {
           >
             OHP Mirror
           </Link>
+          {object.catalogs?.additional_designations &&
+            object.catalogs.additional_designations.length > 0 && (
+              <div className="mt-4">
+                <p className="font-medium mb-1">Also known as:</p>
+                <ul className="list-none space-y-1">
+                  {object.catalogs.additional_designations.map((d, i) => (
+                    <li key={i} className="flex items-center gap-2">
+                      <span>{d.name}</span>
+                      <Hint
+                        hintContent={
+                          <span>
+                            {d.source.title}
+                            {d.source.authors.length > 0 &&
+                              ` — ${d.source.authors.join(", ")} (${d.source.year})`}
+                          </span>
+                        }
+                        className="gap-1"
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
         </div>
       </div>
       <CatalogData catalogs={object.catalogs} schema={schema} />
