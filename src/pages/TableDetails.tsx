@@ -17,7 +17,6 @@ import { Badge } from "../components/ui/Badge";
 import { Link } from "../components/core/Link";
 import { Loading } from "../components/core/Loading";
 import { ErrorPage } from "../components/ui/ErrorPage";
-import { getResource } from "../resources/resources";
 import { useDataFetching } from "../hooks/useDataFetching";
 import { backendClient } from "../clients/config";
 
@@ -115,42 +114,6 @@ function TableMeta(props: TableMetaProps): ReactElement {
     <CommonTable columns={columns} data={values} className="pb-5">
       <h2 className="text-2xl font-bold mb-2">{props.table.description}</h2>
       <p className="text-gray-300 font-mono">{props.tableName}</p>
-    </CommonTable>
-  );
-}
-
-interface MarkingRulesProps {
-  table: GetTableResponse;
-}
-
-function renderCatalog(catalog: CellPrimitive): ReactElement {
-  return <span>{getResource(`catalog.${String(catalog)}`).Title}</span>;
-}
-
-function MarkingRules(props: MarkingRulesProps): ReactElement {
-  const columns: Column[] = [
-    { name: "Catalog", renderCell: renderCatalog },
-    { name: "Parameter" },
-    { name: "Column name", renderCell: renderColumnName },
-  ];
-
-  const values: Record<string, CellPrimitive>[] = [];
-
-  props.table.marking_rules.forEach((rules) => {
-    for (const key in rules.columns) {
-      values.push({
-        Catalog: rules.catalog,
-        Parameter: key,
-        "Column name": rules.columns[key],
-      });
-    }
-  });
-
-  return (
-    <CommonTable columns={columns} data={values} className="pb-5">
-      <h2 className="text-2xl font-bold">
-        Mapping of columns to catalog values for marking of records
-      </h2>
     </CommonTable>
   );
 }
@@ -295,7 +258,6 @@ export function TableDetailsPage(): ReactElement {
       return (
         <>
           <TableMeta tableName={tableName ?? ""} table={payload} />
-          <MarkingRules table={payload} />
           <CrossmatchStats
             table={payload}
             tableName={tableName ?? ""}
