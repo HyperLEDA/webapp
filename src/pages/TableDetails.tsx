@@ -161,11 +161,25 @@ function CrossmatchStats(props: CrossmatchStatsProps): ReactElement {
 
   return (
     <CommonTable columns={columns} data={values} className="pb-5">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center gap-4 flex-wrap">
         <h2 className="text-2xl font-bold">Crossmatch Statistics</h2>
-        <Button onClick={handleViewCrossmatchResults}>
-          View crossmatch results
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={(e: React.MouseEvent) => {
+              const url = `/records?table_name=${encodeURIComponent(props.tableName)}`;
+              if (e.ctrlKey || e.metaKey) {
+                window.open(url, "_blank");
+              } else {
+                props.navigate(url);
+              }
+            }}
+          >
+            See data
+          </Button>
+          <Button onClick={handleViewCrossmatchResults}>
+            View crossmatch results
+          </Button>
+        </div>
       </div>
     </CommonTable>
   );
