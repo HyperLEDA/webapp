@@ -4,10 +4,16 @@ import { AladinViewer } from "../components/core/Aladin";
 import { Loading } from "../components/core/Loading";
 import { ErrorPage } from "../components/ui/ErrorPage";
 import { CatalogData } from "../components/ui/CatalogData";
+import {
+  CommonTable,
+  Column,
+  CellPrimitive,
+} from "../components/ui/CommonTable";
 import { Hint } from "../components/core/Hint";
 import { Link } from "../components/core/Link";
+import { Accordion } from "../components/core/Accordion";
 import { querySimple } from "../clients/backend/sdk.gen";
-import { PgcObject, Schema } from "../clients/backend/types.gen";
+import { NoteEntry, PgcObject, Schema } from "../clients/backend/types.gen";
 import { useDataFetching } from "../hooks/useDataFetching";
 import { backendClient } from "../clients/config";
 
@@ -16,20 +22,55 @@ interface ObjectDetailsProps {
   schema: Schema | null;
 }
 
+function getSourceLink(bibcode: string): string {
+  return `https://ui.adsabs.harvard.edu/abs/${bibcode}/abstract`;
+}
+
+function renderNoteSourceHint(note: NoteEntry): string {
+  const source = note.source;
+  const authors = source.authors.join(", ");
+
+  return `${source.title} — ${authors} (${source.year})`;
+}
+
+function NotesSection({ notes }: { notes: NoteEntry[] }): ReactElement {
+  const columns: Column[] = [{ name: "Source" }, { name: "Note" }];
+  const data: Record<string, CellPrimitive>[] = notes.map((note) => ({
+    Source: (
+      <Hint hintContent={renderNoteSourceHint(note)} trigger="child">
+        <Link href={getSourceLink(note.source.bibcode)} external>
+          {note.source.bibcode}
+        </Link>
+      </Hint>
+    ),
+    Note: <span className="whitespace-pre-wrap">{note.note}</span>,
+  }));
+
+  return (
+    <Accordion title="Notes" defaultOpen>
+      <CommonTable columns={columns} data={data} />
+    </Accordion>
+  );
+}
+
 function ObjectDetails({ object, schema }: ObjectDetailsProps): ReactElement {
   if (!object || !schema) return <div />;
+
+  const notes = object.catalogs?.notes ?? [];
 
   return (
     <div className="space-y-6 rounded-lg">
       <div className="flex items-start space-x-6">
-        {object.catalogs?.coordinates && (
-          <AladinViewer
-            ra={object.catalogs.coordinates.equatorial.ra}
-            dec={object.catalogs.coordinates.equatorial.dec}
-            fov={0.02}
-            className="w-96 h-96"
-          />
-        )}
+        <div className="w-96 shrink-0">
+          {object.catalogs?.coordinates && (
+            <AladinViewer
+              ra={object.catalogs.coordinates.equatorial.ra}
+              dec={object.catalogs.coordinates.equatorial.dec}
+              fov={0.02}
+              className="w-96 h-96"
+            />
+          )}
+        </div>
         <div className="flex-1">
           <h2 className="text-2xl font-bold mb-2">
             {object.catalogs?.designation?.name || `PGC ${object.pgc}`}
@@ -66,6 +107,7 @@ function ObjectDetails({ object, schema }: ObjectDetailsProps): ReactElement {
             )}
         </div>
       </div>
+      {notes.length > 0 && <NotesSection notes={notes} />}
       <CatalogData catalogs={object.catalogs} schema={schema} />
     </div>
   );
