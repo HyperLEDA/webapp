@@ -4,16 +4,53 @@ import { AladinViewer } from "../components/core/Aladin";
 import { Loading } from "../components/core/Loading";
 import { ErrorPage } from "../components/ui/ErrorPage";
 import { CatalogData } from "../components/ui/CatalogData";
+import {
+  CommonTable,
+  Column,
+  CellPrimitive,
+} from "../components/ui/CommonTable";
 import { Hint } from "../components/core/Hint";
 import { Link } from "../components/core/Link";
+import { Accordion } from "../components/core/Accordion";
 import { querySimple } from "../clients/backend/sdk.gen";
-import { PgcObject, Schema } from "../clients/backend/types.gen";
+import { NoteEntry, PgcObject, Schema } from "../clients/backend/types.gen";
 import { useDataFetching } from "../hooks/useDataFetching";
 import { backendClient } from "../clients/config";
 
 interface ObjectDetailsProps {
   object: PgcObject;
   schema: Schema | null;
+}
+
+function getSourceLink(bibcode: string): string {
+  return `https://ui.adsabs.harvard.edu/abs/${bibcode}/abstract`;
+}
+
+function renderNoteSourceHint(note: NoteEntry): string {
+  const source = note.source;
+  const authors = source.authors.join(", ");
+
+  return `${source.title} — ${authors} (${source.year})`;
+}
+
+function NotesSection({ notes }: { notes: NoteEntry[] }): ReactElement {
+  const columns: Column[] = [{ name: "Source" }, { name: "Note" }];
+  const data: Record<string, CellPrimitive>[] = notes.map((note) => ({
+    Source: (
+      <Hint hintContent={renderNoteSourceHint(note)} trigger="child">
+        <Link href={getSourceLink(note.source.bibcode)} external>
+          {note.source.bibcode}
+        </Link>
+      </Hint>
+    ),
+    Note: <span className="whitespace-pre-wrap">{note.note}</span>,
+  }));
+
+  return (
+    <Accordion title="Notes" defaultOpen>
+      <CommonTable columns={columns} data={data} />
+    </Accordion>
+  );
 }
 
 function ObjectDetails({ object, schema }: ObjectDetailsProps): ReactElement {
@@ -52,9 +89,13 @@ function ObjectDetails({ object, schema }: ObjectDetailsProps): ReactElement {
                       <Hint
                         hintContent={
                           <span>
-                            {d.source.title}
-                            {d.source.authors.length > 0 &&
-                              ` — ${d.source.authors.join(", ")} (${d.source.year})`}
+                            <Link
+                              href={getSourceLink(d.source.bibcode)}
+                              external
+                            >
+                              {d.source.bibcode}
+                            </Link>
+                            {`. ${d.source.title}. ${d.source.authors.join(", ")}. ${d.source.year}`}
                           </span>
                         }
                         className="gap-1"
@@ -66,6 +107,7 @@ function ObjectDetails({ object, schema }: ObjectDetailsProps): ReactElement {
             )}
         </div>
       </div>
+      {object.catalogs?.notes && <NotesSection notes={object.catalogs.notes} />}
       <CatalogData catalogs={object.catalogs} schema={schema} />
     </div>
   );
