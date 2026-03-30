@@ -56,8 +56,6 @@ function NotesSection({ notes }: { notes: NoteEntry[] }): ReactElement {
 function ObjectDetails({ object, schema }: ObjectDetailsProps): ReactElement {
   if (!object || !schema) return <div />;
 
-  const notes = object.catalogs?.notes ?? [];
-
   return (
     <div className="space-y-6 rounded-lg">
       <div className="flex items-start space-x-6">
@@ -109,7 +107,7 @@ function ObjectDetails({ object, schema }: ObjectDetailsProps): ReactElement {
             )}
         </div>
       </div>
-      {notes.length > 0 && <NotesSection notes={notes} />}
+      {object.catalogs?.notes && <NotesSection notes={object.catalogs.notes} />}
       <CatalogData catalogs={object.catalogs} schema={schema} />
     </div>
   );
