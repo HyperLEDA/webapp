@@ -61,16 +61,14 @@ function ObjectDetails({ object, schema }: ObjectDetailsProps): ReactElement {
   return (
     <div className="space-y-6 rounded-lg">
       <div className="flex items-start space-x-6">
-        <div className="w-96 shrink-0">
-          {object.catalogs?.coordinates && (
-            <AladinViewer
-              ra={object.catalogs.coordinates.equatorial.ra}
-              dec={object.catalogs.coordinates.equatorial.dec}
-              fov={0.02}
-              className="w-96 h-96"
-            />
-          )}
-        </div>
+        {object.catalogs?.coordinates && (
+          <AladinViewer
+            ra={object.catalogs.coordinates.equatorial.ra}
+            dec={object.catalogs.coordinates.equatorial.dec}
+            fov={0.02}
+            className="w-96 h-96"
+          />
+        )}
         <div className="flex-1">
           <h2 className="text-2xl font-bold mb-2">
             {object.catalogs?.designation?.name || `PGC ${object.pgc}`}
