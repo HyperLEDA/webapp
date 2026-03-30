@@ -93,9 +93,13 @@ function ObjectDetails({ object, schema }: ObjectDetailsProps): ReactElement {
                       <Hint
                         hintContent={
                           <span>
-                            {d.source.title}
-                            {d.source.authors.length > 0 &&
-                              ` — ${d.source.authors.join(", ")} (${d.source.year})`}
+                            <Link
+                              href={getSourceLink(d.source.bibcode)}
+                              external
+                            >
+                              {d.source.bibcode}
+                            </Link>
+                            {`. ${d.source.title}. ${d.source.authors.join(", ")}. ${d.source.year}`}
                           </span>
                         }
                         className="gap-1"
