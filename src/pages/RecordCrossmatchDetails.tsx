@@ -204,15 +204,21 @@ function RecordCrossmatchDetails({
       {candidates.length > 0 && (
         <div className="space-y-6">
           <h2 className="text-xl font-bold">Crossmatch Candidates</h2>
-          {candidates.map((candidate, index) => (
+          {candidates.map((candidate) => (
             <Accordion
               key={candidate.pgc}
-              title={`Candidate ${index + 1}: PGC ${candidate.pgc}`}
+              title={`PGC ${candidate.pgc}`}
               defaultOpen
             >
-              <Link
-                href={`/object/${candidate.pgc}`}
-              >{`PGC ${candidate.pgc}`}</Link>
+              <p className="flex items-center gap-2 mb-2">
+                <CopyButton textToCopy={String(candidate.pgc)}>
+                  <span className="font-mono">
+                    <Link href={`/object/${candidate.pgc}`}>
+                      {`PGC ${candidate.pgc}`}
+                    </Link>
+                  </span>
+                </CopyButton>
+              </p>
               <CatalogData
                 catalogs={candidate.catalogs}
                 schema={backendSchema}
