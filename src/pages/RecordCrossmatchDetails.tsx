@@ -20,7 +20,7 @@ import { Schema as BackendSchema } from "../clients/backend/types.gen";
 import { getResource } from "../resources/resources";
 import { Link } from "../components/core/Link";
 import { CopyButton } from "../components/ui/CopyButton";
-import { Badge } from "../components/ui/Badge";
+import { Badge, BadgeType } from "../components/ui/Badge";
 import { Accordion } from "../components/core/Accordion";
 import { useDataFetching } from "../hooks/useDataFetching";
 import { adminClient } from "../clients/config";
@@ -159,6 +159,13 @@ function RecordCrossmatchDetails({
     candidates,
     crossmatch,
   );
+  const triageStatus = crossmatch.triage_status ?? "pending";
+  const triageBadgeType: BadgeType =
+    triageStatus === "resolved"
+      ? "success"
+      : triageStatus === "pending"
+        ? "warning"
+        : "info";
 
   return (
     <div className="space-y-6 rounded-lg">
@@ -178,7 +185,7 @@ function RecordCrossmatchDetails({
               {crossmatch.catalogs.designation.name}
             </h2>
           )}
-          <p className="flex items-center gap-2 mb-2">
+          <p className="flex items-center gap-2">
             Record ID:{" "}
             <CopyButton textToCopy={crossmatch.record_id}>
               <span className="font-mono">{crossmatch.record_id}</span>
@@ -194,12 +201,8 @@ function RecordCrossmatchDetails({
           </p>
           <p>
             Manual check status:{" "}
-            <Badge>
-              {
-                getResource(
-                  `crossmatch.triage.${crossmatch.triage_status ?? "pending"}`,
-                ).Title
-              }
+            <Badge type={triageBadgeType}>
+              {getResource(`crossmatch.triage.${triageStatus}`).Title}
             </Badge>
           </p>
         </div>
