@@ -8,15 +8,19 @@ import {
   type ReactElement,
   type ReactNode,
 } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { Tooltip } from "flowbite-react";
 import {
   MdInfo,
   MdLogin,
+  MdLogout,
   MdOpenInNew,
   MdSearch,
   MdTableChart,
 } from "react-icons/md";
+import { clearAuthToken, isLoggedIn } from "../../auth/token";
+import { logoutEnforced } from "../../clients/admin/sdk.gen";
+import { adminClient } from "../../clients/config";
 import { Link } from "../core/Link";
 
 const navItems = [
@@ -79,7 +83,9 @@ function openCurrentPathOnOrigin(productionWebInput: string): void {
 }
 
 export function Navbar() {
+  const navigate = useNavigate();
   const [footerOpen, setFooterOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   const infoPanelRef = useRef<HTMLDivElement>(null);
   const infoButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -110,6 +116,20 @@ export function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [footerOpen]);
 
+  async function handleLogout(): Promise<void> {
+    setLoggingOut(true);
+    try {
+      await logoutEnforced({
+        client: adminClient,
+        body: {},
+      });
+    } finally {
+      clearAuthToken();
+      navigate("/login");
+      setLoggingOut(false);
+    }
+  }
+
   return (
     <>
       <nav className="fixed left-0 top-0 h-screen w-12 flex flex-col items-center pt-4 pb-4 gap-2 bg-[#1a1a1a] z-20">
@@ -137,17 +157,25 @@ export function Navbar() {
               </SidebarRailButton>
             </SidebarTooltip>
           ) : null}
-          <SidebarTooltip content="Login">
-            <NavLink
-              to="/login"
-              end
-              className={({ isActive }) =>
-                sidebarRailControlClassName(isActive)
-              }
-            >
-              <MdLogin size={20} />
-            </NavLink>
-          </SidebarTooltip>
+          {isLoggedIn() ? (
+            <SidebarTooltip content="Logout">
+              <SidebarRailButton onClick={handleLogout} disabled={loggingOut}>
+                <MdLogout size={20} />
+              </SidebarRailButton>
+            </SidebarTooltip>
+          ) : (
+            <SidebarTooltip content="Login">
+              <NavLink
+                to="/login"
+                end
+                className={({ isActive }) =>
+                  sidebarRailControlClassName(isActive)
+                }
+              >
+                <MdLogin size={20} />
+              </NavLink>
+            </SidebarTooltip>
+          )}
           <SidebarRailButton
             ref={infoButtonRef}
             active={footerOpen}
