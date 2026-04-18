@@ -211,7 +211,9 @@ function RecordCrossmatchDetails({
               defaultOpen
             >
               <p className="flex items-center gap-2 mb-2">
-                <CopyButton textToCopy={String(candidate.pgc)}>
+                <CopyButton
+                  textToCopy={`${crossmatch.record_id},${candidate.pgc}`}
+                >
                   <span className="font-mono">
                     <Link href={`/object/${candidate.pgc}`}>
                       {`PGC ${candidate.pgc}`}
