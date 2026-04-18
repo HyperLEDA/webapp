@@ -159,13 +159,11 @@ function RecordCrossmatchDetails({
     candidates,
     crossmatch,
   );
-  const triageStatus = crossmatch.triage_status ?? "pending";
   const triageBadgeType: BadgeType =
-    triageStatus === "resolved"
-      ? "success"
-      : triageStatus === "pending"
-        ? "warning"
-        : "info";
+    crossmatch.triage_status === "resolved" ? "success" : "warning";
+  const triageBadgeLabel = getResource(
+    `crossmatch.triage.verbose.${crossmatch.triage_status}`,
+  ).Title;
 
   return (
     <div className="space-y-6 rounded-lg">
@@ -180,11 +178,15 @@ function RecordCrossmatchDetails({
           />
         )}
         <div className="flex-1">
-          {crossmatch.catalogs?.designation?.name && (
-            <h2 className="text-2xl font-bold mb-2">
-              {crossmatch.catalogs.designation.name}
-            </h2>
-          )}
+          <h2 className="text-2xl font-bold mb-2 flex items-center justify-between gap-3">
+            <span className="min-w-0">
+              {crossmatch.catalogs?.designation?.name ??
+                `Record ${crossmatch.record_id}`}
+            </span>
+            <Badge type={triageBadgeType} className="shrink-0">
+              {triageBadgeLabel}
+            </Badge>
+          </h2>
           <p className="flex items-center gap-2">
             Record ID:{" "}
             <CopyButton textToCopy={crossmatch.record_id}>
@@ -198,12 +200,6 @@ function RecordCrossmatchDetails({
             {candidates.length === 1
               ? "1 candidate"
               : `${candidates.length} candidates`}
-          </p>
-          <p>
-            Manual check status:{" "}
-            <Badge type={triageBadgeType}>
-              {getResource(`crossmatch.triage.${triageStatus}`).Title}
-            </Badge>
           </p>
         </div>
       </div>
