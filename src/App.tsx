@@ -9,6 +9,7 @@ import { RecordCrossmatchDetailsPage } from "./pages/RecordCrossmatchDetails";
 import { TablesPage } from "./pages/Tables";
 import { Layout } from "./components/ui/Layout";
 import { SearchBar } from "./components/ui/Searchbar";
+import { LoginPage } from "./pages/Login";
 
 function App() {
   return (
@@ -36,6 +37,7 @@ function App() {
           />
           <Route path="/table/:tableName" element={<TableDetailsPage />} />
           <Route path="/tables" element={<TablesPage />} />
+          <Route path="/login" element={<LoginPage />} />
           <Route path="/crossmatch" element={<CrossmatchResultsPage />} />
           <Route
             path="/records/:recordId/crossmatch"

@@ -10,7 +10,13 @@ import {
 } from "react";
 import { NavLink } from "react-router-dom";
 import { Tooltip } from "flowbite-react";
-import { MdInfo, MdOpenInNew, MdSearch, MdTableChart } from "react-icons/md";
+import {
+  MdInfo,
+  MdLogin,
+  MdOpenInNew,
+  MdSearch,
+  MdTableChart,
+} from "react-icons/md";
 import { Link } from "../core/Link";
 
 const navItems = [
@@ -131,6 +137,17 @@ export function Navbar() {
               </SidebarRailButton>
             </SidebarTooltip>
           ) : null}
+          <SidebarTooltip content="Login">
+            <NavLink
+              to="/login"
+              end
+              className={({ isActive }) =>
+                sidebarRailControlClassName(isActive)
+              }
+            >
+              <MdLogin size={20} />
+            </NavLink>
+          </SidebarTooltip>
           <SidebarRailButton
             ref={infoButtonRef}
             active={footerOpen}

@@ -28,6 +28,7 @@ import { Accordion } from "../components/core/Accordion";
 import { useDataFetching } from "../hooks/useDataFetching";
 import { adminClient } from "../clients/config";
 import { Button } from "../components/core/Button";
+import { isLoggedIn } from "../auth/token";
 
 // TODO: remove when admin api uses the same structures as data api
 function convertAdminSchemaToBackendSchema(
@@ -161,7 +162,7 @@ function RecordCrossmatchDetails({
   } = data;
   const recordCatalogs = crossmatch.catalogs;
   const showResolveControls =
-    import.meta.env.DEV && crossmatch.triage_status === "pending";
+    isLoggedIn() && crossmatch.triage_status === "pending";
   const backendSchema = convertAdminSchemaToBackendSchema(schema);
   const candidateSources = convertCandidatesToAdditionalSources(
     candidates,
