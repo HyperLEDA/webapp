@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { Tooltip } from "flowbite-react";
-import { MdInfo, MdSearch, MdTableChart } from "react-icons/md";
+import { MdInfo, MdOpenInNew, MdSearch, MdTableChart } from "react-icons/md";
 import { Link } from "../core/Link";
 
 const navItems = [
@@ -9,10 +9,30 @@ const navItems = [
   { to: "/tables", icon: <MdTableChart size={20} />, label: "Tables" },
 ];
 
+const configuredProductionWeb = "https://leda.sao.ru";
+
+function openCurrentPathOnOrigin(productionWebInput: string): void {
+  const { origin } = new URL(productionWebInput);
+  window.location.assign(
+    `${origin}${window.location.pathname}${window.location.search}${window.location.hash}`,
+  );
+}
+
 export function Navbar() {
   const [footerOpen, setFooterOpen] = useState(false);
   const infoPanelRef = useRef<HTMLDivElement>(null);
   const infoButtonRef = useRef<HTMLButtonElement>(null);
+
+  const showOpenProductionButton = useMemo(() => {
+    if (!configuredProductionWeb) {
+      return false;
+    }
+    try {
+      return window.location.origin !== new URL(configuredProductionWeb).origin;
+    } catch {
+      return false;
+    }
+  }, []);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -57,7 +77,23 @@ export function Navbar() {
           </Tooltip>
         ))}
 
-        <div className="mt-auto">
+        <div className="mt-auto flex flex-col gap-2 items-center">
+          {showOpenProductionButton ? (
+            <Tooltip
+              content="Open this page on production"
+              placement="right"
+              arrow={false}
+              className="bg-gray-600 z-10 backdrop-blur-sm bg-opacity-99 border-1"
+            >
+              <button
+                type="button"
+                onClick={() => openCurrentPathOnOrigin(configuredProductionWeb)}
+                className="w-9 h-9 flex items-center justify-center rounded-lg transition-colors duration-300 cursor-pointer text-neutral-400 hover:bg-neutral-700 hover:text-white"
+              >
+                <MdOpenInNew size={20} />
+              </button>
+            </Tooltip>
+          ) : null}
           <button
             ref={infoButtonRef}
             onClick={() => setFooterOpen(!footerOpen)}
