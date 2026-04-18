@@ -20,6 +20,7 @@ import { Schema as BackendSchema } from "../clients/backend/types.gen";
 import { getResource } from "../resources/resources";
 import { Link } from "../components/core/Link";
 import { CopyButton } from "../components/ui/CopyButton";
+import { Badge } from "../components/ui/Badge";
 import { Accordion } from "../components/core/Accordion";
 import { useDataFetching } from "../hooks/useDataFetching";
 import { adminClient } from "../clients/config";
@@ -183,12 +184,23 @@ function RecordCrossmatchDetails({
               <span className="font-mono">{crossmatch.record_id}</span>
             </CopyButton>
           </p>
-          <p className="mb-2">
+          <p>
             Table: <Link href={`/table/${tableName}`}>{tableName}</Link>
           </p>
           <p>
-            Status:{" "}
-            {getResource(`crossmatch.status.${crossmatch.status}`).Title}
+            {candidates.length === 1
+              ? "1 candidate"
+              : `${candidates.length} candidates`}
+          </p>
+          <p>
+            Manual check status:{" "}
+            <Badge>
+              {
+                getResource(
+                  `crossmatch.triage.${crossmatch.triage_status ?? "pending"}`,
+                ).Title
+              }
+            </Badge>
           </p>
         </div>
       </div>
