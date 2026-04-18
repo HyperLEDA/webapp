@@ -1,4 +1,13 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  forwardRef,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ButtonHTMLAttributes,
+  type ReactElement,
+  type ReactNode,
+} from "react";
 import { NavLink } from "react-router-dom";
 import { Tooltip } from "flowbite-react";
 import { MdInfo, MdOpenInNew, MdSearch, MdTableChart } from "react-icons/md";
@@ -8,6 +17,51 @@ const navItems = [
   { to: "/", icon: <MdSearch size={20} />, label: "Object search" },
   { to: "/tables", icon: <MdTableChart size={20} />, label: "Tables" },
 ];
+
+function SidebarTooltip({
+  content,
+  children,
+}: {
+  content: ReactNode;
+  children: ReactNode;
+}): ReactElement {
+  return (
+    <Tooltip
+      content={content}
+      placement="right"
+      arrow={false}
+      className="bg-gray-600 z-10 backdrop-blur-sm bg-opacity-99 border-1"
+    >
+      {children}
+    </Tooltip>
+  );
+}
+
+function sidebarRailControlClassName(active: boolean): string {
+  return `w-9 h-9 flex items-center justify-center rounded-lg transition-colors duration-300 cursor-pointer ${
+    active
+      ? "bg-[#646cff] text-white"
+      : "text-neutral-400 hover:bg-neutral-700 hover:text-white"
+  }`;
+}
+
+const SidebarRailButton = forwardRef<
+  HTMLButtonElement,
+  ButtonHTMLAttributes<HTMLButtonElement> & { active?: boolean }
+>(function SidebarRailButton({ active = false, className, ...rest }, ref) {
+  return (
+    <button
+      ref={ref}
+      type="button"
+      className={
+        className
+          ? `${sidebarRailControlClassName(active)} ${className}`
+          : sidebarRailControlClassName(active)
+      }
+      {...rest}
+    />
+  );
+});
 
 const configuredProductionWeb = "https://leda.sao.ru";
 
@@ -54,57 +108,36 @@ export function Navbar() {
     <>
       <nav className="fixed left-0 top-0 h-screen w-12 flex flex-col items-center pt-4 pb-4 gap-2 bg-[#1a1a1a] z-20">
         {navItems.map((item) => (
-          <Tooltip
-            key={item.to}
-            content={item.label}
-            placement="right"
-            arrow={false}
-            className="bg-gray-600 z-10 backdrop-blur-sm bg-opacity-99 border-1"
-          >
+          <SidebarTooltip key={item.to} content={item.label}>
             <NavLink
               to={item.to}
               end
               className={({ isActive }) =>
-                `w-9 h-9 flex items-center justify-center rounded-lg transition-colors duration-300 ${
-                  isActive
-                    ? "bg-[#646cff] text-white"
-                    : "text-neutral-400 hover:bg-neutral-700 hover:text-white"
-                }`
+                sidebarRailControlClassName(isActive)
               }
             >
               {item.icon}
             </NavLink>
-          </Tooltip>
+          </SidebarTooltip>
         ))}
 
         <div className="mt-auto flex flex-col gap-2 items-center">
           {showOpenProductionButton ? (
-            <Tooltip
-              content="Open this page on production"
-              placement="right"
-              arrow={false}
-              className="bg-gray-600 z-10 backdrop-blur-sm bg-opacity-99 border-1"
-            >
-              <button
-                type="button"
+            <SidebarTooltip content="Open this page on production">
+              <SidebarRailButton
                 onClick={() => openCurrentPathOnOrigin(configuredProductionWeb)}
-                className="w-9 h-9 flex items-center justify-center rounded-lg transition-colors duration-300 cursor-pointer text-neutral-400 hover:bg-neutral-700 hover:text-white"
               >
                 <MdOpenInNew size={20} />
-              </button>
-            </Tooltip>
+              </SidebarRailButton>
+            </SidebarTooltip>
           ) : null}
-          <button
+          <SidebarRailButton
             ref={infoButtonRef}
+            active={footerOpen}
             onClick={() => setFooterOpen(!footerOpen)}
-            className={`w-9 h-9 flex items-center justify-center rounded-lg transition-colors duration-300 cursor-pointer ${
-              footerOpen
-                ? "bg-[#646cff] text-white"
-                : "text-neutral-400 hover:bg-neutral-700 hover:text-white"
-            }`}
           >
             <MdInfo size={20} />
-          </button>
+          </SidebarRailButton>
         </div>
       </nav>
 
