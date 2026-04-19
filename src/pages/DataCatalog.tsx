@@ -98,21 +98,11 @@ function SchemaSidebar({
       {schemas.map((schema) => (
         <Accordion
           key={`${schema.schema_name}-${selectedSchema === schema.schema_name ? "open" : "closed"}`}
-          title={
-            <span className="flex flex-col items-start gap-0.5 text-left">
-              <span className="text-sm text-white font-medium leading-snug">
-                {schema.description ?? schema.schema_name}
-              </span>
-              {schema.description ? (
-                <span className="font-mono text-xs text-gray-400 leading-snug">
-                  {schema.schema_name}
-                </span>
-              ) : null}
-            </span>
+          title={schema.description ?? schema.schema_name}
+          description={
+            schema.description ? schema.schema_name : undefined
           }
-          titleClassName="text-left w-full"
           defaultOpen={selectedSchema === schema.schema_name}
-          className="bg-neutral-900/40 border-gray-600"
         >
           <ul className="border-t border-gray-700 pt-2 -mx-1">
             {schema.tables.map((t) => {
