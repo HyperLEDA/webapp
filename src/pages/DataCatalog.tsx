@@ -2,6 +2,7 @@ import { ReactElement, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { listSchemas, getTable } from "../clients/backend/sdk.gen";
 import type {
+  ColumnInfo,
   GetTableResponse,
   ListSchemasResponse,
   SchemaEntry,
@@ -153,27 +154,30 @@ interface TablePreviewProps {
   payload: GetTableResponse;
 }
 
-function TablePreview({ payload }: TablePreviewProps): ReactElement {
-  const metaColumns: Column[] = [
-    { name: "Column" },
-    { name: "Type" },
-    { name: "Unit" },
-    { name: "UCD" },
-    { name: "Description" },
-  ];
-
-  const metaRows: Record<string, CellPrimitive>[] = payload.columns.map(
-    (c) => ({
-      Column: c.column_name,
-      Type: c.data_type ?? "—",
-      Unit: c.unit ?? "—",
-      UCD: c.ucd ?? "—",
-      Description: c.description ?? "—",
-    }),
+function columnMetadataHint(column: ColumnInfo): ReactElement {
+  return (
+    <div className="text-left text-sm space-y-2 max-w-sm">
+      {column.description ? (
+        <p className="text-gray-100 leading-snug">{column.description}</p>
+      ) : null}
+      <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
+        <dt className="text-gray-400">Type</dt>
+        <dd className="font-mono text-gray-200">{column.data_type ?? "—"}</dd>
+        <dt className="text-gray-400">Unit</dt>
+        <dd className="font-mono text-gray-200">{column.unit ?? "—"}</dd>
+        <dt className="text-gray-400">UCD</dt>
+        <dd className="font-mono text-gray-200 break-all">
+          {column.ucd ?? "—"}
+        </dd>
+      </dl>
+    </div>
   );
+}
 
+function TablePreview({ payload }: TablePreviewProps): ReactElement {
   const sampleColumnDefs: Column[] = payload.columns.map((c) => ({
     name: c.column_name,
+    hint: columnMetadataHint(c),
   }));
 
   const sampleRows: Record<string, CellPrimitive>[] = payload.sample_rows.map(
@@ -188,32 +192,24 @@ function TablePreview({ payload }: TablePreviewProps): ReactElement {
   );
 
   return (
-    <div className="space-y-8">
-      <div>
-        <div className="mb-6">
-          <h3 className="text-2xl font-semibold text-white leading-snug max-w-3xl">
-            {payload.description ?? (
-              <span className="font-mono tracking-tight">
-                {payload.schema_name}.{payload.table_name}
-              </span>
-            )}
-          </h3>
-          {payload.description ? (
-            <p className="text-gray-400 text-sm font-mono leading-relaxed mt-2">
+    <div>
+      <div className="mb-6">
+        <h3 className="text-2xl font-semibold text-white leading-snug max-w-3xl">
+          {payload.description ?? (
+            <span className="font-mono tracking-tight">
               {payload.schema_name}.{payload.table_name}
-            </p>
-          ) : null}
-        </div>
-        <CommonTable columns={metaColumns} data={metaRows}>
-          <span className="text-white font-medium">Columns</span>
-        </CommonTable>
+            </span>
+          )}
+        </h3>
+        {payload.description ? (
+          <p className="text-gray-400 text-sm font-mono leading-relaxed mt-2">
+            {payload.schema_name}.{payload.table_name}
+          </p>
+        ) : null}
       </div>
-
-      <div>
-        <CommonTable columns={sampleColumnDefs} data={sampleRows}>
-          <span className="text-white font-medium">Sample rows</span>
-        </CommonTable>
-      </div>
+      <CommonTable columns={sampleColumnDefs} data={sampleRows}>
+        <span className="text-white font-medium">Sample rows</span>
+      </CommonTable>
     </div>
   );
 }
