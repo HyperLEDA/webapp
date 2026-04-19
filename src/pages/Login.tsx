@@ -17,7 +17,9 @@ export function LoginPage(): ReactElement {
     document.title = "Login | HyperLEDA";
   }, []);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
+  async function handleSubmit(
+    event: FormEvent<HTMLFormElement>,
+  ): Promise<void> {
     event.preventDefault();
     setError(null);
     setSuccess(false);
@@ -83,7 +85,9 @@ export function LoginPage(): ReactElement {
           {error}
         </p>
       ) : null}
-      {success ? <p className="text-green-400 mt-3">Logged in successfully.</p> : null}
+      {success ? (
+        <p className="text-green-400 mt-3">Logged in successfully.</p>
+      ) : null}
     </div>
   );
 }
