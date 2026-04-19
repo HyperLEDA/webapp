@@ -17,7 +17,7 @@ import {
   CellPrimitive,
 } from "../components/ui/CommonTable";
 import { TextFilter } from "../components/core/TextFilter";
-import { Link } from "../components/core/Link";
+import { Accordion } from "../components/core/Accordion";
 import classNames from "classnames";
 
 function formatApiError(error: unknown): string {
@@ -93,51 +93,54 @@ function SchemaSidebar({
   onSelect,
 }: SchemaSidebarProps): ReactElement {
   return (
-    <div className="border border-gray-600 rounded-lg overflow-hidden bg-neutral-900/40 max-h-[min(70vh,720px)] overflow-y-auto">
-      <ul className="divide-y divide-gray-700">
-        {schemas.map((schema) => (
-          <li key={schema.schema_name}>
-            <div className="px-3 py-2 bg-neutral-800/80 sticky top-0 z-[1] border-b border-gray-700">
-              <p className="font-mono text-sm text-white">
-                {schema.schema_name}
-              </p>
-              {schema.description ? (
-                <p className="text-xs text-gray-400 mt-0.5 leading-snug">
-                  {schema.description}
-                </p>
-              ) : null}
-            </div>
-            <ul>
-              {schema.tables.map((t) => {
-                const active =
-                  selectedSchema === schema.schema_name &&
-                  selectedTable === t.table_name;
-                return (
-                  <li key={`${schema.schema_name}.${t.table_name}`}>
-                    <button
-                      type="button"
-                      onClick={() => onSelect(schema.schema_name, t.table_name)}
-                      className={classNames(
-                        "w-full text-left px-3 py-2 text-sm transition-colors border-l-2",
-                        active
-                          ? "border-[#646cff] bg-[#646cff]/15 text-white"
-                          : "border-transparent text-gray-300 hover:bg-neutral-800 hover:text-white",
-                      )}
-                    >
-                      <span className="font-mono block">{t.table_name}</span>
-                      {t.description ? (
-                        <span className="text-xs text-gray-500 block mt-0.5 leading-snug">
-                          {t.description}
-                        </span>
-                      ) : null}
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          </li>
-        ))}
-      </ul>
+    <div className="max-h-[min(70vh,720px)] overflow-y-auto flex flex-col gap-2 pr-0.5">
+      {schemas.map((schema) => (
+        <Accordion
+          key={`${schema.schema_name}-${selectedSchema === schema.schema_name ? "open" : "closed"}`}
+          title={
+            <span className="font-mono text-sm text-white">
+              {schema.schema_name}
+            </span>
+          }
+          titleClassName="text-left"
+          defaultOpen={selectedSchema === schema.schema_name}
+          className="bg-neutral-900/40 border-gray-600"
+        >
+          {schema.description ? (
+            <p className="text-xs text-gray-400 mb-2 leading-snug">
+              {schema.description}
+            </p>
+          ) : null}
+          <ul className="border-t border-gray-700 pt-2 -mx-1">
+            {schema.tables.map((t) => {
+              const active =
+                selectedSchema === schema.schema_name &&
+                selectedTable === t.table_name;
+              return (
+                <li key={`${schema.schema_name}.${t.table_name}`}>
+                  <button
+                    type="button"
+                    onClick={() => onSelect(schema.schema_name, t.table_name)}
+                    className={classNames(
+                      "w-full text-left px-3 py-2 text-sm transition-colors border-l-2 rounded-sm",
+                      active
+                        ? "border-[#646cff] bg-[#646cff]/15 text-white"
+                        : "border-transparent text-gray-300 hover:bg-neutral-800 hover:text-white",
+                    )}
+                  >
+                    <span className="font-mono block">{t.table_name}</span>
+                    {t.description ? (
+                      <span className="text-xs text-gray-500 block mt-0.5 leading-snug">
+                        {t.description}
+                      </span>
+                    ) : null}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </Accordion>
+      ))}
     </div>
   );
 }
@@ -183,23 +186,16 @@ function TablePreview({ payload }: TablePreviewProps): ReactElement {
   return (
     <div className="space-y-8">
       <div>
-        <h3 className="text-xl font-semibold text-white mb-1">
-          Table metadata
-        </h3>
-        <p className="font-mono text-sm text-gray-400 mb-1">
-          {payload.schema_name}.{payload.table_name}
-        </p>
-        {payload.description ? (
-          <p className="text-gray-300 text-sm leading-relaxed mb-3">
-            {payload.description}
-          </p>
-        ) : null}
-        <p className="text-sm text-gray-500 mb-4">
-          Curation view:{" "}
-          <Link href={`/table/${payload.table_name}`}>
-            {payload.table_name}
-          </Link>
-        </p>
+        <div className="mb-6">
+          <h3 className="text-2xl font-semibold text-white font-mono tracking-tight">
+            {payload.schema_name}.{payload.table_name}
+          </h3>
+          {payload.description ? (
+            <p className="text-gray-400 text-sm leading-relaxed mt-2 max-w-3xl">
+              {payload.description}
+            </p>
+          ) : null}
+        </div>
         <CommonTable columns={metaColumns} data={metaRows}>
           <span className="text-white font-medium">Columns</span>
         </CommonTable>

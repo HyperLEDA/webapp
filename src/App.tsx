@@ -3,7 +3,6 @@ import { HomePage } from "./pages/Home";
 import { SearchResultsPage } from "./pages/SearchResults";
 import { ObjectDetailsPage } from "./pages/ObjectDetails";
 import { NotFoundPage } from "./pages/NotFound";
-import { TableDetailsPage } from "./pages/TableDetails";
 import { CrossmatchResultsPage } from "./pages/CrossmatchResults";
 import { RecordCrossmatchDetailsPage } from "./pages/RecordCrossmatchDetails";
 import { TablesPage } from "./pages/Tables";
@@ -36,7 +35,6 @@ function App() {
               </>
             }
           />
-          <Route path="/table/:tableName" element={<TableDetailsPage />} />
           <Route path="/tables" element={<TablesPage />} />
           <Route path="/data-catalog" element={<DataCatalogPage />} />
           <Route

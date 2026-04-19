@@ -236,7 +236,7 @@ function RecordCrossmatchDetails({
             </CopyButton>
           </p>
           <p>
-            Table: <Link href={`/table/${tableName}`}>{tableName}</Link>
+            Table: <span className="font-mono">{tableName}</span>
           </p>
           <p>
             {candidates.length === 1

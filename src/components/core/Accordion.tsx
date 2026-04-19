@@ -2,10 +2,11 @@ import React, { ReactElement, useState } from "react";
 import classNames from "classnames";
 
 interface AccordionProps {
-  title: string;
+  title: React.ReactNode;
   children: React.ReactNode;
   defaultOpen?: boolean;
   className?: string;
+  titleClassName?: string;
 }
 
 export function Accordion({
@@ -13,6 +14,7 @@ export function Accordion({
   children,
   defaultOpen = false,
   className,
+  titleClassName,
 }: AccordionProps): ReactElement {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
@@ -23,7 +25,9 @@ export function Accordion({
         onClick={() => setIsOpen((prev) => !prev)}
         className="w-full flex items-center justify-between px-4 py-3 text-left cursor-pointer hover:bg-gray-800 rounded-lg transition-colors duration-200"
       >
-        <span className="text-xl font-bold">{title}</span>
+        <span className={classNames(titleClassName ?? "text-xl font-bold")}>
+          {title}
+        </span>
         <span
           className={classNames(
             "transition-transform duration-200",

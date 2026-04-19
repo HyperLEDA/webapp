@@ -77,7 +77,6 @@ function CrossmatchFilters({
         placeholder="Enter table name"
         onEnter={applyFilters}
       />
-      <Link href={`/table/${localTableName.trim()}`} external />
       <DropdownFilter
         title="Status"
         options={[

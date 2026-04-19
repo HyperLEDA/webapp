@@ -15,7 +15,6 @@ import type {
 } from "../clients/admin/types.gen";
 import { Loading } from "../components/core/Loading";
 import { ErrorPage } from "../components/ui/ErrorPage";
-import { Link } from "../components/core/Link";
 import { useDataFetching } from "../hooks/useDataFetching";
 import { Pagination } from "../components/ui/Pagination";
 import { adminClient } from "../clients/config";
@@ -103,7 +102,7 @@ function TablesResults({ data, loading }: TablesResultsProps): ReactElement {
       name: "Name",
       renderCell: (value: CellPrimitive) => {
         if (typeof value === "string") {
-          return <Link href={`/table/${value}`}>{value}</Link>;
+          return <span className="font-mono">{value}</span>;
         }
         return <span>—</span>;
       },
