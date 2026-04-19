@@ -294,8 +294,7 @@ export function DataCatalogPage(): ReactElement {
             Browse the data
           </Text>
           <Text as="p">
-            Choose a table on the left to see column definitions and sample
-            rows
+            Choose a table on the left to see column definitions and sample rows
           </Text>
         </div>
       );
