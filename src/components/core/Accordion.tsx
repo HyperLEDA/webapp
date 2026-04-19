@@ -1,4 +1,5 @@
 import React, { ReactElement, useState } from "react";
+import { Text } from "./Text";
 
 interface AccordionProps {
   title: string;
@@ -23,13 +24,13 @@ export function Accordion({
         className="w-full flex items-center justify-between px-4 py-3 text-left cursor-pointer hover:bg-gray-800 rounded-lg transition-colors duration-200 gap-2"
       >
         <span className="flex flex-col items-start gap-0.5 text-left w-full min-w-0">
-          <span className="text-sm text-white font-medium leading-snug">
+          <Text style="header" size="small" as="span">
             {title}
-          </span>
+          </Text>
           {description ? (
-            <span className="font-mono text-xs text-gray-400 leading-snug">
+            <Text size="small" type="code" as="span">
               {description}
-            </span>
+            </Text>
           ) : null}
         </span>
         <span

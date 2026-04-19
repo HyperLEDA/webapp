@@ -19,6 +19,7 @@ import {
 } from "../components/ui/CommonTable";
 import { TextFilter } from "../components/core/TextFilter";
 import { Accordion } from "../components/core/Accordion";
+import { Text } from "../components/core/Text";
 import classNames from "classnames";
 
 function formatApiError(error: unknown): string {
@@ -99,9 +100,7 @@ function SchemaSidebar({
         <Accordion
           key={`${schema.schema_name}-${selectedSchema === schema.schema_name ? "open" : "closed"}`}
           title={schema.description ?? schema.schema_name}
-          description={
-            schema.description ? schema.schema_name : undefined
-          }
+          description={schema.description ? schema.schema_name : undefined}
           defaultOpen={selectedSchema === schema.schema_name}
         >
           <ul className="border-t border-gray-700 pt-2 -mx-1">
@@ -121,13 +120,23 @@ function SchemaSidebar({
                         : "border-transparent text-gray-300 hover:bg-neutral-800 hover:text-white",
                     )}
                   >
-                    <span className="block text-sm text-white font-medium leading-snug">
+                    <Text
+                      style="header"
+                      size="small"
+                      as="span"
+                      className="block"
+                    >
                       {t.description ?? t.table_name}
-                    </span>
+                    </Text>
                     {t.description ? (
-                      <span className="font-mono text-xs text-gray-500 block mt-0.5 leading-snug">
+                      <Text
+                        size="small"
+                        type="code"
+                        as="span"
+                        className="block mt-0.5 text-gray-500"
+                      >
                         {t.table_name}
-                      </span>
+                      </Text>
                     ) : null}
                   </button>
                 </li>
@@ -148,17 +157,34 @@ function columnMetadataHint(column: ColumnInfo): ReactElement {
   return (
     <div className="text-left text-sm space-y-2 max-w-sm">
       {column.description ? (
-        <p className="text-gray-100 leading-snug">{column.description}</p>
+        <Text as="p" className="text-gray-100 leading-snug">
+          {column.description}
+        </Text>
       ) : null}
       <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
-        <dt className="text-gray-400">Type</dt>
-        <dd className="font-mono text-gray-200">{column.data_type ?? "—"}</dd>
-        <dt className="text-gray-400">Unit</dt>
-        <dd className="font-mono text-gray-200">{column.unit ?? "—"}</dd>
-        <dt className="text-gray-400">UCD</dt>
-        <dd className="font-mono text-gray-200 break-all">
+        <Text as="dt" size="small">
+          Type
+        </Text>
+        <Text as="dd" size="small" type="code" className="text-gray-200">
+          {column.data_type ?? "—"}
+        </Text>
+        <Text as="dt" size="small">
+          Unit
+        </Text>
+        <Text as="dd" size="small" type="code" className="text-gray-200">
+          {column.unit ?? "—"}
+        </Text>
+        <Text as="dt" size="small">
+          UCD
+        </Text>
+        <Text
+          as="dd"
+          size="small"
+          type="code"
+          className="text-gray-200 break-all"
+        >
           {column.ucd ?? "—"}
-        </dd>
+        </Text>
       </dl>
     </div>
   );
@@ -184,21 +210,23 @@ function TablePreview({ payload }: TablePreviewProps): ReactElement {
   return (
     <div>
       <div className="mb-6">
-        <h3 className="text-2xl font-semibold text-white leading-snug max-w-3xl">
+        <Text as="h3" style="header" size="medium" className="mt-0 mb-0">
           {payload.description ?? (
-            <span className="font-mono tracking-tight">
+            <Text style="header" size="medium" type="code" as="span">
               {payload.schema_name}.{payload.table_name}
-            </span>
+            </Text>
           )}
-        </h3>
+        </Text>
         {payload.description ? (
-          <p className="text-gray-400 text-sm font-mono leading-relaxed mt-2">
+          <Text as="p" type="code" className="text-gray-400 mt-2 mb-0">
             {payload.schema_name}.{payload.table_name}
-          </p>
+          </Text>
         ) : null}
       </div>
       <CommonTable columns={sampleColumnDefs} data={sampleRows}>
-        <span className="text-white font-medium">Sample rows</span>
+        <Text style="header" size="small">
+          Sample rows
+        </Text>
       </CommonTable>
     </div>
   );
@@ -256,11 +284,11 @@ export function DataCatalogPage(): ReactElement {
     }
     if (!filtered.length) {
       return (
-        <p className="text-gray-400 text-sm p-4">
+        <Text as="p" className="p-4">
           {schemaPayload?.schemas.length
             ? "No tables match your filter."
             : "No schemas returned by the API."}
-        </p>
+        </Text>
       );
     }
     return (
@@ -277,11 +305,13 @@ export function DataCatalogPage(): ReactElement {
     if (!selectedSchema || !selectedTable) {
       return (
         <div className="rounded-lg border border-dashed border-gray-600 p-8 text-center text-gray-400">
-          <p className="text-lg text-gray-300 mb-2">Browse the public data</p>
-          <p className="text-sm leading-relaxed max-w-md mx-auto">
+          <Text as="p" size="large" className="mb-2 mx-auto max-w-md">
+            Browse the public data
+          </Text>
+          <Text as="p" className="max-w-md mx-auto">
             Choose a table on the left to see column definitions and sample
             rows.
-          </p>
+          </Text>
         </div>
       );
     }
