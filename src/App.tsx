@@ -7,6 +7,7 @@ import { TableDetailsPage } from "./pages/TableDetails";
 import { CrossmatchResultsPage } from "./pages/CrossmatchResults";
 import { RecordCrossmatchDetailsPage } from "./pages/RecordCrossmatchDetails";
 import { TablesPage } from "./pages/Tables";
+import { DataCatalogPage } from "./pages/DataCatalog";
 import { Layout } from "./components/ui/Layout";
 import { SearchBar } from "./components/ui/Searchbar";
 import { LoginPage } from "./pages/Login";
@@ -37,6 +38,11 @@ function App() {
           />
           <Route path="/table/:tableName" element={<TableDetailsPage />} />
           <Route path="/tables" element={<TablesPage />} />
+          <Route path="/data-catalog" element={<DataCatalogPage />} />
+          <Route
+            path="/data-catalog/:schemaName/:tableName"
+            element={<DataCatalogPage />}
+          />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/crossmatch" element={<CrossmatchResultsPage />} />
           <Route
