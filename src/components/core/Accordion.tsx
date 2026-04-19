@@ -1,34 +1,40 @@
 import React, { ReactElement, useState } from "react";
-import classNames from "classnames";
+import { Text } from "./Text";
 
 interface AccordionProps {
   title: string;
+  description?: string;
   children: React.ReactNode;
   defaultOpen?: boolean;
-  className?: string;
 }
 
 export function Accordion({
   title,
+  description,
   children,
   defaultOpen = false,
-  className,
 }: AccordionProps): ReactElement {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
-    <div className={classNames("border border-gray-700 rounded-lg", className)}>
+    <div className="border border-gray-600 rounded-lg bg-neutral-900/40">
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className="w-full flex items-center justify-between px-4 py-3 text-left cursor-pointer hover:bg-gray-800 rounded-lg transition-colors duration-200"
+        className="w-full flex items-center justify-between px-4 py-3 text-left cursor-pointer hover:bg-gray-800 rounded-lg transition-colors duration-200 gap-2"
       >
-        <span className="text-xl font-bold">{title}</span>
+        <span className="flex flex-col items-start gap-0.5 text-left w-full min-w-0">
+          <Text style="header" size="small" as="span">
+            {title}
+          </Text>
+          {description ? (
+            <Text size="small" type="code" as="span">
+              {description}
+            </Text>
+          ) : null}
+        </span>
         <span
-          className={classNames(
-            "transition-transform duration-200",
-            isOpen && "rotate-180",
-          )}
+          className={`shrink-0 transition-transform duration-200${isOpen ? " rotate-180" : ""}`}
         >
           ▾
         </span>

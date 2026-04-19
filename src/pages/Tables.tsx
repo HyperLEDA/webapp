@@ -15,10 +15,10 @@ import type {
 } from "../clients/admin/types.gen";
 import { Loading } from "../components/core/Loading";
 import { ErrorPage } from "../components/ui/ErrorPage";
-import { Link } from "../components/core/Link";
 import { useDataFetching } from "../hooks/useDataFetching";
 import { Pagination } from "../components/ui/Pagination";
 import { adminClient } from "../clients/config";
+import { Link } from "../components/core/Link";
 
 const SEARCH_DEBOUNCE_MS = 300;
 

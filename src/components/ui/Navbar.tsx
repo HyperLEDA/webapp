@@ -11,6 +11,7 @@ import {
 import { NavLink, useNavigate } from "react-router-dom";
 import { Tooltip } from "flowbite-react";
 import {
+  MdAccountTree,
   MdInfo,
   MdLogin,
   MdLogout,
@@ -24,8 +25,19 @@ import { adminClient } from "../../clients/config";
 import { Link } from "../core/Link";
 
 const navItems = [
-  { to: "/", icon: <MdSearch size={20} />, label: "Object search" },
-  { to: "/tables", icon: <MdTableChart size={20} />, label: "Tables" },
+  { to: "/", icon: <MdSearch size={20} />, label: "Object search", end: true },
+  {
+    to: "/tables",
+    icon: <MdTableChart size={20} />,
+    label: "Tables",
+    end: true,
+  },
+  {
+    to: "/data-catalog",
+    icon: <MdAccountTree size={20} />,
+    label: "Data catalog",
+    end: false,
+  },
 ];
 
 function SidebarTooltip({
@@ -137,7 +149,7 @@ export function Navbar() {
           <SidebarTooltip key={item.to} content={item.label}>
             <NavLink
               to={item.to}
-              end
+              end={item.end ?? true}
               className={({ isActive }) =>
                 sidebarRailControlClassName(isActive)
               }

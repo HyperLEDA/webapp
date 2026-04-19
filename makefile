@@ -24,3 +24,12 @@ image-build:
 image-push:
 	docker push ghcr.io/hyperleda/hyperleda-webapp:$(GIT_VERSION)
 	docker push ghcr.io/hyperleda/hyperleda-webapp:latest
+
+new-branch:
+	@read -p "Branch name: " branch_name && \
+	branch_name=$${branch_name// /-} && \
+	base=$$(git remote show origin | sed -n '/HEAD branch/s/.*: //p') && \
+	echo "Selecting $$base branch as default" && \
+	git fetch origin $$base && \
+	git checkout -b $$branch_name origin/$$base && \
+	git push -u origin $$branch_name
