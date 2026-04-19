@@ -103,7 +103,7 @@ function SchemaSidebar({
           description={schema.description ? schema.schema_name : undefined}
           defaultOpen={selectedSchema === schema.schema_name}
         >
-          <ul className="border-t border-gray-700 pt-2 -mx-1">
+          <ul>
             {schema.tables.map((t) => {
               const active =
                 selectedSchema === schema.schema_name &&
@@ -114,10 +114,10 @@ function SchemaSidebar({
                     type="button"
                     onClick={() => onSelect(schema.schema_name, t.table_name)}
                     className={classNames(
-                      "w-full text-left px-3 py-2 text-sm transition-colors border-l-2 rounded-sm",
+                      "w-full text-left px-3 py-2 transition-colors border-l-2 rounded-sm",
                       active
-                        ? "border-[#646cff] bg-[#646cff]/15 text-white"
-                        : "border-transparent text-gray-300 hover:bg-neutral-800 hover:text-white",
+                        ? "border-[#646cff] bg-[#646cff]/15"
+                        : "border-transparent hover:bg-neutral-800",
                     )}
                   >
                     <Text
@@ -133,7 +133,7 @@ function SchemaSidebar({
                         size="small"
                         type="code"
                         as="span"
-                        className="block mt-0.5 text-gray-500"
+                        className="block mt-0.5"
                       >
                         {t.table_name}
                       </Text>
@@ -155,34 +155,19 @@ interface TablePreviewProps {
 
 function columnMetadataHint(column: ColumnInfo): ReactElement {
   return (
-    <div className="text-left text-sm space-y-2 max-w-sm">
-      {column.description ? (
-        <Text as="p" className="text-gray-100 leading-snug">
-          {column.description}
-        </Text>
-      ) : null}
-      <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
-        <Text as="dt" size="small">
-          Type
-        </Text>
-        <Text as="dd" size="small" type="code" className="text-gray-200">
+    <div className="text-left space-y-2">
+      {column.description ? <Text as="p">{column.description}</Text> : null}
+      <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
+        <Text as="dt">Type</Text>
+        <Text as="dd" type="code">
           {column.data_type ?? "—"}
         </Text>
-        <Text as="dt" size="small">
-          Unit
-        </Text>
-        <Text as="dd" size="small" type="code" className="text-gray-200">
+        <Text as="dt">Unit</Text>
+        <Text as="dd" type="code">
           {column.unit ?? "—"}
         </Text>
-        <Text as="dt" size="small">
-          UCD
-        </Text>
-        <Text
-          as="dd"
-          size="small"
-          type="code"
-          className="text-gray-200 break-all"
-        >
+        <Text as="dt">UCD</Text>
+        <Text as="dd" type="code">
           {column.ucd ?? "—"}
         </Text>
       </dl>
@@ -209,8 +194,8 @@ function TablePreview({ payload }: TablePreviewProps): ReactElement {
 
   return (
     <div>
-      <div className="mb-6">
-        <Text as="h3" style="header" size="medium" className="mt-0 mb-0">
+      <div className="mb-3">
+        <Text as="h3" style="header" size="medium">
           {payload.description ?? (
             <Text style="header" size="medium" type="code" as="span">
               {payload.schema_name}.{payload.table_name}
@@ -218,7 +203,7 @@ function TablePreview({ payload }: TablePreviewProps): ReactElement {
           )}
         </Text>
         {payload.description ? (
-          <Text as="p" type="code" className="text-gray-400 mt-2 mb-0">
+          <Text as="p" type="code">
             {payload.schema_name}.{payload.table_name}
           </Text>
         ) : null}
@@ -304,13 +289,13 @@ export function DataCatalogPage(): ReactElement {
   function DetailContent(): ReactElement {
     if (!selectedSchema || !selectedTable) {
       return (
-        <div className="rounded-lg border border-dashed border-gray-600 p-8 text-center text-gray-400">
-          <Text as="p" size="large" className="mb-2 mx-auto max-w-md">
-            Browse the public data
+        <div className="rounded-lg border border-dashed border-gray-600 p-8 text-center">
+          <Text as="p" size="large">
+            Browse the data
           </Text>
-          <Text as="p" className="max-w-md mx-auto">
+          <Text as="p">
             Choose a table on the left to see column definitions and sample
-            rows.
+            rows
           </Text>
         </div>
       );
