@@ -8,11 +8,11 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "http://leda.sao.ru",
+        target: "https://leda.sao.ru",
         changeOrigin: true,
       },
       "/admin": {
-        target: "http://leda.sao.ru",
+        target: "https://leda.sao.ru",
         changeOrigin: true,
       },
     },

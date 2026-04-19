@@ -8,6 +8,8 @@
     "crossmatch.status.collided": "Collided",
     "crossmatch.status.existing": "Existing",
     "crossmatch.triage.pending": "Pending",
-    "crossmatch.triage.resolved": "Resolved"
+    "crossmatch.triage.resolved": "Resolved",
+    "crossmatch.triage.verbose.pending": "Pending manual check",
+    "crossmatch.triage.verbose.resolved": "Resolved"
   }
 }

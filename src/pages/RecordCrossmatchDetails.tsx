@@ -1,4 +1,4 @@
-import { ReactElement, useEffect } from "react";
+import { ReactElement, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { AladinViewer } from "../components/core/Aladin";
 import { Loading } from "../components/core/Loading";
@@ -9,7 +9,10 @@ import {
   Column,
   CellPrimitive,
 } from "../components/ui/CommonTable";
-import { getRecordCrossmatch } from "../clients/admin/sdk.gen";
+import {
+  getRecordCrossmatch,
+  setCrossmatchResults,
+} from "../clients/admin/sdk.gen";
 import {
   GetRecordCrossmatchResponse,
   RecordCrossmatch,
@@ -20,9 +23,12 @@ import { Schema as BackendSchema } from "../clients/backend/types.gen";
 import { getResource } from "../resources/resources";
 import { Link } from "../components/core/Link";
 import { CopyButton } from "../components/ui/CopyButton";
+import { Badge, BadgeType } from "../components/ui/Badge";
 import { Accordion } from "../components/core/Accordion";
 import { useDataFetching } from "../hooks/useDataFetching";
 import { adminClient } from "../clients/config";
+import { Button } from "../components/core/Button";
+import { isLoggedIn } from "../auth/token";
 
 // TODO: remove when admin api uses the same structures as data api
 function convertAdminSchemaToBackendSchema(
@@ -145,6 +151,8 @@ function OriginalData({
 function RecordCrossmatchDetails({
   data,
 }: RecordCrossmatchDetailsProps): ReactElement {
+  const [resolvingPgc, setResolvingPgc] = useState<number | null>(null);
+  const [resolveError, setResolveError] = useState<string | null>(null);
   const {
     crossmatch,
     candidates,
@@ -153,11 +161,51 @@ function RecordCrossmatchDetails({
     original_data: originalData,
   } = data;
   const recordCatalogs = crossmatch.catalogs;
+  const showResolveControls =
+    isLoggedIn() && crossmatch.triage_status === "pending";
   const backendSchema = convertAdminSchemaToBackendSchema(schema);
   const candidateSources = convertCandidatesToAdditionalSources(
     candidates,
     crossmatch,
   );
+  const triageBadgeType: BadgeType =
+    crossmatch.triage_status === "resolved" ? "success" : "warning";
+  const triageBadgeLabel = getResource(
+    `crossmatch.triage.verbose.${crossmatch.triage_status}`,
+  ).Title;
+
+  async function resolveCandidate(pgc: number): Promise<void> {
+    setResolveError(null);
+    setResolvingPgc(pgc);
+    try {
+      const response = await setCrossmatchResults({
+        client: adminClient,
+        body: {
+          statuses: {
+            existing: {
+              record_ids: [crossmatch.record_id],
+              pgcs: [pgc],
+              triage_statuses: ["resolved"],
+            },
+          },
+        },
+      });
+
+      if (response.error || !response.data?.data) {
+        throw new Error(
+          typeof response.error === "object"
+            ? JSON.stringify(response.error)
+            : String(response.error || "Unknown error"),
+        );
+      }
+
+      window.location.reload();
+    } catch (err) {
+      setResolveError(`${err}`);
+    } finally {
+      setResolvingPgc(null);
+    }
+  }
 
   return (
     <div className="space-y-6 rounded-lg">
@@ -172,23 +220,28 @@ function RecordCrossmatchDetails({
           />
         )}
         <div className="flex-1">
-          {crossmatch.catalogs?.designation?.name && (
-            <h2 className="text-2xl font-bold mb-2">
-              {crossmatch.catalogs.designation.name}
-            </h2>
-          )}
-          <p className="flex items-center gap-2 mb-2">
+          <h2 className="text-2xl font-bold mb-2 flex items-center justify-between gap-3">
+            <span className="min-w-0">
+              {crossmatch.catalogs?.designation?.name ??
+                `Record ${crossmatch.record_id}`}
+            </span>
+            <Badge type={triageBadgeType} className="shrink-0">
+              {triageBadgeLabel}
+            </Badge>
+          </h2>
+          <p className="flex items-center gap-2">
             Record ID:{" "}
             <CopyButton textToCopy={crossmatch.record_id}>
               <span className="font-mono">{crossmatch.record_id}</span>
             </CopyButton>
           </p>
-          <p className="mb-2">
+          <p>
             Table: <Link href={`/table/${tableName}`}>{tableName}</Link>
           </p>
           <p>
-            Status:{" "}
-            {getResource(`crossmatch.status.${crossmatch.status}`).Title}
+            {candidates.length === 1
+              ? "1 candidate"
+              : `${candidates.length} candidates`}
           </p>
         </div>
       </div>
@@ -204,15 +257,39 @@ function RecordCrossmatchDetails({
       {candidates.length > 0 && (
         <div className="space-y-6">
           <h2 className="text-xl font-bold">Crossmatch Candidates</h2>
-          {candidates.map((candidate, index) => (
+          {resolveError && (
+            <p className="text-red-400 text-sm" role="alert">
+              {resolveError}
+            </p>
+          )}
+          {candidates.map((candidate) => (
             <Accordion
               key={candidate.pgc}
-              title={`Candidate ${index + 1}: PGC ${candidate.pgc}`}
+              title={`PGC ${candidate.pgc}`}
               defaultOpen
             >
-              <Link
-                href={`/object/${candidate.pgc}`}
-              >{`PGC ${candidate.pgc}`}</Link>
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                <p className="flex items-center gap-2">
+                  <CopyButton
+                    textToCopy={`${crossmatch.record_id},${candidate.pgc}`}
+                  >
+                    <span className="font-mono">
+                      <Link href={`/object/${candidate.pgc}`}>
+                        {`PGC ${candidate.pgc}`}
+                      </Link>
+                    </span>
+                  </CopyButton>
+                </p>
+                {showResolveControls && (
+                  <Button
+                    type="button"
+                    disabled={resolvingPgc !== null}
+                    onClick={() => resolveCandidate(candidate.pgc)}
+                  >
+                    {resolvingPgc === candidate.pgc ? "Resolving…" : "Resolve"}
+                  </Button>
+                )}
+              </div>
               <CatalogData
                 catalogs={candidate.catalogs}
                 schema={backendSchema}

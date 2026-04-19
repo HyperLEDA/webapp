@@ -1,7 +1,26 @@
-import { useEffect, useRef, useState } from "react";
-import { NavLink } from "react-router-dom";
+import {
+  forwardRef,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ButtonHTMLAttributes,
+  type ReactElement,
+  type ReactNode,
+} from "react";
+import { NavLink, useNavigate } from "react-router-dom";
 import { Tooltip } from "flowbite-react";
-import { MdInfo, MdSearch, MdTableChart } from "react-icons/md";
+import {
+  MdInfo,
+  MdLogin,
+  MdLogout,
+  MdOpenInNew,
+  MdSearch,
+  MdTableChart,
+} from "react-icons/md";
+import { clearAuthToken, isLoggedIn } from "../../auth/token";
+import { logoutEnforced } from "../../clients/admin/sdk.gen";
+import { adminClient } from "../../clients/config";
 import { Link } from "../core/Link";
 
 const navItems = [
@@ -9,10 +28,77 @@ const navItems = [
   { to: "/tables", icon: <MdTableChart size={20} />, label: "Tables" },
 ];
 
+function SidebarTooltip({
+  content,
+  children,
+}: {
+  content: ReactNode;
+  children: ReactNode;
+}): ReactElement {
+  return (
+    <Tooltip
+      content={content}
+      placement="right"
+      arrow={false}
+      className="bg-gray-600 z-10 backdrop-blur-sm bg-opacity-99 border-1"
+    >
+      {children}
+    </Tooltip>
+  );
+}
+
+function sidebarRailControlClassName(active: boolean): string {
+  return `w-9 h-9 flex items-center justify-center rounded-lg transition-colors duration-300 cursor-pointer ${
+    active
+      ? "bg-[#646cff] text-white"
+      : "text-neutral-400 hover:bg-neutral-700 hover:text-white"
+  }`;
+}
+
+const SidebarRailButton = forwardRef<
+  HTMLButtonElement,
+  ButtonHTMLAttributes<HTMLButtonElement> & { active?: boolean }
+>(function SidebarRailButton({ active = false, className, ...rest }, ref) {
+  return (
+    <button
+      ref={ref}
+      type="button"
+      className={
+        className
+          ? `${sidebarRailControlClassName(active)} ${className}`
+          : sidebarRailControlClassName(active)
+      }
+      {...rest}
+    />
+  );
+});
+
+const configuredProductionWeb = "https://leda.sao.ru";
+
+function openCurrentPathOnOrigin(productionWebInput: string): void {
+  const { origin } = new URL(productionWebInput);
+  window.location.assign(
+    `${origin}${window.location.pathname}${window.location.search}${window.location.hash}`,
+  );
+}
+
 export function Navbar() {
+  const navigate = useNavigate();
   const [footerOpen, setFooterOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   const infoPanelRef = useRef<HTMLDivElement>(null);
   const infoButtonRef = useRef<HTMLButtonElement>(null);
+
+  const showOpenProductionButton = useMemo(() => {
+    if (!configuredProductionWeb) {
+      return false;
+    }
+    try {
+      return window.location.origin !== new URL(configuredProductionWeb).origin;
+    } catch {
+      return false;
+    }
+  }, []);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -30,45 +116,73 @@ export function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [footerOpen]);
 
+  async function handleLogout(): Promise<void> {
+    setLoggingOut(true);
+    try {
+      await logoutEnforced({
+        client: adminClient,
+        body: {},
+      });
+    } finally {
+      clearAuthToken();
+      navigate("/login");
+      setLoggingOut(false);
+    }
+  }
+
   return (
     <>
       <nav className="fixed left-0 top-0 h-screen w-12 flex flex-col items-center pt-4 pb-4 gap-2 bg-[#1a1a1a] z-20">
         {navItems.map((item) => (
-          <Tooltip
-            key={item.to}
-            content={item.label}
-            placement="right"
-            arrow={false}
-            className="bg-gray-600 z-10 backdrop-blur-sm bg-opacity-99 border-1"
-          >
+          <SidebarTooltip key={item.to} content={item.label}>
             <NavLink
               to={item.to}
               end
               className={({ isActive }) =>
-                `w-9 h-9 flex items-center justify-center rounded-lg transition-colors duration-300 ${
-                  isActive
-                    ? "bg-[#646cff] text-white"
-                    : "text-neutral-400 hover:bg-neutral-700 hover:text-white"
-                }`
+                sidebarRailControlClassName(isActive)
               }
             >
               {item.icon}
             </NavLink>
-          </Tooltip>
+          </SidebarTooltip>
         ))}
 
-        <div className="mt-auto">
-          <button
+        <div className="mt-auto flex flex-col gap-2 items-center">
+          {showOpenProductionButton ? (
+            <SidebarTooltip content="Open this page on production">
+              <SidebarRailButton
+                onClick={() => openCurrentPathOnOrigin(configuredProductionWeb)}
+              >
+                <MdOpenInNew size={20} />
+              </SidebarRailButton>
+            </SidebarTooltip>
+          ) : null}
+          {isLoggedIn() ? (
+            <SidebarTooltip content="Logout">
+              <SidebarRailButton onClick={handleLogout} disabled={loggingOut}>
+                <MdLogout size={20} />
+              </SidebarRailButton>
+            </SidebarTooltip>
+          ) : (
+            <SidebarTooltip content="Login">
+              <NavLink
+                to="/login"
+                end
+                className={({ isActive }) =>
+                  sidebarRailControlClassName(isActive)
+                }
+              >
+                <MdLogin size={20} />
+              </NavLink>
+            </SidebarTooltip>
+          )}
+          <SidebarRailButton
             ref={infoButtonRef}
+            active={footerOpen}
             onClick={() => setFooterOpen(!footerOpen)}
-            className={`w-9 h-9 flex items-center justify-center rounded-lg transition-colors duration-300 cursor-pointer ${
-              footerOpen
-                ? "bg-[#646cff] text-white"
-                : "text-neutral-400 hover:bg-neutral-700 hover:text-white"
-            }`}
           >
             <MdInfo size={20} />
-          </button>
+          </SidebarRailButton>
         </div>
       </nav>
 
