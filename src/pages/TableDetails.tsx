@@ -1,6 +1,7 @@
 import { KeyboardEvent, ReactElement, useEffect, useState } from "react";
 import {
   Bibliography,
+  DataType,
   GetTableResponse,
   RecordCrossmatchStatus,
 } from "../clients/admin/types.gen";
@@ -21,6 +22,25 @@ import { ErrorPage } from "../components/ui/ErrorPage";
 import { useDataFetching } from "../hooks/useDataFetching";
 import { adminClient } from "../clients/config";
 import { isLoggedIn } from "../auth/token";
+
+const DATA_TYPES: DataType[] = [
+  "regular",
+  "reprocessing",
+  "preliminary",
+  "compilation",
+];
+
+function asDataType(value: unknown): DataType {
+  if (
+    value === "regular" ||
+    value === "reprocessing" ||
+    value === "preliminary" ||
+    value === "compilation"
+  ) {
+    return value;
+  }
+  return "regular";
+}
 
 function renderBibliography(bib: Bibliography): ReactElement {
   let authors = "";
@@ -97,9 +117,9 @@ function TableMeta(props: TableMetaProps): ReactElement {
   const [draftDescription, setDraftDescription] = useState(
     props.table.description,
   );
-  const [savingField, setSavingField] = useState<"name" | "description" | null>(
-    null,
-  );
+  const [savingField, setSavingField] = useState<
+    "name" | "description" | "datatype" | null
+  >(null);
   const [patchError, setPatchError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -206,7 +226,50 @@ function TableMeta(props: TableMetaProps): ReactElement {
     }
   }
 
+  async function commitDatatype(next: DataType): Promise<void> {
+    const current = asDataType(props.table.meta.datatype);
+    if (next === current) {
+      return;
+    }
+    setPatchError(null);
+    setSavingField("datatype");
+    try {
+      const response = await patchTable({
+        client: adminClient,
+        body: {
+          table_name: props.tableName,
+          datatype: next,
+        },
+      });
+      if (response.error) {
+        throw new Error(JSON.stringify(response.error));
+      }
+      props.onAfterPatch();
+    } catch (err) {
+      setPatchError(`${err}`);
+    } finally {
+      setSavingField(null);
+    }
+  }
+
   const columns = [{ name: "Parameter" }, { name: "Value" }];
+
+  const datatypeValue: CellPrimitive = canEdit ? (
+    <select
+      value={asDataType(props.table.meta.datatype)}
+      onChange={(event) => void commitDatatype(event.target.value as DataType)}
+      disabled={savingField !== null}
+      className="bg-transparent border border-gray-500 rounded px-2 py-1 text-gray-200 max-w-xs"
+    >
+      {DATA_TYPES.map((option) => (
+        <option key={option} value={option} className="bg-gray-800">
+          {option.charAt(0).toUpperCase() + option.slice(1)}
+        </option>
+      ))}
+    </select>
+  ) : (
+    String(props.table.meta.datatype)
+  );
 
   const values: Record<string, CellPrimitive>[] = [
     {
@@ -223,7 +286,7 @@ function TableMeta(props: TableMetaProps): ReactElement {
     },
     {
       Parameter: "Type of data",
-      Value: String(props.table.meta.datatype),
+      Value: datatypeValue,
     },
     {
       Parameter: "Modification time",
