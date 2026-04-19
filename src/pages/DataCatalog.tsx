@@ -93,7 +93,7 @@ function SchemaSidebar({
   onSelect,
 }: SchemaSidebarProps): ReactElement {
   return (
-    <div className="max-h-[min(70vh,720px)] overflow-y-auto flex flex-col gap-2 pr-0.5">
+    <div className="flex flex-col gap-2 pr-0.5">
       {schemas.map((schema) => (
         <Accordion
           key={`${schema.schema_name}-${selectedSchema === schema.schema_name ? "open" : "closed"}`}
@@ -321,18 +321,22 @@ export function DataCatalogPage(): ReactElement {
   }
 
   return (
-    <div className="max-w-[1400px] mx-auto">
-      <div className="flex flex-col lg:flex-row gap-6 items-start">
-        <div className="w-full lg:w-[min(100%,380px)] lg:flex-shrink-0 flex flex-col gap-4">
-          <TextFilter
-            title="Filter tables"
-            value={filter}
-            onChange={setFilter}
-            placeholder="Schema, table name, or description"
-          />
-          <SidebarContent />
+    <div className="max-w-[1400px] mx-auto flex flex-col lg:h-[calc(100dvh-4rem)] lg:min-h-0">
+      <div className="flex flex-col lg:flex-row gap-6 lg:flex-1 lg:min-h-0 lg:items-stretch lg:overflow-hidden">
+        <div className="w-full lg:w-[min(100%,380px)] lg:flex-shrink-0 flex flex-col gap-4 lg:min-h-0 lg:h-full lg:max-h-full">
+          <div className="shrink-0">
+            <TextFilter
+              title="Filter tables"
+              value={filter}
+              onChange={setFilter}
+              placeholder="Schema, table name, or description"
+            />
+          </div>
+          <div className="lg:flex-1 lg:min-h-0 lg:overflow-y-auto pr-0.5">
+            <SidebarContent />
+          </div>
         </div>
-        <div className="flex-grow min-w-0 w-full">
+        <div className="flex-grow min-w-0 w-full lg:min-h-0 lg:h-full lg:overflow-y-auto">
           <DetailContent />
         </div>
       </div>

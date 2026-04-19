@@ -18,6 +18,7 @@ import { ErrorPage } from "../components/ui/ErrorPage";
 import { useDataFetching } from "../hooks/useDataFetching";
 import { Pagination } from "../components/ui/Pagination";
 import { adminClient } from "../clients/config";
+import { Link } from "../components/core/Link";
 
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -102,7 +103,7 @@ function TablesResults({ data, loading }: TablesResultsProps): ReactElement {
       name: "Name",
       renderCell: (value: CellPrimitive) => {
         if (typeof value === "string") {
-          return <span className="font-mono">{value}</span>;
+          return <Link href={`/table/${value}`}>{value}</Link>;
         }
         return <span>—</span>;
       },
