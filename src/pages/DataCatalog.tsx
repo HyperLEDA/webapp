@@ -98,19 +98,21 @@ function SchemaSidebar({
         <Accordion
           key={`${schema.schema_name}-${selectedSchema === schema.schema_name ? "open" : "closed"}`}
           title={
-            <span className="font-mono text-sm text-white">
-              {schema.schema_name}
+            <span className="flex flex-col items-start gap-0.5 text-left">
+              <span className="text-sm text-white font-medium leading-snug">
+                {schema.description ?? schema.schema_name}
+              </span>
+              {schema.description ? (
+                <span className="font-mono text-xs text-gray-400 leading-snug">
+                  {schema.schema_name}
+                </span>
+              ) : null}
             </span>
           }
-          titleClassName="text-left"
+          titleClassName="text-left w-full"
           defaultOpen={selectedSchema === schema.schema_name}
           className="bg-neutral-900/40 border-gray-600"
         >
-          {schema.description ? (
-            <p className="text-xs text-gray-400 mb-2 leading-snug">
-              {schema.description}
-            </p>
-          ) : null}
           <ul className="border-t border-gray-700 pt-2 -mx-1">
             {schema.tables.map((t) => {
               const active =
@@ -128,10 +130,12 @@ function SchemaSidebar({
                         : "border-transparent text-gray-300 hover:bg-neutral-800 hover:text-white",
                     )}
                   >
-                    <span className="font-mono block">{t.table_name}</span>
+                    <span className="block text-sm text-white font-medium leading-snug">
+                      {t.description ?? t.table_name}
+                    </span>
                     {t.description ? (
-                      <span className="text-xs text-gray-500 block mt-0.5 leading-snug">
-                        {t.description}
+                      <span className="font-mono text-xs text-gray-500 block mt-0.5 leading-snug">
+                        {t.table_name}
                       </span>
                     ) : null}
                   </button>
@@ -187,12 +191,16 @@ function TablePreview({ payload }: TablePreviewProps): ReactElement {
     <div className="space-y-8">
       <div>
         <div className="mb-6">
-          <h3 className="text-2xl font-semibold text-white font-mono tracking-tight">
-            {payload.schema_name}.{payload.table_name}
+          <h3 className="text-2xl font-semibold text-white leading-snug max-w-3xl">
+            {payload.description ?? (
+              <span className="font-mono tracking-tight">
+                {payload.schema_name}.{payload.table_name}
+              </span>
+            )}
           </h3>
           {payload.description ? (
-            <p className="text-gray-400 text-sm leading-relaxed mt-2 max-w-3xl">
-              {payload.description}
+            <p className="text-gray-400 text-sm font-mono leading-relaxed mt-2">
+              {payload.schema_name}.{payload.table_name}
             </p>
           ) : null}
         </div>
@@ -283,14 +291,10 @@ export function DataCatalogPage(): ReactElement {
     if (!selectedSchema || !selectedTable) {
       return (
         <div className="rounded-lg border border-dashed border-gray-600 p-8 text-center text-gray-400">
-          <p className="text-lg text-gray-300 mb-2">
-            Browse the public data API
-          </p>
+          <p className="text-lg text-gray-300 mb-2">Browse the public data</p>
           <p className="text-sm leading-relaxed max-w-md mx-auto">
-            This catalog mirrors{" "}
-            <code className="text-gray-300">GET /api/v1/schema</code> and{" "}
-            <code className="text-gray-300">GET /api/v1/table</code>. Choose a
-            table on the left to see column definitions and sample rows.
+            Choose a table on the left to see column definitions and sample
+            rows.
           </p>
         </div>
       );
@@ -318,23 +322,14 @@ export function DataCatalogPage(): ReactElement {
 
   return (
     <div className="max-w-[1400px] mx-auto">
-      <h2 className="text-3xl font-bold mb-2">Data catalog</h2>
-      <p className="text-gray-400 mb-6 text-sm">
-        Schemas and tables exposed by the HyperLEDA data API, with a live
-        preview of each table&apos;s structure and sample data.
-      </p>
-
-      <div className="mb-4 max-w-md">
-        <TextFilter
-          title="Filter tables"
-          value={filter}
-          onChange={setFilter}
-          placeholder="Schema, table name, or description"
-        />
-      </div>
-
       <div className="flex flex-col lg:flex-row gap-6 items-start">
-        <div className="w-full lg:w-[min(100%,380px)] lg:flex-shrink-0">
+        <div className="w-full lg:w-[min(100%,380px)] lg:flex-shrink-0 flex flex-col gap-4">
+          <TextFilter
+            title="Filter tables"
+            value={filter}
+            onChange={setFilter}
+            placeholder="Schema, table name, or description"
+          />
           <SidebarContent />
         </div>
         <div className="flex-grow min-w-0 w-full">
