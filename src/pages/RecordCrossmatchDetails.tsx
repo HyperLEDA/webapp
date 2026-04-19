@@ -270,15 +270,11 @@ function RecordCrossmatchDetails({
             >
               <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                 <p className="flex items-center gap-2">
-                  <CopyButton
-                    textToCopy={`${crossmatch.record_id},${candidate.pgc}`}
-                  >
-                    <span className="font-mono">
-                      <Link href={`/object/${candidate.pgc}`}>
-                        {`PGC ${candidate.pgc}`}
-                      </Link>
-                    </span>
-                  </CopyButton>
+                  <span className="font-mono">
+                    <Link href={`/object/${candidate.pgc}`}>
+                      {`PGC ${candidate.pgc}`}
+                    </Link>
+                  </span>
                 </p>
                 {showResolveControls && (
                   <Button
