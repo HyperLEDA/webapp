@@ -1,9 +1,10 @@
 import { KeyboardEvent, ReactElement, useEffect, useState } from "react";
 import {
   Bibliography,
+  CrossmatchTriageStatus,
   DataType,
   GetTableResponse,
-  RecordCrossmatchStatus,
+  TableCrossmatchResultStatus,
 } from "../clients/admin/types.gen";
 import { getTable, patchTable } from "../clients/admin/sdk.gen";
 import { useNavigate, useParams } from "react-router-dom";
@@ -15,7 +16,7 @@ import {
 } from "../components/ui/CommonTable";
 import { Button } from "../components/core/Button";
 import { CopyButton } from "../components/ui/CopyButton";
-import { Badge } from "../components/ui/Badge";
+import { Badge, BadgeType } from "../components/ui/Badge";
 import { Link } from "../components/core/Link";
 import { Loading } from "../components/core/Loading";
 import { ErrorPage } from "../components/ui/ErrorPage";
@@ -374,28 +375,44 @@ function CrossmatchStats(props: CrossmatchStatsProps): ReactElement {
 
   const values: Record<string, CellPrimitive>[] = [];
 
-  if (props.table.statistics) {
-    const statusLabels: Record<RecordCrossmatchStatus, string> = {
-      unprocessed: "Unprocessed",
-      new: "New",
-      collided: "Collided",
-      existing: "Existing",
-    };
-
-    Object.entries(props.table.statistics).forEach(([status, count]) => {
-      values.push({
-        Status: statusLabels[status as RecordCrossmatchStatus] || status,
-        Count: count || 0,
-      });
-    });
-  }
-
-  if (values.length === 0) {
+  if (!props.table.crossmatch) {
     return <div></div>;
   }
 
+  const triageLabels: Record<CrossmatchTriageStatus, string> = {
+    unprocessed: "Unprocessed",
+    pending: "Pending",
+    resolved: "Resolved",
+  };
+  const resultLabels: Record<TableCrossmatchResultStatus, string> = {
+    not_started: "Not started",
+    in_progress: "In progress",
+    done: "Done",
+  };
+  const resultBadgeTypes: Record<TableCrossmatchResultStatus, BadgeType> = {
+    not_started: "info",
+    in_progress: "warning",
+    done: "success",
+  };
+  const triageOrder: CrossmatchTriageStatus[] = [
+    "unprocessed",
+    "pending",
+    "resolved",
+  ];
+
+  triageOrder.forEach((status) => {
+    const count = props.table.crossmatch.statuses[status] ?? 0;
+    if (count <= 0) {
+      return;
+    }
+    values.push({
+      Status: triageLabels[status],
+      Count: count,
+    });
+  });
+
   function handleViewCrossmatchResults(event: React.MouseEvent): void {
-    const url = `/crossmatch?table_name=${encodeURIComponent(props.tableName)}&status=collided`;
+    const url = `/crossmatch?table_name=${encodeURIComponent(props.tableName)}&triage_status=pending`;
 
     if (event.ctrlKey || event.metaKey) {
       window.open(url, "_blank");
@@ -407,7 +424,12 @@ function CrossmatchStats(props: CrossmatchStatsProps): ReactElement {
   return (
     <CommonTable columns={columns} data={values} className="pb-5">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Crossmatch Statistics</h2>
+        <div className="flex items-center gap-2">
+          <h2 className="text-2xl font-bold">Crossmatch</h2>
+          <Badge type={resultBadgeTypes[props.table.crossmatch.result]}>
+            {resultLabels[props.table.crossmatch.result]}
+          </Badge>
+        </div>
         <Button onClick={handleViewCrossmatchResults}>
           View crossmatch results
         </Button>
