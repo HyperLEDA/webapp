@@ -123,6 +123,34 @@ function TableMeta(props: TableMetaProps): ReactElement {
   >(null);
   const [patchError, setPatchError] = useState<string | null>(null);
 
+  async function runTablePatch(
+    field: "name" | "description" | "datatype",
+    body: {
+      table_name: string;
+      new_table_name?: string;
+      description?: string;
+      datatype?: DataType;
+    },
+    onSuccess: () => void,
+  ): Promise<void> {
+    setPatchError(null);
+    setSavingField(field);
+    try {
+      const response = await patchTable({
+        client: adminClient,
+        body,
+      });
+      if (response.error) {
+        throw new Error(JSON.stringify(response.error));
+      }
+      onSuccess();
+    } catch (err) {
+      setPatchError(`${err}`);
+    } finally {
+      setSavingField(null);
+    }
+  }
+
   useEffect(() => {
     if (!editingName) {
       setDraftName(props.tableName);
@@ -148,26 +176,17 @@ function TableMeta(props: TableMetaProps): ReactElement {
       setPatchError(null);
       return;
     }
-    setPatchError(null);
-    setSavingField("name");
-    try {
-      const response = await patchTable({
-        client: adminClient,
-        body: {
-          table_name: props.tableName,
-          new_table_name: trimmed,
-        },
-      });
-      if (response.error) {
-        throw new Error(JSON.stringify(response.error));
-      }
+    await runTablePatch(
+      "name",
+      {
+        table_name: props.tableName,
+        new_table_name: trimmed,
+      },
+      () => {
       setEditingName(false);
       navigate(`/table/${encodeURIComponent(trimmed)}`);
-    } catch (err) {
-      setPatchError(`${err}`);
-    } finally {
-      setSavingField(null);
-    }
+      },
+    );
   }
 
   async function commitDescription(): Promise<void> {
@@ -177,26 +196,17 @@ function TableMeta(props: TableMetaProps): ReactElement {
       setPatchError(null);
       return;
     }
-    setPatchError(null);
-    setSavingField("description");
-    try {
-      const response = await patchTable({
-        client: adminClient,
-        body: {
-          table_name: props.tableName,
-          description: trimmed,
-        },
-      });
-      if (response.error) {
-        throw new Error(JSON.stringify(response.error));
-      }
+    await runTablePatch(
+      "description",
+      {
+        table_name: props.tableName,
+        description: trimmed,
+      },
+      () => {
       setEditingDescription(false);
       props.onAfterPatch();
-    } catch (err) {
-      setPatchError(`${err}`);
-    } finally {
-      setSavingField(null);
-    }
+      },
+    );
   }
 
   function handleNameKeyDown(event: KeyboardEvent<HTMLInputElement>): void {
@@ -232,25 +242,14 @@ function TableMeta(props: TableMetaProps): ReactElement {
     if (next === current) {
       return;
     }
-    setPatchError(null);
-    setSavingField("datatype");
-    try {
-      const response = await patchTable({
-        client: adminClient,
-        body: {
-          table_name: props.tableName,
-          datatype: next,
-        },
-      });
-      if (response.error) {
-        throw new Error(JSON.stringify(response.error));
-      }
-      props.onAfterPatch();
-    } catch (err) {
-      setPatchError(`${err}`);
-    } finally {
-      setSavingField(null);
-    }
+    await runTablePatch(
+      "datatype",
+      {
+        table_name: props.tableName,
+        datatype: next,
+      },
+      () => props.onAfterPatch(),
+    );
   }
 
   const columns = [{ name: "Parameter" }, { name: "Value" }];
