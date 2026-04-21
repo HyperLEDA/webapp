@@ -12,7 +12,6 @@ import { getCrossmatchRecords } from "../clients/admin/sdk.gen";
 import type {
   GetRecordsCrossmatchResponse,
   RecordCrossmatch,
-  RecordCrossmatchStatus,
   RecordTriageStatus,
   ValidationError,
 } from "../clients/admin/types.gen";
@@ -27,12 +26,10 @@ import { adminClient } from "../clients/config";
 
 interface CrossmatchFiltersProps {
   tableName: string | null;
-  status: RecordCrossmatchStatus | null;
   triageStatus: string | null;
   pageSize: number;
   onApplyFilters: (
     tableName: string,
-    status: string,
     triageStatus: string,
     pageSize: number,
   ) => void;
@@ -40,12 +37,10 @@ interface CrossmatchFiltersProps {
 
 function CrossmatchFilters({
   tableName,
-  status,
   triageStatus,
   pageSize,
   onApplyFilters,
 }: CrossmatchFiltersProps): ReactElement {
-  const [localStatus, setLocalStatus] = useState<string>(status || "all");
   const [localTriageStatus, setLocalTriageStatus] = useState<string>(
     triageStatus ?? "pending",
   );
@@ -53,19 +48,13 @@ function CrossmatchFilters({
   const [localTableName, setLocalTableName] = useState<string>(tableName || "");
 
   useEffect(() => {
-    setLocalStatus(status || "all");
     setLocalTriageStatus(triageStatus ?? "pending");
     setLocalPageSize(pageSize);
     setLocalTableName(tableName || "");
-  }, [status, triageStatus, pageSize, tableName]);
+  }, [triageStatus, pageSize, tableName]);
 
   function applyFilters(): void {
-    onApplyFilters(
-      localTableName,
-      localStatus,
-      localTriageStatus,
-      localPageSize,
-    );
+    onApplyFilters(localTableName, localTriageStatus, localPageSize);
   }
 
   return (
@@ -78,18 +67,6 @@ function CrossmatchFilters({
         onEnter={applyFilters}
       />
       <Link href={`/table/${localTableName.trim()}`} external />
-      <DropdownFilter
-        title="Status"
-        options={[
-          { value: "all", label: "All Statuses" },
-          { value: "unprocessed", label: "Unprocessed" },
-          { value: "new", label: "New" },
-          { value: "collided", label: "Collided" },
-          { value: "existing", label: "Existing" },
-        ]}
-        value={localStatus}
-        onChange={setLocalStatus}
-      />
       <DropdownFilter
         title="Manual check status"
         options={[
@@ -134,7 +111,8 @@ function CrossmatchResults({
   function getRecordName(record: RecordCrossmatch): ReactElement {
     const displayName = record.catalogs.designation?.name || record.record_id;
     const triageStatusLabel = getTriageStatusLabel(record.triage_status);
-    const triageBadgeType = record.triage_status === "resolved" ? "success" : "warning";
+    const triageBadgeType =
+      record.triage_status === "resolved" ? "success" : "warning";
 
     return (
       <div className="flex items-center gap-2">
@@ -198,7 +176,6 @@ function CrossmatchResults({
 
 async function fetcher(
   tableName: string | null,
-  status: RecordCrossmatchStatus | null,
   triageStatus: RecordTriageStatus | null,
   page: number,
   pageSize: number,
@@ -211,7 +188,6 @@ async function fetcher(
     client: adminClient,
     query: {
       table_name: tableName,
-      status: status,
       triage_status: triageStatus,
       page: page,
       page_size: pageSize,
@@ -237,7 +213,6 @@ export function CrossmatchResultsPage(): ReactElement {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const tableName = searchParams.get("table_name");
-  const status = searchParams.get("status") as RecordCrossmatchStatus | null;
   const triageStatusParam = searchParams.get("triage_status");
   const apiTriageStatus: RecordTriageStatus | null =
     triageStatusParam === null || triageStatusParam === ""
@@ -253,8 +228,8 @@ export function CrossmatchResultsPage(): ReactElement {
   }, [tableName]);
 
   const { data, loading, error } = useDataFetching(
-    () => fetcher(tableName, status, apiTriageStatus, page, pageSize),
-    [tableName, status, apiTriageStatus, page, pageSize],
+    () => fetcher(tableName, apiTriageStatus, page, pageSize),
+    [tableName, apiTriageStatus, page, pageSize],
   );
 
   function handlePageChange(newPage: number): void {
@@ -265,7 +240,6 @@ export function CrossmatchResultsPage(): ReactElement {
 
   function handleApplyFilters(
     newTableName: string,
-    newStatus: string,
     newTriageStatus: string,
     newPageSize: number,
   ): void {
@@ -275,12 +249,6 @@ export function CrossmatchResultsPage(): ReactElement {
       newSearchParams.set("table_name", newTableName.trim());
     } else {
       newSearchParams.delete("table_name");
-    }
-
-    if (newStatus === "all") {
-      newSearchParams.delete("status");
-    } else {
-      newSearchParams.set("status", newStatus);
     }
 
     if (newTriageStatus === "all") {
@@ -318,7 +286,6 @@ export function CrossmatchResultsPage(): ReactElement {
       <h2 className="text-3xl font-bold mb-4">Crossmatch results</h2>
       <CrossmatchFilters
         tableName={tableName}
-        status={status}
         triageStatus={triageStatusParam}
         pageSize={pageSize}
         onApplyFilters={handleApplyFilters}
