@@ -156,10 +156,6 @@ function CrossmatchResults({
     );
   }
 
-  function getStatusLabel(status: RecordCrossmatchStatus): string {
-    return getResource(`crossmatch.status.${status}`).Title;
-  }
-
   function getTriageStatusLabel(triageStatus: RecordTriageStatus): string {
     return getResource(`crossmatch.triage.${triageStatus}`).Title;
   }
@@ -174,7 +170,6 @@ function CrossmatchResults({
         return <span>NULL</span>;
       },
     },
-    { name: "Status" },
     { name: "Manual check status" },
     {
       name: "Candidates",
@@ -190,7 +185,6 @@ function CrossmatchResults({
   const tableData: Record<string, CellPrimitive>[] =
     data?.records.map((record: RecordCrossmatch, index: number) => ({
       "Record name": index,
-      Status: getStatusLabel(record.status),
       "Manual check status": getTriageStatusLabel(record.triage_status),
       Candidates: index,
     })) || [];
