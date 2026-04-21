@@ -183,8 +183,8 @@ function TableMeta(props: TableMetaProps): ReactElement {
         new_table_name: trimmed,
       },
       () => {
-      setEditingName(false);
-      navigate(`/table/${encodeURIComponent(trimmed)}`);
+        setEditingName(false);
+        navigate(`/table/${encodeURIComponent(trimmed)}`);
       },
     );
   }
@@ -203,8 +203,8 @@ function TableMeta(props: TableMetaProps): ReactElement {
         description: trimmed,
       },
       () => {
-      setEditingDescription(false);
-      props.onAfterPatch();
+        setEditingDescription(false);
+        props.onAfterPatch();
       },
     );
   }
