@@ -127,12 +127,22 @@ function CrossmatchResults({
   data,
   loading,
 }: CrossmatchResultsProps): ReactElement {
+  function getTriageStatusLabel(triageStatus: RecordTriageStatus): string {
+    return getResource(`crossmatch.triage.${triageStatus}`).Title;
+  }
+
   function getRecordName(record: RecordCrossmatch): ReactElement {
     const displayName = record.catalogs.designation?.name || record.record_id;
+    const triageStatusLabel = getTriageStatusLabel(record.triage_status);
+    const triageBadgeType = record.triage_status === "resolved" ? "success" : "warning";
+
     return (
-      <Link href={`/records/${record.record_id}/crossmatch`}>
-        {displayName}
-      </Link>
+      <div className="flex items-center gap-2">
+        <Link href={`/records/${record.record_id}/crossmatch`}>
+          {displayName}
+        </Link>
+        <Badge type={triageBadgeType}>{triageStatusLabel}</Badge>
+      </div>
     );
   }
 
@@ -156,10 +166,6 @@ function CrossmatchResults({
     );
   }
 
-  function getTriageStatusLabel(triageStatus: RecordTriageStatus): string {
-    return getResource(`crossmatch.triage.${triageStatus}`).Title;
-  }
-
   const columns: Column[] = [
     {
       name: "Record name",
@@ -170,7 +176,6 @@ function CrossmatchResults({
         return <span>NULL</span>;
       },
     },
-    { name: "Manual check status" },
     {
       name: "Candidates",
       renderCell: (recordIndex: CellPrimitive) => {
@@ -183,9 +188,8 @@ function CrossmatchResults({
   ];
 
   const tableData: Record<string, CellPrimitive>[] =
-    data?.records.map((record: RecordCrossmatch, index: number) => ({
+    data?.records.map((_: RecordCrossmatch, index: number) => ({
       "Record name": index,
-      "Manual check status": getTriageStatusLabel(record.triage_status),
       Candidates: index,
     })) || [];
 
