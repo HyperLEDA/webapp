@@ -103,11 +103,14 @@ export function AladinViewer({
   additionalSources,
 }: AladinViewerProps) {
   const aladinDivRef = useRef<HTMLDivElement>(null);
+  const additionalSourcesKey = JSON.stringify(additionalSources ?? []);
 
   useEffect(() => {
     if (!aladinDivRef.current || !window.A) return;
 
     try {
+      aladinDivRef.current.replaceChildren();
+
       const aladin = window.A.aladin(aladinDivRef.current, {
         survey,
         fov,
@@ -152,7 +155,7 @@ export function AladinViewer({
     } catch (error) {
       console.error("Error initializing Aladin:", error);
     }
-  }, [ra, dec, fov, survey, additionalSources]);
+  }, [ra, dec, fov, survey, additionalSourcesKey]);
 
   return <div ref={aladinDivRef} className={classNames("border", className)} />;
 }
