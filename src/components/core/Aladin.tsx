@@ -1,6 +1,83 @@
 import classNames from "classnames";
 import { useEffect, useRef } from "react";
 
+const SOURCE_SIZE = 8;
+const LABEL_FONT = "14px sans-serif";
+const LABEL_PADDING_X = 4;
+const LABEL_PADDING_Y = 2;
+
+function drawCross(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  size: number,
+  color: string,
+): void {
+  const half = size / 2;
+  const left = x - half;
+  const top = y - half;
+
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(left, top);
+  ctx.lineTo(left + size - 1, top + size - 1);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(left + size - 1, top);
+  ctx.lineTo(left, top + size - 1);
+  ctx.stroke();
+}
+
+function drawLabelWithBackground(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+): void {
+  ctx.font = LABEL_FONT;
+  const metrics = ctx.measureText(text);
+  const ascent = metrics.actualBoundingBoxAscent || 11;
+  const descent = metrics.actualBoundingBoxDescent || 3;
+  const textWidth = metrics.width;
+  const textHeight = ascent + descent;
+
+  const bgX = x;
+  const bgY = y - ascent - LABEL_PADDING_Y;
+  const bgWidth = textWidth + LABEL_PADDING_X * 2;
+  const bgHeight = textHeight + LABEL_PADDING_Y * 2;
+
+  ctx.fillStyle = "rgba(255, 255, 255, 0.88)";
+  ctx.fillRect(bgX, bgY, bgWidth, bgHeight);
+
+  ctx.strokeStyle = "rgba(0, 0, 0, 0.25)";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(bgX + 0.5, bgY + 0.5, bgWidth - 1, bgHeight - 1);
+
+  ctx.fillStyle = "#1a1a1a";
+  ctx.fillText(text, x + LABEL_PADDING_X, y);
+}
+
+type AladinCanvasSource = {
+  x: number;
+  y: number;
+  data?: { name?: string };
+};
+
+function drawSourceWithLabel(
+  source: AladinCanvasSource,
+  ctx: CanvasRenderingContext2D,
+): void {
+  drawCross(ctx, source.x, source.y, SOURCE_SIZE, "black");
+
+  const label = source.data?.name;
+  if (!label) {
+    return;
+  }
+
+  drawLabelWithBackground(ctx, label, source.x + SOURCE_SIZE / 2, source.y);
+}
+
 interface AdditionalSource {
   ra: number;
   dec: number;
@@ -26,11 +103,14 @@ export function AladinViewer({
   additionalSources,
 }: AladinViewerProps) {
   const aladinDivRef = useRef<HTMLDivElement>(null);
+  const additionalSourcesKey = JSON.stringify(additionalSources ?? []);
 
   useEffect(() => {
     if (!aladinDivRef.current || !window.A) return;
 
     try {
+      aladinDivRef.current.replaceChildren();
+
       const aladin = window.A.aladin(aladinDivRef.current, {
         survey,
         fov,
@@ -45,12 +125,10 @@ export function AladinViewer({
 
       if (additionalSources && additionalSources.length > 0) {
         const nameCatalog = window.A.catalog({
-          labelColumn: "name",
-          shape: "cross",
+          shape: drawSourceWithLabel,
           color: "black",
-          displayLabel: true,
-          labelColor: "lightgrey",
-          labelFont: "14px sans-serif",
+          displayLabel: false,
+          sourceSize: SOURCE_SIZE,
         });
         const descrCatalog = window.A.catalog({
           color: "black",
@@ -77,7 +155,7 @@ export function AladinViewer({
     } catch (error) {
       console.error("Error initializing Aladin:", error);
     }
-  }, [ra, dec, fov, survey, additionalSources]);
+  }, [ra, dec, fov, survey, additionalSourcesKey]);
 
   return <div ref={aladinDivRef} className={classNames("border", className)} />;
 }
@@ -112,12 +190,14 @@ declare global {
         addCatalog: (catalog: AladinCatalog) => void;
       };
       catalog: (options?: {
-        labelColumn?: string;
         displayLabel?: boolean;
-        labelColor?: string;
-        labelFont?: string;
         sourceSize?: number;
-        shape?: string;
+        shape?:
+          | string
+          | ((
+              source: AladinCanvasSource,
+              ctx: CanvasRenderingContext2D,
+            ) => void);
         color?: string;
       }) => AladinCatalog;
       source: (

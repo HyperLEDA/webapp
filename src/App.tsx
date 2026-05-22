@@ -47,12 +47,7 @@ function App() {
           <Route path="/crossmatch" element={<CrossmatchResultsPage />} />
           <Route
             path="/records/:recordId/crossmatch"
-            element={
-              <>
-                <SearchBar />
-                <RecordCrossmatchDetailsPage />
-              </>
-            }
+            element={<RecordCrossmatchDetailsPage />}
           />
           <Route
             path="*"
