@@ -232,7 +232,7 @@ function ResolutionSelector({
 
   if (!showResolveControls) {
     return (
-      <div className="space-y-4 max-w-2xl">
+      <div className="space-y-4">
         {candidates.length > 0 && (
           <div className="space-y-3">
             <h3 className="text-sm font-semibold">Candidates</h3>
@@ -262,7 +262,7 @@ function ResolutionSelector({
   }
 
   return (
-    <div className="space-y-4 max-w-2xl">
+    <div className="space-y-4">
       <div className="space-y-3">
         <h3 className="text-sm font-semibold">Resolution</h3>
         <label
