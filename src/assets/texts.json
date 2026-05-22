@@ -10,6 +10,8 @@
     "crossmatch.triage.pending": "Pending",
     "crossmatch.triage.resolved": "Resolved",
     "crossmatch.triage.verbose.pending": "Pending manual check",
-    "crossmatch.triage.verbose.resolved": "Resolved"
+    "crossmatch.triage.verbose.resolved": "Resolved",
+    "crossmatch.action.mark_new": "Mark as new",
+    "crossmatch.action.resolve": "Match to this PGC"
   }
 }
