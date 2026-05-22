@@ -142,50 +142,79 @@ function ObjectSummary({
   catalogs,
   schema,
   name,
+  layout = "rows",
 }: {
   catalogs: Catalogs;
   schema: BackendSchema;
   name: ReactNode;
+  layout?: "rows" | "columnar";
 }): ReactElement {
   const equatorial = catalogs?.coordinates?.equatorial;
   const redshift = catalogs?.redshift;
 
-  return (
-    <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
+  const nameField = (
+    <>
       <dt className="text-gray-400">Name</dt>
       <dd>{name}</dd>
-      {equatorial && (
-        <>
-          <dt className="text-gray-400">RA</dt>
-          <dd>
-            <QuantityWithError
-              error={equatorial.e_ra}
-              unit={schema.units.coordinates?.equatorial?.ra || "deg"}
-            >
-              <RightAscension value={equatorial.ra} />
-            </QuantityWithError>
-          </dd>
-          <dt className="text-gray-400">Dec</dt>
-          <dd>
-            <QuantityWithError
-              error={equatorial.e_dec}
-              unit={schema.units.coordinates?.equatorial?.dec || "deg"}
-            >
-              <Declination value={equatorial.dec} />
-            </QuantityWithError>
-          </dd>
-        </>
-      )}
-      {redshift && (
-        <>
-          <dt className="text-gray-400">Redshift</dt>
-          <dd>
-            <QuantityWithError error={redshift.e_z} decimalPlaces={5}>
-              {redshift.z.toFixed(5)}
-            </QuantityWithError>
-          </dd>
-        </>
-      )}
+    </>
+  );
+
+  const raField = equatorial ? (
+    <>
+      <dt className="text-gray-400">RA</dt>
+      <dd>
+        <QuantityWithError
+          error={equatorial.e_ra}
+          unit={schema.units.coordinates?.equatorial?.ra || "deg"}
+        >
+          <RightAscension value={equatorial.ra} />
+        </QuantityWithError>
+      </dd>
+    </>
+  ) : null;
+
+  const decField = equatorial ? (
+    <>
+      <dt className="text-gray-400">Dec</dt>
+      <dd>
+        <QuantityWithError
+          error={equatorial.e_dec}
+          unit={schema.units.coordinates?.equatorial?.dec || "deg"}
+        >
+          <Declination value={equatorial.dec} />
+        </QuantityWithError>
+      </dd>
+    </>
+  ) : null;
+
+  const redshiftField = redshift ? (
+    <>
+      <dt className="text-gray-400">Redshift</dt>
+      <dd>
+        <QuantityWithError error={redshift.e_z} decimalPlaces={5}>
+          {redshift.z.toFixed(5)}
+        </QuantityWithError>
+      </dd>
+    </>
+  ) : null;
+
+  if (layout === "columnar") {
+    return (
+      <dl className="flex flex-wrap items-start gap-x-6 gap-y-1 text-sm">
+        <div className="min-w-0">{nameField}</div>
+        {raField && <div className="min-w-0">{raField}</div>}
+        {decField && <div className="min-w-0">{decField}</div>}
+        {redshiftField && <div className="min-w-0">{redshiftField}</div>}
+      </dl>
+    );
+  }
+
+  return (
+    <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
+      {nameField}
+      {raField}
+      {decField}
+      {redshiftField}
     </dl>
   );
 }
@@ -221,6 +250,7 @@ function ResolutionSelector({
       <ObjectSummary
         catalogs={candidate.catalogs}
         schema={schema}
+        layout="columnar"
         name={
           <Link href={`/object/${candidate.pgc}`}>
             {getCandidateLabel(candidate)}
@@ -240,7 +270,7 @@ function ResolutionSelector({
               <div
                 key={candidate.pgc}
                 className={classNames(
-                  "rounded-lg border p-4",
+                  "rounded-lg border px-4 py-2",
                   matchedPgc === candidate.pgc
                     ? "border-[#646cff] bg-neutral-900/60"
                     : "border-gray-600 bg-neutral-900/40",
@@ -293,18 +323,18 @@ function ResolutionSelector({
           <label
             key={candidate.pgc}
             className={classNames(
-              "block rounded-lg border p-4 cursor-pointer transition-colors",
+              "block rounded-lg border px-4 py-2 cursor-pointer transition-colors",
               selected === candidate.pgc
                 ? "border-[#646cff] bg-neutral-900/60"
                 : "border-gray-600 bg-neutral-900/40 hover:border-gray-500",
               resolving !== null && "opacity-50 cursor-wait",
             )}
           >
-            <div className="flex items-start gap-3">
+            <div className="flex items-center gap-3">
               <input
                 type="radio"
                 name="crossmatch-resolution"
-                className="mt-1 shrink-0"
+                className="shrink-0"
                 checked={selected === candidate.pgc}
                 disabled={resolving !== null}
                 onChange={() => onSelect(candidate.pgc)}
