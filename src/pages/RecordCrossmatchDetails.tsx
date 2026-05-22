@@ -18,6 +18,7 @@ import {
   RecordCrossmatch,
   PgcCandidate,
   Schema as AdminSchema,
+  StatusesPayload,
 } from "../clients/admin/types.gen";
 import { Schema as BackendSchema } from "../clients/backend/types.gen";
 import { getResource } from "../resources/resources";
@@ -151,7 +152,7 @@ function OriginalData({
 function RecordCrossmatchDetails({
   data,
 }: RecordCrossmatchDetailsProps): ReactElement {
-  const [resolvingPgc, setResolvingPgc] = useState<number | null>(null);
+  const [resolving, setResolving] = useState<"new" | number | null>(null);
   const [resolveError, setResolveError] = useState<string | null>(null);
   const {
     crossmatch,
@@ -174,36 +175,57 @@ function RecordCrossmatchDetails({
     `crossmatch.triage.verbose.${crossmatch.triage_status}`,
   ).Title;
 
+  async function submitCrossmatchResolution(
+    statuses: StatusesPayload,
+  ): Promise<void> {
+    const response = await setCrossmatchResults({
+      client: adminClient,
+      body: { statuses },
+    });
+
+    if (response.error || !response.data?.data) {
+      throw new Error(
+        typeof response.error === "object"
+          ? JSON.stringify(response.error)
+          : String(response.error || "Unknown error"),
+      );
+    }
+
+    window.location.reload();
+  }
+
   async function resolveCandidate(pgc: number): Promise<void> {
     setResolveError(null);
-    setResolvingPgc(pgc);
+    setResolving(pgc);
     try {
-      const response = await setCrossmatchResults({
-        client: adminClient,
-        body: {
-          statuses: {
-            existing: {
-              record_ids: [crossmatch.record_id],
-              pgcs: [pgc],
-              triage_statuses: ["resolved"],
-            },
-          },
+      await submitCrossmatchResolution({
+        existing: {
+          record_ids: [crossmatch.record_id],
+          pgcs: [pgc],
+          triage_statuses: ["resolved"],
         },
       });
-
-      if (response.error || !response.data?.data) {
-        throw new Error(
-          typeof response.error === "object"
-            ? JSON.stringify(response.error)
-            : String(response.error || "Unknown error"),
-        );
-      }
-
-      window.location.reload();
     } catch (err) {
       setResolveError(`${err}`);
     } finally {
-      setResolvingPgc(null);
+      setResolving(null);
+    }
+  }
+
+  async function markAsNew(): Promise<void> {
+    setResolveError(null);
+    setResolving("new");
+    try {
+      await submitCrossmatchResolution({
+        new: {
+          record_ids: [crossmatch.record_id],
+          triage_statuses: ["resolved"],
+        },
+      });
+    } catch (err) {
+      setResolveError(`${err}`);
+    } finally {
+      setResolving(null);
     }
   }
 
@@ -243,6 +265,19 @@ function RecordCrossmatchDetails({
               ? "1 candidate"
               : `${candidates.length} candidates`}
           </p>
+          {showResolveControls && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Button
+                type="button"
+                disabled={resolving !== null}
+                onClick={() => markAsNew()}
+              >
+                {resolving === "new"
+                  ? "Saving…"
+                  : getResource("crossmatch.action.mark_new").Title}
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -254,14 +289,15 @@ function RecordCrossmatchDetails({
         </Accordion>
       )}
 
+      {resolveError && (
+        <p className="text-red-400 text-sm" role="alert">
+          {resolveError}
+        </p>
+      )}
+
       {candidates.length > 0 && (
         <div className="space-y-6">
           <h2 className="text-xl font-bold">Crossmatch Candidates</h2>
-          {resolveError && (
-            <p className="text-red-400 text-sm" role="alert">
-              {resolveError}
-            </p>
-          )}
           {candidates.map((candidate) => (
             <Accordion
               key={candidate.pgc}
@@ -279,10 +315,12 @@ function RecordCrossmatchDetails({
                 {showResolveControls && (
                   <Button
                     type="button"
-                    disabled={resolvingPgc !== null}
+                    disabled={resolving !== null}
                     onClick={() => resolveCandidate(candidate.pgc)}
                   >
-                    {resolvingPgc === candidate.pgc ? "Resolving…" : "Resolve"}
+                    {resolving === candidate.pgc
+                      ? "Saving…"
+                      : getResource("crossmatch.action.resolve").Title}
                   </Button>
                 )}
               </div>
