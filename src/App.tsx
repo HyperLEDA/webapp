@@ -39,6 +39,7 @@ function App() {
           <Route path="/table/:tableName" element={<TableDetailsPage />} />
           <Route path="/tables" element={<TablesPage />} />
           <Route path="/data-catalog" element={<DataCatalogPage />} />
+          <Route path="/data-catalog/query" element={<DataCatalogPage />} />
           <Route
             path="/data-catalog/:schemaName/:tableName"
             element={<DataCatalogPage />}

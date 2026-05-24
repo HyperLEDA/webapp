@@ -1,5 +1,5 @@
 import { ReactElement, useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useMatch, useNavigate, useParams } from "react-router-dom";
 import { tapSync, tapTables } from "../clients/backend/sdk.gen";
 import type {
   ListTapTablesResponse,
@@ -7,7 +7,6 @@ import type {
   TapSchemaEntry,
   TapSyncResponse,
   TapTableInfo,
-  ValidationError,
 } from "../clients/backend/types.gen";
 import { backendClient } from "../clients/config";
 import { isLoggedIn } from "../auth/token";
@@ -22,15 +21,16 @@ import {
 import { TextFilter } from "../components/core/TextFilter";
 import { Accordion } from "../components/core/Accordion";
 import { Text } from "../components/core/Text";
+import { Button } from "../components/core/Button";
 import classNames from "classnames";
-
-function formatApiError(error: unknown): string {
-  const detail = (error as { detail?: ValidationError[] }).detail;
-  if (detail?.length) {
-    return detail.map((e) => e.msg).join(", ");
-  }
-  return JSON.stringify(error);
-}
+import { CatalogViewTabs } from "../components/catalog/CatalogViewTabs";
+import { CatalogSqlPanel } from "../components/catalog/CatalogSqlPanel";
+import {
+  cellValue,
+  DEFAULT_SQL_EXAMPLE,
+  defaultSelectForTable,
+  formatApiError,
+} from "../lib/tap";
 
 async function fetchTablesList(): Promise<ListTapTablesResponse> {
   const response = await tapTables({
@@ -92,16 +92,6 @@ function filterSchemas(
       }),
     }))
     .filter((s) => s.tables.length > 0);
-}
-
-function cellValue(value: unknown): CellPrimitive {
-  if (value === null || value === undefined) {
-    return "—";
-  }
-  if (typeof value === "number") {
-    return value;
-  }
-  return String(value);
 }
 
 interface SchemaSidebarProps {
@@ -196,15 +186,23 @@ function columnMetadataHint(column: TapColumnInfo): ReactElement {
 const catalogPanelClassName =
   "rounded-lg border border-dashed border-border p-8 text-center";
 
-function CatalogBrowsePrompt(): ReactElement {
+function CatalogBrowsePrompt({
+  onOpenSql,
+}: {
+  onOpenSql: () => void;
+}): ReactElement {
   return (
     <div className={catalogPanelClassName}>
       <Text as="p" size="large">
         Browse the data
       </Text>
       <Text as="p">
-        Choose a table on the left to see column definitions and sample rows
+        Choose a table on the left to see column definitions and sample rows, or
+        run a custom query in the SQL editor.
       </Text>
+      <Button type="button" className="mt-4 mx-auto" onClick={onOpenSql}>
+        Open SQL query
+      </Button>
     </div>
   );
 }
@@ -228,6 +226,7 @@ interface TableDetailProps {
   syncLoading: boolean;
   syncError: string | null;
   loggedIn: boolean;
+  onOpenSql: () => void;
 }
 
 function TableDetail({
@@ -236,6 +235,7 @@ function TableDetail({
   syncLoading,
   syncError,
   loggedIn,
+  onOpenSql,
 }: TableDetailProps): ReactElement {
   const metadataColumns = tableInfo.columns ?? [];
   const syncTable = syncPayload?.resource.table;
@@ -266,19 +266,24 @@ function TableDetail({
 
   return (
     <div>
-      <div className="mb-3">
-        <Text as="h3" style="header" size="medium">
-          {tableInfo.description ?? (
-            <Text style="header" size="medium" type="code" as="span">
+      <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <Text as="h3" style="header" size="medium">
+            {tableInfo.description ?? (
+              <Text style="header" size="medium" type="code" as="span">
+                {tableInfo.name}
+              </Text>
+            )}
+          </Text>
+          {tableInfo.description ? (
+            <Text as="p" type="code">
               {tableInfo.name}
             </Text>
-          )}
-        </Text>
-        {tableInfo.description ? (
-          <Text as="p" type="code">
-            {tableInfo.name}
-          </Text>
-        ) : null}
+          ) : null}
+        </div>
+        <Button type="button" onClick={onOpenSql}>
+          Query in SQL editor
+        </Button>
       </div>
 
       {!loggedIn ? (
@@ -304,15 +309,28 @@ export function DataCatalogPage(): ReactElement {
     tableName?: string;
   }>();
   const navigate = useNavigate();
+  const isQueryMode = Boolean(useMatch("/data-catalog/query"));
   const [filter, setFilter] = useState("");
+  const [sqlDraft, setSqlDraft] = useState(DEFAULT_SQL_EXAMPLE);
   const loggedIn = isLoggedIn();
 
-  const selectedSchema = schemaName ?? null;
-  const selectedTable = tableName ?? null;
+  const [sqlSidebarSelection, setSqlSidebarSelection] = useState<{
+    schema: string;
+    table: string;
+  } | null>(null);
+
+  const selectedSchema = isQueryMode
+    ? (sqlSidebarSelection?.schema ?? null)
+    : (schemaName ?? null);
+  const selectedTable = isQueryMode
+    ? (sqlSidebarSelection?.table ?? null)
+    : (tableName ?? null);
 
   useEffect(() => {
-    document.title = "Data catalog | HyperLEDA";
-  }, []);
+    document.title = isQueryMode
+      ? "SQL query | HyperLEDA"
+      : "Data catalog | HyperLEDA";
+  }, [isQueryMode]);
 
   const {
     data: tablesPayload,
@@ -343,13 +361,25 @@ export function DataCatalogPage(): ReactElement {
     return findTableInfo(tablesPayload?.schemas, selectedSchema, selectedTable);
   }, [tablesPayload?.schemas, selectedSchema, selectedTable]);
 
+  function openSqlEditor(sql?: string): void {
+    if (sql) {
+      setSqlDraft(sql);
+    }
+    navigate("/data-catalog/query");
+  }
+
   function handleSelect(nextSchema: string, nextTable: string): void {
+    if (isQueryMode) {
+      setSqlSidebarSelection({ schema: nextSchema, table: nextTable });
+      setSqlDraft(defaultSelectForTable(nextTable));
+      return;
+    }
     navigate(
       `/data-catalog/${encodeURIComponent(nextSchema)}/${encodeURIComponent(nextTable)}`,
     );
   }
 
-  function SidebarContent(): ReactElement {
+  function renderSidebarContent(): ReactElement {
     if (tablesError && !tablesPayload) {
       return <ErrorPage title="Could not load tables" message={tablesError} />;
     }
@@ -375,9 +405,24 @@ export function DataCatalogPage(): ReactElement {
     );
   }
 
-  function DetailContent(): ReactElement {
+  function renderDetailContent(): ReactElement {
+    if (isQueryMode) {
+      return (
+        <CatalogSqlPanel
+          sql={sqlDraft}
+          onSqlChange={setSqlDraft}
+          schemas={tablesPayload?.schemas}
+          loggedIn={loggedIn}
+        />
+      );
+    }
+
     if (!selectedSchema || !selectedTable) {
-      return loggedIn ? <CatalogBrowsePrompt /> : <CatalogLoginPrompt />;
+      return loggedIn ? (
+        <CatalogBrowsePrompt onOpenSql={() => openSqlEditor()} />
+      ) : (
+        <CatalogLoginPrompt />
+      );
     }
 
     if (tablesError && !tablesPayload) {
@@ -404,6 +449,7 @@ export function DataCatalogPage(): ReactElement {
         syncLoading={loggedIn && syncLoading}
         syncError={loggedIn ? syncError : null}
         loggedIn={loggedIn}
+        onOpenSql={() => openSqlEditor(defaultSelectForTable(selectedTable))}
       />
     );
   }
@@ -421,11 +467,12 @@ export function DataCatalogPage(): ReactElement {
             />
           </div>
           <div className="lg:flex-1 lg:min-h-0 lg:overflow-y-auto pr-0.5">
-            <SidebarContent />
+            {renderSidebarContent()}
           </div>
         </div>
         <div className="flex-grow min-w-0 w-full lg:min-h-0 lg:h-full lg:overflow-y-auto">
-          <DetailContent />
+          <CatalogViewTabs />
+          {renderDetailContent()}
         </div>
       </div>
     </div>
