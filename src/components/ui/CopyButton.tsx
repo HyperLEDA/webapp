@@ -28,9 +28,9 @@ export function CopyButton(props: CopyButtonProps): ReactElement {
         className="opacity-0 group-hover:opacity-100 transition-opacity"
       >
         {copied ? (
-          <MdCheck className="text-gray-400" />
+          <MdCheck className="text-muted" />
         ) : (
-          <MdContentCopy className="text-gray-400" />
+          <MdContentCopy className="text-muted" />
         )}
       </Button>
     </div>

@@ -9,7 +9,7 @@ interface HintProps {
   trigger?: "icon" | "child";
 }
 
-const tooltipClassName = "bg-gray-600 z-10 border-1 max-w-xl";
+const tooltipClassName = "bg-surface-2 z-10 border border-border max-w-xl";
 const tooltipTheme = { hidden: "invisible opacity-0 pointer-events-none" };
 
 export function Hint(props: HintProps): ReactElement {

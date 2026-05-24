@@ -16,9 +16,9 @@ export function Button(props: ButtonProps): ReactElement {
       onClick={(event) => props.onClick?.(event)}
       disabled={props.disabled}
       className={classNames(
-        "px-2 py-2 box-border flex items-center font-semibold border-1 border-[#1a1a1a] rounded-lg bg-[#1a1a1a] hover:border-[#646cff] transition-colors duration-300 active:border-white cursor-pointer",
+        "px-2 py-2 box-border flex items-center font-semibold border-1 border-surface-2 rounded-lg bg-surface-2 hover:border-accent transition-colors duration-300 active:border-primary cursor-pointer",
         {
-          "opacity-50 cursor-not-allowed hover:border-[#1a1a1a] active:border-[#1a1a1a]":
+          "opacity-50 cursor-not-allowed hover:border-surface-2 active:border-surface-2":
             props.disabled,
         },
         props.className,

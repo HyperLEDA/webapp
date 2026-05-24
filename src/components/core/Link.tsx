@@ -11,7 +11,7 @@ interface LinkProps {
 
 export function Link(props: LinkProps): ReactElement {
   const content = props.children;
-  const baseClass = "text-green-500 hover:text-green-600 transition-colors";
+  const baseClass = "text-accent hover:opacity-80 transition-opacity";
   const className = props.className
     ? `${baseClass} ${props.className}`
     : baseClass;

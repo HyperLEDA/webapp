@@ -6,15 +6,15 @@ export type TextSize = "small" | "medium" | "large";
 export type TextType = "code" | "normal";
 
 const headerBySize: Record<TextSize, string> = {
-  small: "text-sm font-medium text-white leading-snug",
-  medium: "text-2xl font-semibold text-white leading-snug max-w-3xl",
-  large: "text-3xl font-semibold text-white leading-snug",
+  small: "text-sm font-medium text-primary leading-snug",
+  medium: "text-2xl font-semibold text-primary leading-snug max-w-3xl",
+  large: "text-3xl font-semibold text-primary leading-snug",
 };
 
 const infoBySize: Record<TextSize, string> = {
-  small: "text-xs text-gray-400 leading-snug",
-  medium: "text-sm text-gray-400 leading-relaxed",
-  large: "text-lg text-gray-300",
+  small: "text-xs text-muted leading-snug",
+  medium: "text-sm text-muted leading-relaxed",
+  large: "text-lg text-subtle",
 };
 
 interface TextProps {
