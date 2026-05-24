@@ -61,3 +61,14 @@ export function syncPayloadToTable(payload: TapSyncResponse): {
 export function defaultSelectForTable(tableName: string, limit = 25): string {
   return `SELECT * FROM ${tableName} LIMIT ${limit}`;
 }
+
+export function parseSqlPermalink(raw: string): string {
+  const trimmed = raw.trim();
+  if (
+    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"))
+  ) {
+    return trimmed.slice(1, -1);
+  }
+  return trimmed;
+}

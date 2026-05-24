@@ -1,5 +1,16 @@
-import { ReactElement, useEffect, useMemo, useState } from "react";
-import { useMatch, useNavigate, useParams } from "react-router-dom";
+import {
+  ReactElement,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState,
+} from "react";
+import {
+  useMatch,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router-dom";
 import { tapSync, tapTables } from "../clients/backend/sdk.gen";
 import type {
   ListTapTablesResponse,
@@ -30,6 +41,7 @@ import {
   DEFAULT_SQL_EXAMPLE,
   defaultSelectForTable,
   formatApiError,
+  parseSqlPermalink,
 } from "../lib/tap";
 
 async function fetchTablesList(): Promise<ListTapTablesResponse> {
@@ -309,7 +321,9 @@ export function DataCatalogPage(): ReactElement {
     tableName?: string;
   }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const isQueryMode = Boolean(useMatch("/data-catalog/query"));
+  const permalinkSql = searchParams.get("q");
   const [filter, setFilter] = useState("");
   const [sqlDraft, setSqlDraft] = useState(DEFAULT_SQL_EXAMPLE);
   const loggedIn = isLoggedIn();
@@ -331,6 +345,13 @@ export function DataCatalogPage(): ReactElement {
       ? "SQL query | HyperLEDA"
       : "Data catalog | HyperLEDA";
   }, [isQueryMode]);
+
+  useLayoutEffect(() => {
+    if (!isQueryMode || !permalinkSql) {
+      return;
+    }
+    setSqlDraft(parseSqlPermalink(permalinkSql));
+  }, [isQueryMode, permalinkSql]);
 
   const {
     data: tablesPayload,
@@ -364,8 +385,17 @@ export function DataCatalogPage(): ReactElement {
   function openSqlEditor(sql?: string): void {
     if (sql) {
       setSqlDraft(sql);
+      navigate({
+        pathname: "/data-catalog/query",
+        search: `?q=${encodeURIComponent(sql)}`,
+      });
+      return;
     }
-    navigate("/data-catalog/query");
+    navigate({ pathname: "/data-catalog/query", search: "" });
+  }
+
+  function handleQueryRun(sql: string): void {
+    setSearchParams({ q: sql }, { replace: true });
   }
 
   function handleSelect(nextSchema: string, nextTable: string): void {
@@ -413,6 +443,10 @@ export function DataCatalogPage(): ReactElement {
           onSqlChange={setSqlDraft}
           schemas={tablesPayload?.schemas}
           loggedIn={loggedIn}
+          permalinkRunKey={
+            permalinkSql ? parseSqlPermalink(permalinkSql) : null
+          }
+          onQueryRun={handleQueryRun}
         />
       );
     }
