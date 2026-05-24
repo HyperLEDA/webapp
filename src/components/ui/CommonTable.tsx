@@ -1,6 +1,6 @@
 import React, { ReactElement, ReactNode } from "react";
 import classNames from "classnames";
-import { Hint } from "../core/Hint";
+import { Hint } from "./Hint";
 import { Loading } from "../core/Loading";
 
 export type CellPrimitive = ReactElement | string | number;

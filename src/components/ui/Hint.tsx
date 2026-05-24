@@ -1,6 +1,6 @@
-import { Tooltip } from "flowbite-react";
 import { ReactElement, ReactNode } from "react";
 import { MdHelpOutline } from "react-icons/md";
+import { AppTooltip } from "./AppTooltip";
 
 interface HintProps {
   children?: ReactElement;
@@ -9,23 +9,14 @@ interface HintProps {
   trigger?: "icon" | "child";
 }
 
-const tooltipClassName = "bg-surface-2 z-10 border border-border max-w-xl";
-const tooltipTheme = { hidden: "invisible opacity-0 pointer-events-none" };
-
 export function Hint(props: HintProps): ReactElement {
   const trigger = props.trigger ?? "icon";
 
   if (trigger === "child") {
     return (
-      <Tooltip
-        content={props.hintContent}
-        arrow={false}
-        placement="auto"
-        className={tooltipClassName}
-        theme={tooltipTheme}
-      >
+      <AppTooltip content={props.hintContent} className="max-w-xl">
         {props.children}
-      </Tooltip>
+      </AppTooltip>
     );
   }
 
@@ -35,15 +26,9 @@ export function Hint(props: HintProps): ReactElement {
     >
       <div>{props.children}</div>
       <div>
-        <Tooltip
-          content={props.hintContent}
-          arrow={false}
-          placement="auto"
-          className={tooltipClassName}
-          theme={tooltipTheme}
-        >
+        <AppTooltip content={props.hintContent} className="max-w-xl">
           <MdHelpOutline />
-        </Tooltip>
+        </AppTooltip>
       </div>
     </div>
   );

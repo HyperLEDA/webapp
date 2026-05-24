@@ -13,11 +13,8 @@ import { clearAuthToken, isLoggedIn } from "../../auth/token";
 import { logoutEnforced } from "../../clients/admin/sdk.gen";
 import { adminClient } from "../../clients/config";
 import { Link } from "../core/Link";
-import {
-  SidebarRailButton,
-  SidebarTooltip,
-  sidebarRailControlClassName,
-} from "./SidebarRail";
+import { AppTooltip } from "./AppTooltip";
+import { SidebarRailButton, sidebarRailControlClassName } from "./SidebarRail";
 import { ThemeSwitcher } from "./ThemeSwitcher";
 
 const navItems = [
@@ -97,7 +94,7 @@ export function Navbar() {
     <>
       <nav className="fixed left-0 top-0 h-screen w-12 flex flex-col items-center pt-4 pb-4 gap-2 bg-surface-2 z-20">
         {navItems.map((item) => (
-          <SidebarTooltip key={item.to} content={item.label}>
+          <AppTooltip key={item.to} content={item.label} placement="right">
             <NavLink
               to={item.to}
               end={item.end ?? true}
@@ -107,27 +104,30 @@ export function Navbar() {
             >
               {item.icon}
             </NavLink>
-          </SidebarTooltip>
+          </AppTooltip>
         ))}
 
         <div className="mt-auto flex flex-col gap-2 items-center">
           {showOpenProductionButton ? (
-            <SidebarTooltip content="Open this page on production">
+            <AppTooltip
+              content="Open this page on production"
+              placement="right"
+            >
               <SidebarRailButton
                 onClick={() => openCurrentPathOnOrigin(configuredProductionWeb)}
               >
                 <MdOpenInNew size={20} />
               </SidebarRailButton>
-            </SidebarTooltip>
+            </AppTooltip>
           ) : null}
           {isLoggedIn() ? (
-            <SidebarTooltip content="Logout">
+            <AppTooltip content="Logout" placement="right">
               <SidebarRailButton onClick={handleLogout} disabled={loggingOut}>
                 <MdLogout size={20} />
               </SidebarRailButton>
-            </SidebarTooltip>
+            </AppTooltip>
           ) : (
-            <SidebarTooltip content="Login">
+            <AppTooltip content="Login" placement="right">
               <NavLink
                 to="/login"
                 end
@@ -137,7 +137,7 @@ export function Navbar() {
               >
                 <MdLogin size={20} />
               </NavLink>
-            </SidebarTooltip>
+            </AppTooltip>
           )}
           <ThemeSwitcher />
           <SidebarRailButton

@@ -5,7 +5,8 @@ import {
   themePreferenceLabel,
   useTheme,
 } from "../../hooks/useTheme";
-import { SidebarRailButton, SidebarTooltip } from "./SidebarRail";
+import { AppTooltip } from "./AppTooltip";
+import { SidebarRailButton } from "./SidebarRail";
 
 export function ThemeSwitcher(): ReactElement {
   const { theme, cycleTheme } = useTheme();
@@ -21,12 +22,13 @@ export function ThemeSwitcher(): ReactElement {
     );
 
   return (
-    <SidebarTooltip
+    <AppTooltip
+      placement="right"
       content={`Theme: ${themePreferenceLabel(theme)} (click to switch to ${themePreferenceLabel(nextTheme)})`}
     >
       <SidebarRailButton onClick={cycleTheme} aria-label="Toggle theme">
         {icon}
       </SidebarRailButton>
-    </SidebarTooltip>
+    </AppTooltip>
   );
 }

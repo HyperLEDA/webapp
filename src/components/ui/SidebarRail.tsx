@@ -1,10 +1,4 @@
-import {
-  forwardRef,
-  type ButtonHTMLAttributes,
-  type ReactElement,
-  type ReactNode,
-} from "react";
-import { Tooltip } from "flowbite-react";
+import { forwardRef, type ButtonHTMLAttributes } from "react";
 
 export function sidebarRailControlClassName(active: boolean): string {
   return `w-9 h-9 flex items-center justify-center rounded-lg transition-colors duration-300 cursor-pointer ${
@@ -31,22 +25,3 @@ export const SidebarRailButton = forwardRef<
     />
   );
 });
-
-export function SidebarTooltip({
-  content,
-  children,
-}: {
-  content: ReactNode;
-  children: ReactNode;
-}): ReactElement {
-  return (
-    <Tooltip
-      content={content}
-      placement="right"
-      arrow={false}
-      className="bg-surface-2 z-10 backdrop-blur-sm bg-opacity-99 border border-border"
-    >
-      {children}
-    </Tooltip>
-  );
-}
