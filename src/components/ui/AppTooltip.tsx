@@ -3,7 +3,7 @@ import classNames from "classnames";
 import { ReactElement, ReactNode } from "react";
 
 const tooltipClassName =
-  "bg-surface-2 z-10 border border-border text-primary text-sm";
+  "bg-surface-2 z-10 w-max border border-border text-primary text-sm";
 
 const tooltipTheme = { hidden: "invisible opacity-0 pointer-events-none" };
 
