@@ -1,5 +1,5 @@
-import { FormEvent, ReactElement, useState } from "react";
-import { Link as RouterLink } from "react-router-dom";
+import { FormEvent, ReactElement, useEffect, useRef, useState } from "react";
+import { Link as RouterLink, useLocation } from "react-router-dom";
 import type {
   TapSchemaEntry,
   TapSyncResponse,
@@ -23,6 +23,8 @@ interface CatalogSqlPanelProps {
   onSqlChange: (sql: string) => void;
   schemas?: TapSchemaEntry[];
   loggedIn: boolean;
+  permalinkRunKey?: string | null;
+  onQueryRun?: (sql: string) => void;
 }
 
 export function CatalogSqlPanel({
@@ -30,11 +32,15 @@ export function CatalogSqlPanel({
   onSqlChange,
   schemas,
   loggedIn,
+  permalinkRunKey,
+  onQueryRun,
 }: CatalogSqlPanelProps): ReactElement {
   const [result, setResult] = useState<TapSyncResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const runShortcut = runQueryShortcutLabel();
+  const location = useLocation();
+  const didAutoRun = useRef(false);
 
   async function runQuery(): Promise<void> {
     if (!loggedIn || loading) {
@@ -50,6 +56,7 @@ export function CatalogSqlPanel({
     setLoading(true);
     setError(null);
     setResult(null);
+    onQueryRun?.(trimmed);
 
     try {
       const payload = await executeSqlQuery(trimmed);
@@ -67,6 +74,21 @@ export function CatalogSqlPanel({
     event.preventDefault();
     await runQuery();
   }
+
+  useEffect(() => {
+    didAutoRun.current = false;
+  }, [location.key]);
+
+  useEffect(() => {
+    if (!permalinkRunKey || !loggedIn || didAutoRun.current) {
+      return;
+    }
+    if (sql.trim() !== permalinkRunKey.trim()) {
+      return;
+    }
+    didAutoRun.current = true;
+    void runQuery();
+  }, [permalinkRunKey, loggedIn, sql]);
 
   const tableData = result ? syncPayloadToTable(result) : null;
   const rowCount = tableData?.rows.length ?? 0;
