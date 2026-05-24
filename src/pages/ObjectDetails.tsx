@@ -9,7 +9,7 @@ import {
   Column,
   CellPrimitive,
 } from "../components/ui/CommonTable";
-import { Hint } from "../components/core/Hint";
+import { Hint } from "../components/ui/Hint";
 import { Link } from "../components/core/Link";
 import { Accordion } from "../components/core/Accordion";
 import { querySimple } from "../clients/backend/sdk.gen";

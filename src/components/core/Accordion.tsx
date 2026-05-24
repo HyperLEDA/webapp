@@ -17,11 +17,11 @@ export function Accordion({
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
-    <div className="border border-gray-600 rounded-lg bg-neutral-900/40">
+    <div className="border border-border rounded-lg bg-surface">
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className="w-full flex items-center justify-between px-4 py-3 text-left cursor-pointer hover:bg-gray-800 rounded-lg transition-colors duration-200 gap-2"
+        className="w-full flex items-center justify-between px-4 py-3 text-left cursor-pointer hover:bg-surface-2 rounded-lg transition-colors duration-200 gap-2"
       >
         <span className="flex flex-col items-start gap-0.5 text-left w-full min-w-0">
           <Text style="header" size="small" as="span">

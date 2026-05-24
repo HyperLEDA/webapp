@@ -1,33 +1,71 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
+  --token-app: #ffffff;
+  --token-surface: #f5f5f5;
+  --token-surface-2: #ebebeb;
+  --token-primary: #213547;
+  --token-muted: #6b7280;
+  --token-subtle: #4b5563;
+  --token-border: #d1d5db;
+  --token-accent: #646cff;
+  --token-accent-fg: #ffffff;
+  --token-success: #16a34a;
+  --token-warning: #eab308;
+  --token-danger: #ef4444;
+
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
+  color-scheme: light;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
+}
+
+.dark {
+  --token-app: #242424;
+  --token-surface: #2f2f2f;
+  --token-surface-2: #1a1a1a;
+  --token-primary: rgba(255, 255, 255, 0.87);
+  --token-muted: #9ca3af;
+  --token-subtle: #d1d5db;
+  --token-border: #4b5563;
+  --token-accent: #646cff;
+  --token-accent-fg: #ffffff;
+  --token-success: #22c55e;
+  --token-warning: #eab308;
+  --token-danger: #f87171;
+
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-app: var(--token-app);
+  --color-surface: var(--token-surface);
+  --color-surface-2: var(--token-surface-2);
+  --color-primary: var(--token-primary);
+  --color-muted: var(--token-muted);
+  --color-subtle: var(--token-subtle);
+  --color-border: var(--token-border);
+  --color-accent: var(--token-accent);
+  --color-accent-fg: var(--token-accent-fg);
+  --color-success: var(--token-success);
+  --color-warning: var(--token-warning);
+  --color-danger: var(--token-danger);
 }
 
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  background-color: var(--token-app);
+  color: var(--token-primary);
 }
 
 h1 {
   font-size: 3.2em;
   line-height: 1.1;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
 }

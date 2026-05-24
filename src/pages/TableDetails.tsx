@@ -259,10 +259,10 @@ function TableMeta(props: TableMetaProps): ReactElement {
       value={asDataType(props.table.meta.datatype)}
       onChange={(event) => void commitDatatype(event.target.value as DataType)}
       disabled={savingField !== null}
-      className="bg-transparent border border-gray-500 rounded px-2 py-1 text-gray-200 max-w-xs"
+      className="bg-surface-2 border border-border rounded px-2 py-1 text-primary max-w-xs"
     >
       {DATA_TYPES.map((option) => (
-        <option key={option} value={option} className="bg-gray-800">
+        <option key={option} value={option} className="bg-surface-2">
           {option.charAt(0).toUpperCase() + option.slice(1)}
         </option>
       ))}
@@ -304,7 +304,7 @@ function TableMeta(props: TableMetaProps): ReactElement {
             onChange={(event) => setDraftDescription(event.target.value)}
             onKeyDown={handleDescriptionKeyDown}
             disabled={savingField === "description"}
-            className="text-2xl font-bold bg-transparent border border-gray-500 rounded px-2 py-0.5 flex-1 min-w-0 text-white"
+            className="text-2xl font-bold bg-transparent border border-border rounded px-2 py-0.5 flex-1 min-w-0 text-primary"
             autoFocus
           />
         ) : (
@@ -316,7 +316,7 @@ function TableMeta(props: TableMetaProps): ReactElement {
           <button
             type="button"
             aria-label="Edit table description"
-            className="shrink-0 p-1 rounded text-gray-400 hover:text-white cursor-pointer"
+            className="shrink-0 p-1 rounded text-muted hover:text-primary cursor-pointer"
             onClick={() => {
               setPatchError(null);
               setEditingDescription(true);
@@ -334,11 +334,11 @@ function TableMeta(props: TableMetaProps): ReactElement {
             onChange={(event) => setDraftName(event.target.value)}
             onKeyDown={handleNameKeyDown}
             disabled={savingField === "name"}
-            className="text-gray-300 font-mono bg-transparent border border-gray-500 rounded px-2 py-0.5 flex-1 min-w-0"
+            className="text-subtle font-mono bg-transparent border border-border rounded px-2 py-0.5 flex-1 min-w-0"
             autoFocus
           />
         ) : (
-          <p className="text-gray-300 font-mono flex-1 min-w-0 break-all">
+          <p className="text-subtle font-mono flex-1 min-w-0 break-all">
             {props.tableName}
           </p>
         )}
@@ -346,7 +346,7 @@ function TableMeta(props: TableMetaProps): ReactElement {
           <button
             type="button"
             aria-label="Edit table name"
-            className="shrink-0 p-1 rounded text-gray-400 hover:text-white cursor-pointer"
+            className="shrink-0 p-1 rounded text-muted hover:text-primary cursor-pointer"
             onClick={() => {
               setPatchError(null);
               setEditingName(true);
@@ -357,7 +357,7 @@ function TableMeta(props: TableMetaProps): ReactElement {
         )}
       </div>
       {patchError ? (
-        <p className="text-sm text-red-400 mt-2">{patchError}</p>
+        <p className="text-sm text-danger mt-2">{patchError}</p>
       ) : null}
     </CommonTable>
   );

@@ -7,6 +7,15 @@
     <script src="https://aladin.cds.unistra.fr/AladinLite/api/v3/latest/aladin.js"></script>
     <script src="/configs/config.js"></script>
     <title>HyperLEDA</title>
+    <script>
+      (function () {
+        var t = localStorage.getItem("theme");
+        var dark =
+          t === "dark" ||
+          (!t && matchMedia("(prefers-color-scheme: dark)").matches);
+        if (dark) document.documentElement.classList.add("dark");
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

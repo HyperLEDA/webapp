@@ -51,7 +51,7 @@ export function LoginPage(): ReactElement {
       <h1 className="text-2xl font-bold mb-4">Login</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="username" className="block mb-1">
+          <label htmlFor="username" className="block mb-1 text-subtle">
             Username
           </label>
           <input
@@ -60,11 +60,11 @@ export function LoginPage(): ReactElement {
             required
             value={username}
             onChange={(event) => setUsername(event.target.value)}
-            className="w-full border rounded px-3 py-2"
+            className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-primary placeholder:text-muted"
           />
         </div>
         <div>
-          <label htmlFor="password" className="block mb-1">
+          <label htmlFor="password" className="block mb-1 text-subtle">
             Password
           </label>
           <input
@@ -73,7 +73,7 @@ export function LoginPage(): ReactElement {
             required
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            className="w-full border rounded px-3 py-2"
+            className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-primary placeholder:text-muted"
           />
         </div>
         <Button type="submit" disabled={loading}>
@@ -81,12 +81,12 @@ export function LoginPage(): ReactElement {
         </Button>
       </form>
       {error ? (
-        <p className="text-red-400 mt-3" role="alert">
+        <p className="text-danger mt-3" role="alert">
           {error}
         </p>
       ) : null}
       {success ? (
-        <p className="text-green-400 mt-3">Logged in successfully.</p>
+        <p className="text-success mt-3">Logged in successfully.</p>
       ) : null}
     </div>
   );

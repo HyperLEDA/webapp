@@ -1,15 +1,5 @@
-import {
-  forwardRef,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type ButtonHTMLAttributes,
-  type ReactElement,
-  type ReactNode,
-} from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { Tooltip } from "flowbite-react";
 import {
   MdAccountTree,
   MdInfo,
@@ -23,6 +13,9 @@ import { clearAuthToken, isLoggedIn } from "../../auth/token";
 import { logoutEnforced } from "../../clients/admin/sdk.gen";
 import { adminClient } from "../../clients/config";
 import { Link } from "../core/Link";
+import { AppTooltip } from "./AppTooltip";
+import { SidebarRailButton, sidebarRailControlClassName } from "./SidebarRail";
+import { ThemeSwitcher } from "./ThemeSwitcher";
 
 const navItems = [
   { to: "/", icon: <MdSearch size={20} />, label: "Object search", end: true },
@@ -39,51 +32,6 @@ const navItems = [
     end: false,
   },
 ];
-
-function SidebarTooltip({
-  content,
-  children,
-}: {
-  content: ReactNode;
-  children: ReactNode;
-}): ReactElement {
-  return (
-    <Tooltip
-      content={content}
-      placement="right"
-      arrow={false}
-      className="bg-gray-600 z-10 backdrop-blur-sm bg-opacity-99 border-1"
-    >
-      {children}
-    </Tooltip>
-  );
-}
-
-function sidebarRailControlClassName(active: boolean): string {
-  return `w-9 h-9 flex items-center justify-center rounded-lg transition-colors duration-300 cursor-pointer ${
-    active
-      ? "bg-[#646cff] text-white"
-      : "text-neutral-400 hover:bg-neutral-700 hover:text-white"
-  }`;
-}
-
-const SidebarRailButton = forwardRef<
-  HTMLButtonElement,
-  ButtonHTMLAttributes<HTMLButtonElement> & { active?: boolean }
->(function SidebarRailButton({ active = false, className, ...rest }, ref) {
-  return (
-    <button
-      ref={ref}
-      type="button"
-      className={
-        className
-          ? `${sidebarRailControlClassName(active)} ${className}`
-          : sidebarRailControlClassName(active)
-      }
-      {...rest}
-    />
-  );
-});
 
 const configuredProductionWeb = "https://leda.sao.ru";
 
@@ -144,9 +92,9 @@ export function Navbar() {
 
   return (
     <>
-      <nav className="fixed left-0 top-0 h-screen w-12 flex flex-col items-center pt-4 pb-4 gap-2 bg-[#1a1a1a] z-20">
+      <nav className="fixed left-0 top-0 h-screen w-12 flex flex-col items-center pt-4 pb-4 gap-2 bg-surface-2 z-20">
         {navItems.map((item) => (
-          <SidebarTooltip key={item.to} content={item.label}>
+          <AppTooltip key={item.to} content={item.label} placement="right">
             <NavLink
               to={item.to}
               end={item.end ?? true}
@@ -156,27 +104,30 @@ export function Navbar() {
             >
               {item.icon}
             </NavLink>
-          </SidebarTooltip>
+          </AppTooltip>
         ))}
 
         <div className="mt-auto flex flex-col gap-2 items-center">
           {showOpenProductionButton ? (
-            <SidebarTooltip content="Open this page on production">
+            <AppTooltip
+              content="Open this page on production"
+              placement="right"
+            >
               <SidebarRailButton
                 onClick={() => openCurrentPathOnOrigin(configuredProductionWeb)}
               >
                 <MdOpenInNew size={20} />
               </SidebarRailButton>
-            </SidebarTooltip>
+            </AppTooltip>
           ) : null}
           {isLoggedIn() ? (
-            <SidebarTooltip content="Logout">
+            <AppTooltip content="Logout" placement="right">
               <SidebarRailButton onClick={handleLogout} disabled={loggingOut}>
                 <MdLogout size={20} />
               </SidebarRailButton>
-            </SidebarTooltip>
+            </AppTooltip>
           ) : (
-            <SidebarTooltip content="Login">
+            <AppTooltip content="Login" placement="right">
               <NavLink
                 to="/login"
                 end
@@ -186,8 +137,9 @@ export function Navbar() {
               >
                 <MdLogin size={20} />
               </NavLink>
-            </SidebarTooltip>
+            </AppTooltip>
           )}
+          <ThemeSwitcher />
           <SidebarRailButton
             ref={infoButtonRef}
             active={footerOpen}
@@ -200,13 +152,13 @@ export function Navbar() {
 
       <div
         ref={infoPanelRef}
-        className={`fixed left-14 bottom-4 z-20 border-1 rounded-lg py-3 px-4 shadow-lg backdrop-blur-sm bg-[#1a1a1a] transition-all duration-300 ease-in-out ${
+        className={`fixed left-14 bottom-4 z-20 border border-border rounded-lg py-3 px-4 shadow-lg backdrop-blur-sm bg-surface-2 transition-all duration-300 ease-in-out ${
           footerOpen
             ? "opacity-100 translate-y-0"
             : "opacity-0 translate-y-2 pointer-events-none"
         }`}
       >
-        <div className="prose prose-invert prose-a:no-underline prose-sm leading-relaxed">
+        <div className="prose dark:prose-invert prose-a:no-underline prose-sm leading-relaxed">
           <div>
             Information:{" "}
             <Link href="https://hyperleda.github.io/" external>

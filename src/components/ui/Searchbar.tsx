@@ -59,7 +59,7 @@ export function SearchBar({
         <input
           type="text"
           placeholder="Search for an object..."
-          className="border rounded px-2 py-1 flex-grow h-10"
+          className="border border-border rounded px-2 py-1 flex-grow h-10 bg-surface-2 text-primary placeholder:text-muted"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onKeyDown={(e) => {

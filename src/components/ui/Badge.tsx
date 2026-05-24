@@ -11,9 +11,9 @@ interface BadgeProps {
 }
 
 const typeClasses: Record<BadgeType, string> = {
-  info: "bg-gray-600 border-2 border-gray-700",
-  success: "bg-green-900 text-white border-2 border-green-800",
-  warning: "bg-yellow-500 text-black border-2 border-yellow-600",
+  info: "bg-surface-2 border-2 border-border text-primary",
+  success: "bg-success/20 border-2 border-success/60 text-primary",
+  warning: "bg-warning/20 border-2 border-warning/60 text-primary",
 };
 
 export function Badge({
