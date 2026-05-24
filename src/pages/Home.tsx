@@ -23,7 +23,7 @@ const homePageHint: ReactElement = (
 export function HomePage(): ReactElement {
   return (
     <>
-      <div className="max-w-4xl mx-auto mt-8 prose prose-invert leading-none prose-a:no-underline">
+      <div className="max-w-4xl mx-auto mt-8 prose dark:prose-invert leading-none prose-a:no-underline">
         {homePageHint}
       </div>
     </>
