@@ -154,14 +154,14 @@ function ObjectSummary({
 
   const nameField = (
     <>
-      <dt className="text-gray-400">Name</dt>
+      <dt className="text-muted">Name</dt>
       <dd>{name}</dd>
     </>
   );
 
   const raField = equatorial ? (
     <>
-      <dt className="text-gray-400">RA</dt>
+      <dt className="text-muted">RA</dt>
       <dd>
         <QuantityWithError
           error={equatorial.e_ra}
@@ -175,7 +175,7 @@ function ObjectSummary({
 
   const decField = equatorial ? (
     <>
-      <dt className="text-gray-400">Dec</dt>
+      <dt className="text-muted">Dec</dt>
       <dd>
         <QuantityWithError
           error={equatorial.e_dec}
@@ -189,7 +189,7 @@ function ObjectSummary({
 
   const redshiftField = redshift ? (
     <>
-      <dt className="text-gray-400">Redshift</dt>
+      <dt className="text-muted">Redshift</dt>
       <dd>
         <QuantityWithError error={redshift.e_z} decimalPlaces={5}>
           {redshift.z.toFixed(5)}
@@ -272,8 +272,8 @@ function ResolutionSelector({
                 className={classNames(
                   "rounded-lg border px-4 py-2",
                   matchedPgc === candidate.pgc
-                    ? "border-[#646cff] bg-neutral-900/60"
-                    : "border-gray-600 bg-neutral-900/40",
+                    ? "border-accent bg-accent/15"
+                    : "border-border bg-surface",
                 )}
               >
                 {renderCandidateSummary(candidate)}
@@ -283,7 +283,7 @@ function ResolutionSelector({
         )}
 
         {crossmatch.status === "new" && (
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-muted">
             {getResource("crossmatch.action.mark_new").Title}
           </p>
         )}
@@ -299,8 +299,8 @@ function ResolutionSelector({
           className={classNames(
             "block rounded-lg border p-4 cursor-pointer transition-colors",
             selected === "new"
-              ? "border-[#646cff] bg-neutral-900/60"
-              : "border-gray-600 bg-neutral-900/40 hover:border-gray-500",
+              ? "border-accent bg-accent/15"
+              : "border-border bg-surface hover:bg-surface-2",
             resolving !== null && "opacity-50 cursor-wait",
           )}
         >
@@ -325,8 +325,8 @@ function ResolutionSelector({
             className={classNames(
               "block rounded-lg border px-4 py-2 cursor-pointer transition-colors",
               selected === candidate.pgc
-                ? "border-[#646cff] bg-neutral-900/60"
-                : "border-gray-600 bg-neutral-900/40 hover:border-gray-500",
+                ? "border-accent bg-accent/15"
+                : "border-border bg-surface hover:bg-surface-2",
               resolving !== null && "opacity-50 cursor-wait",
             )}
           >
@@ -504,7 +504,7 @@ function RecordCrossmatchDetails({
                 : `${candidates.length} candidates`}
             </p>
           </div>
-          <div className="rounded-lg border border-gray-600 bg-neutral-900/40 p-4">
+          <div className="rounded-lg border border-border bg-surface p-4">
             <h3 className="text-sm font-semibold mb-3">Object</h3>
             <ObjectSummary
               catalogs={crossmatch.catalogs}
@@ -527,7 +527,7 @@ function RecordCrossmatchDetails({
       />
 
       {resolveError && (
-        <p className="text-red-400 text-sm" role="alert">
+        <p className="text-danger text-sm" role="alert">
           {resolveError}
         </p>
       )}

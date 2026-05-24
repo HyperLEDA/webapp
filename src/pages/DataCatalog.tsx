@@ -116,8 +116,8 @@ function SchemaSidebar({
                     className={classNames(
                       "w-full text-left px-3 py-2 transition-colors border-l-2 rounded-sm",
                       active
-                        ? "border-[#646cff] bg-[#646cff]/15"
-                        : "border-transparent hover:bg-neutral-800",
+                        ? "border-accent bg-accent/15"
+                        : "border-transparent hover:bg-surface-2",
                     )}
                   >
                     <Text
@@ -289,7 +289,7 @@ export function DataCatalogPage(): ReactElement {
   function DetailContent(): ReactElement {
     if (!selectedSchema || !selectedTable) {
       return (
-        <div className="rounded-lg border border-dashed border-gray-600 p-8 text-center">
+        <div className="rounded-lg border border-dashed border-border p-8 text-center">
           <Text as="p" size="large">
             Browse the data
           </Text>
