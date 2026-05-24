@@ -1,14 +1,16 @@
 import { ReactElement, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { listSchemas, getTable } from "../clients/backend/sdk.gen";
+import { tapSync, tapTables } from "../clients/backend/sdk.gen";
 import type {
-  ColumnInfo,
-  GetTableResponse,
-  ListSchemasResponse,
-  SchemaEntry,
+  ListTapTablesResponse,
+  TapColumnInfo,
+  TapSchemaEntry,
+  TapSyncResponse,
+  TapTableInfo,
   ValidationError,
 } from "../clients/backend/types.gen";
 import { backendClient } from "../clients/config";
+import { isLoggedIn } from "../auth/token";
 import { useDataFetching } from "../hooks/useDataFetching";
 import { Loading } from "../components/core/Loading";
 import { ErrorPage } from "../components/ui/ErrorPage";
@@ -30,24 +32,26 @@ function formatApiError(error: unknown): string {
   return JSON.stringify(error);
 }
 
-async function fetchSchemaList(): Promise<ListSchemasResponse> {
-  const response = await listSchemas({ client: backendClient });
+async function fetchTablesList(): Promise<ListTapTablesResponse> {
+  const response = await tapTables({
+    client: backendClient,
+    query: { detail: "max" },
+  });
   if (response.error) {
     throw new Error(formatApiError(response.error));
   }
   if (!response.data?.data) {
-    throw new Error("No schema data received from server");
+    throw new Error("No table list received from server");
   }
   return response.data.data;
 }
 
-async function fetchTablePreview(
-  schemaName: string,
-  tableName: string,
-): Promise<GetTableResponse> {
-  const response = await getTable({
+async function fetchTableRows(tableName: string): Promise<TapSyncResponse> {
+  const response = await tapSync({
     client: backendClient,
-    query: { schema_name: schemaName, table_name: tableName },
+    query: {
+      query: `SELECT * FROM ${tableName}`,
+    },
   });
   if (response.error) {
     throw new Error(formatApiError(response.error));
@@ -58,10 +62,19 @@ async function fetchTablePreview(
   return response.data.data;
 }
 
+function findTableInfo(
+  schemas: TapSchemaEntry[] | undefined,
+  schemaName: string,
+  tableName: string,
+): TapTableInfo | null {
+  const schema = schemas?.find((s) => s.schema_name === schemaName);
+  return schema?.tables.find((t) => t.name === tableName) ?? null;
+}
+
 function filterSchemas(
-  schemas: SchemaEntry[] | undefined,
+  schemas: TapSchemaEntry[] | undefined,
   query: string,
-): SchemaEntry[] {
+): TapSchemaEntry[] {
   if (!schemas?.length) {
     return [];
   }
@@ -74,15 +87,25 @@ function filterSchemas(
       ...s,
       tables: s.tables.filter((t) => {
         const blob =
-          `${s.schema_name} ${t.table_name} ${s.description ?? ""} ${t.description ?? ""}`.toLowerCase();
+          `${s.schema_name} ${t.name} ${t.description ?? ""}`.toLowerCase();
         return blob.includes(needle);
       }),
     }))
     .filter((s) => s.tables.length > 0);
 }
 
+function cellValue(value: unknown): CellPrimitive {
+  if (value === null || value === undefined) {
+    return "—";
+  }
+  if (typeof value === "number") {
+    return value;
+  }
+  return String(value);
+}
+
 interface SchemaSidebarProps {
-  schemas: SchemaEntry[];
+  schemas: TapSchemaEntry[];
   selectedSchema: string | null;
   selectedTable: string | null;
   onSelect: (schemaName: string, tableName: string) => void;
@@ -99,20 +122,19 @@ function SchemaSidebar({
       {schemas.map((schema) => (
         <Accordion
           key={`${schema.schema_name}-${selectedSchema === schema.schema_name ? "open" : "closed"}`}
-          title={schema.description ?? schema.schema_name}
-          description={schema.description ? schema.schema_name : undefined}
+          title={schema.schema_name}
           defaultOpen={selectedSchema === schema.schema_name}
         >
           <ul>
             {schema.tables.map((t) => {
               const active =
                 selectedSchema === schema.schema_name &&
-                selectedTable === t.table_name;
+                selectedTable === t.name;
               return (
-                <li key={`${schema.schema_name}.${t.table_name}`}>
+                <li key={`${schema.schema_name}.${t.name}`}>
                   <button
                     type="button"
-                    onClick={() => onSelect(schema.schema_name, t.table_name)}
+                    onClick={() => onSelect(schema.schema_name, t.name)}
                     className={classNames(
                       "w-full text-left px-3 py-2 transition-colors border-l-2 rounded-sm",
                       active
@@ -126,7 +148,7 @@ function SchemaSidebar({
                       as="span"
                       className="block"
                     >
-                      {t.description ?? t.table_name}
+                      {t.description ?? t.name}
                     </Text>
                     {t.description ? (
                       <Text
@@ -135,7 +157,7 @@ function SchemaSidebar({
                         as="span"
                         className="block mt-0.5"
                       >
-                        {t.table_name}
+                        {t.name}
                       </Text>
                     ) : null}
                   </button>
@@ -149,18 +171,14 @@ function SchemaSidebar({
   );
 }
 
-interface TablePreviewProps {
-  payload: GetTableResponse;
-}
-
-function columnMetadataHint(column: ColumnInfo): ReactElement {
+function columnMetadataHint(column: TapColumnInfo): ReactElement {
   return (
     <div className="text-left space-y-2">
       {column.description ? <Text as="p">{column.description}</Text> : null}
       <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
         <Text as="dt">Type</Text>
         <Text as="dd" type="code">
-          {column.data_type ?? "—"}
+          {column.datatype ?? "—"}
         </Text>
         <Text as="dt">Unit</Text>
         <Text as="dd" type="code">
@@ -175,44 +193,107 @@ function columnMetadataHint(column: ColumnInfo): ReactElement {
   );
 }
 
-function TablePreview({ payload }: TablePreviewProps): ReactElement {
-  const sampleColumnDefs: Column[] = payload.columns.map((c) => ({
-    name: c.column_name,
+const catalogPanelClassName =
+  "rounded-lg border border-dashed border-border p-8 text-center";
+
+function CatalogBrowsePrompt(): ReactElement {
+  return (
+    <div className={catalogPanelClassName}>
+      <Text as="p" size="large">
+        Browse the data
+      </Text>
+      <Text as="p">
+        Choose a table on the left to see column definitions and sample rows
+      </Text>
+    </div>
+  );
+}
+
+function CatalogLoginPrompt(): ReactElement {
+  return (
+    <div className={catalogPanelClassName}>
+      <Text as="p" size="large">
+        Log in to view data in tables
+      </Text>
+      <Text as="p">
+        Sign in to load rows after you choose a table on the left
+      </Text>
+    </div>
+  );
+}
+
+interface TableDetailProps {
+  tableInfo: TapTableInfo;
+  syncPayload: TapSyncResponse | null;
+  syncLoading: boolean;
+  syncError: string | null;
+  loggedIn: boolean;
+}
+
+function TableDetail({
+  tableInfo,
+  syncPayload,
+  syncLoading,
+  syncError,
+  loggedIn,
+}: TableDetailProps): ReactElement {
+  const metadataColumns = tableInfo.columns ?? [];
+  const syncTable = syncPayload?.resource.table;
+  const syncColumns = syncTable?.columns ?? [];
+
+  const columnsForHints: TapColumnInfo[] = metadataColumns.length
+    ? metadataColumns
+    : syncColumns.map((c) => ({
+        name: c.name,
+        datatype: c.datatype,
+        unit: c.unit ?? null,
+      }));
+
+  const columnDefs: Column[] = columnsForHints.map((c) => ({
+    name: c.name,
     hint: columnMetadataHint(c),
   }));
 
-  const sampleRows: Record<string, CellPrimitive>[] = payload.sample_rows.map(
-    (row) => {
-      const out: Record<string, CellPrimitive> = {};
-      for (const col of payload.columns) {
-        const v = row[col.column_name];
-        out[col.column_name] = v ?? "—";
-      }
-      return out;
-    },
-  );
+  const rows: Record<string, CellPrimitive>[] = loggedIn
+    ? (syncTable?.data ?? []).map((row) => {
+        const out: Record<string, CellPrimitive> = {};
+        for (let i = 0; i < syncColumns.length; i++) {
+          out[syncColumns[i].name] = cellValue(row[i]);
+        }
+        return out;
+      })
+    : [];
 
   return (
     <div>
       <div className="mb-3">
         <Text as="h3" style="header" size="medium">
-          {payload.description ?? (
+          {tableInfo.description ?? (
             <Text style="header" size="medium" type="code" as="span">
-              {payload.schema_name}.{payload.table_name}
+              {tableInfo.name}
             </Text>
           )}
         </Text>
-        {payload.description ? (
+        {tableInfo.description ? (
           <Text as="p" type="code">
-            {payload.schema_name}.{payload.table_name}
+            {tableInfo.name}
           </Text>
         ) : null}
       </div>
-      <CommonTable columns={sampleColumnDefs} data={sampleRows}>
-        <Text style="header" size="small">
-          Sample rows
-        </Text>
-      </CommonTable>
+
+      {!loggedIn ? (
+        <CatalogLoginPrompt />
+      ) : syncError ? (
+        <ErrorPage title="Could not load table data" message={syncError} />
+      ) : syncLoading ? (
+        <Loading />
+      ) : (
+        <CommonTable columns={columnDefs} data={rows}>
+          <Text style="header" size="small">
+            Sample rows
+          </Text>
+        </CommonTable>
+      )}
     </div>
   );
 }
@@ -224,6 +305,7 @@ export function DataCatalogPage(): ReactElement {
   }>();
   const navigate = useNavigate();
   const [filter, setFilter] = useState("");
+  const loggedIn = isLoggedIn();
 
   const selectedSchema = schemaName ?? null;
   const selectedTable = tableName ?? null;
@@ -233,26 +315,33 @@ export function DataCatalogPage(): ReactElement {
   }, []);
 
   const {
-    data: schemaPayload,
-    loading: schemasLoading,
-    error: schemasError,
-  } = useDataFetching(() => fetchSchemaList(), []);
+    data: tablesPayload,
+    loading: tablesLoading,
+    error: tablesError,
+  } = useDataFetching(() => fetchTablesList(), []);
 
   const {
-    data: tablePayload,
-    loading: tableLoading,
-    error: tableError,
-  } = useDataFetching((): Promise<GetTableResponse | null> => {
-    if (!selectedSchema || !selectedTable) {
+    data: syncPayload,
+    loading: syncLoading,
+    error: syncError,
+  } = useDataFetching((): Promise<TapSyncResponse | null> => {
+    if (!selectedSchema || !selectedTable || !loggedIn) {
       return Promise.resolve(null);
     }
-    return fetchTablePreview(selectedSchema, selectedTable);
-  }, [selectedSchema ?? "", selectedTable ?? ""]);
+    return fetchTableRows(selectedTable);
+  }, [selectedTable ?? "", loggedIn]);
 
   const filtered = useMemo(
-    () => filterSchemas(schemaPayload?.schemas, filter),
-    [schemaPayload?.schemas, filter],
+    () => filterSchemas(tablesPayload?.schemas, filter),
+    [tablesPayload?.schemas, filter],
   );
+
+  const selectedTableInfo = useMemo(() => {
+    if (!selectedSchema || !selectedTable) {
+      return null;
+    }
+    return findTableInfo(tablesPayload?.schemas, selectedSchema, selectedTable);
+  }, [tablesPayload?.schemas, selectedSchema, selectedTable]);
 
   function handleSelect(nextSchema: string, nextTable: string): void {
     navigate(
@@ -261,18 +350,18 @@ export function DataCatalogPage(): ReactElement {
   }
 
   function SidebarContent(): ReactElement {
-    if (schemasError && !schemaPayload) {
-      return <ErrorPage title="Could not load schema" message={schemasError} />;
+    if (tablesError && !tablesPayload) {
+      return <ErrorPage title="Could not load tables" message={tablesError} />;
     }
-    if (schemasLoading && !schemaPayload) {
+    if (tablesLoading && !tablesPayload) {
       return <Loading />;
     }
     if (!filtered.length) {
       return (
         <Text as="p" className="p-4">
-          {schemaPayload?.schemas.length
+          {tablesPayload?.schemas.length
             ? "No tables match your filter."
-            : "No schemas returned by the API."}
+            : "No tables returned by the API."}
         </Text>
       );
     }
@@ -288,36 +377,35 @@ export function DataCatalogPage(): ReactElement {
 
   function DetailContent(): ReactElement {
     if (!selectedSchema || !selectedTable) {
-      return (
-        <div className="rounded-lg border border-dashed border-border p-8 text-center">
-          <Text as="p" size="large">
-            Browse the data
-          </Text>
-          <Text as="p">
-            Choose a table on the left to see column definitions and sample rows
-          </Text>
-        </div>
-      );
+      return loggedIn ? <CatalogBrowsePrompt /> : <CatalogLoginPrompt />;
     }
 
-    const previewMatchesSelection =
-      tablePayload &&
-      tablePayload.schema_name === selectedSchema &&
-      tablePayload.table_name === selectedTable;
-
-    if (tableError) {
-      return <ErrorPage title="Could not load table" message={tableError} />;
+    if (tablesError && !tablesPayload) {
+      return <ErrorPage title="Could not load tables" message={tablesError} />;
     }
 
-    if (tableLoading && !previewMatchesSelection) {
+    if (tablesLoading && !selectedTableInfo) {
       return <Loading />;
     }
 
-    if (tablePayload && previewMatchesSelection) {
-      return <TablePreview payload={tablePayload} />;
+    if (!selectedTableInfo) {
+      return (
+        <ErrorPage
+          title="Table not found"
+          message={`No metadata for ${selectedTable}`}
+        />
+      );
     }
 
-    return <Loading />;
+    return (
+      <TableDetail
+        tableInfo={selectedTableInfo}
+        syncPayload={syncPayload}
+        syncLoading={loggedIn && syncLoading}
+        syncError={loggedIn ? syncError : null}
+        loggedIn={loggedIn}
+      />
+    );
   }
 
   return (
