@@ -252,7 +252,7 @@ function ResolutionSelector({
         schema={schema}
         layout="columnar"
         name={
-          <Link href={`/object/${candidate.pgc}`}>
+          <Link href={`/object/${candidate.pgc}`} external>
             {getCandidateLabel(candidate)}
           </Link>
         }
