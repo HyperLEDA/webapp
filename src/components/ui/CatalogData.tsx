@@ -1,6 +1,10 @@
 import { Children, ReactElement, ReactNode } from "react";
 import { MdContentCopy, MdSearch } from "react-icons/md";
-import { Catalogs, Schema } from "../../clients/backend/types.gen";
+import {
+  Catalogs,
+  PhotometryTotalMeasurement,
+  Schema,
+} from "../../clients/backend/types.gen";
 import {
   buildNedPositionSearchUrl,
   Declination,
@@ -11,6 +15,7 @@ import {
   QuantityWithError,
 } from "../core/Astronomy";
 import { CardActionsMenu, CatalogCardAction } from "./CardActionsMenu";
+import { Plot } from "./Plot";
 
 export type { CatalogCardAction };
 
@@ -276,4 +281,52 @@ export function VelocitiesCard({
   if (fields.length === 0) return null;
 
   return <CatalogCard title="Velocities">{fields}</CatalogCard>;
+}
+
+function formatPhotometryDetails(
+  measurement: PhotometryTotalMeasurement,
+): string {
+  const lines = [
+    `Band: ${measurement.band}`,
+    `λ: ${measurement.wavelength} Å`,
+    `mag: ${measurement.mag}${measurement.e_mag !== null && measurement.e_mag !== undefined ? ` ± ${measurement.e_mag}` : ""}`,
+    `Method: ${measurement.method}`,
+  ];
+
+  if (measurement.magsys) {
+    lines.push(`Magnitude system: ${measurement.magsys}`);
+  }
+
+  return lines.join("\n");
+}
+
+export function PhotometryTotalCard({
+  catalogs,
+}: {
+  catalogs: Catalogs;
+}): ReactElement | null {
+  const measurements = catalogs.photometry_total;
+  if (!measurements?.length) {
+    return null;
+  }
+
+  const sorted = [...measurements].sort((a, b) => a.wavelength - b.wavelength);
+  const x = sorted.map((m) => m.wavelength);
+  const y = sorted.map((m) => m.mag);
+  const yErrors = sorted.map((m) => m.e_mag);
+  const details = sorted.map(formatPhotometryDetails);
+
+  return (
+    <div className="col-span-full rounded-lg border border-border bg-surface p-4">
+      <h3 className="text-base font-semibold mb-3">Total photometry</h3>
+      <Plot
+        x={x}
+        y={y}
+        yErrors={yErrors}
+        details={details}
+        xLabel="λ (Å)"
+        yLabel="mag"
+      />
+    </div>
+  );
 }

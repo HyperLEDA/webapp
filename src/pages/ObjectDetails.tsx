@@ -10,6 +10,7 @@ import {
   EquatorialCoordinatesCard,
   GalacticCoordinatesCard,
   Field,
+  PhotometryTotalCard,
   RedshiftCard,
   VelocitiesCard,
 } from "../components/ui/CatalogData";
@@ -172,6 +173,10 @@ function ObjectDetails({ object, schema }: ObjectDetailsProps): ReactElement {
         <CatalogDetailSection title="Kinematics">
           <RedshiftCard catalogs={catalogs} />
           <VelocitiesCard catalogs={catalogs} schema={schema} />
+        </CatalogDetailSection>
+
+        <CatalogDetailSection title="Photometry">
+          <PhotometryTotalCard catalogs={catalogs} />
         </CatalogDetailSection>
 
         {catalogs?.notes && catalogs.notes.length > 0 && (
