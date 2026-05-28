@@ -1,22 +1,39 @@
 import { Children, ReactElement, ReactNode } from "react";
+import { MdContentCopy } from "react-icons/md";
 import { Catalogs, Schema } from "../../clients/backend/types.gen";
 import {
   Declination,
+  formatDecForCopy,
+  formatRaForCopy,
   RightAscension,
   Quantity,
   QuantityWithError,
 } from "../core/Astronomy";
+import { CardActionsMenu, CatalogCardAction } from "./CardActionsMenu";
+
+export type { CatalogCardAction };
 
 export function CatalogCard({
   title,
   children,
+  actions,
 }: {
   title: string;
   children: ReactNode;
+  actions?: CatalogCardAction[];
 }): ReactElement {
+  const hasActions = actions !== undefined && actions.length > 0;
+
   return (
     <div className="rounded-lg border border-border bg-surface p-4">
-      <h3 className="text-sm font-semibold mb-3">{title}</h3>
+      <div
+        className={
+          hasActions ? "flex items-start justify-between gap-2 mb-3" : "mb-3"
+        }
+      >
+        <h3 className="text-sm font-semibold min-w-0">{title}</h3>
+        {hasActions && <CardActionsMenu actions={actions} />}
+      </div>
       <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
         {children}
       </dl>
@@ -71,8 +88,30 @@ export function EquatorialCoordinatesCard({
     equatorial?.ra !== undefined || equatorial?.dec !== undefined;
   if (!hasEquatorial) return null;
 
+  const actions: CatalogCardAction[] = [];
+
+  if (equatorial?.ra !== undefined) {
+    actions.push({
+      title: "Copy RA as HHhMMmSS.SSSSs",
+      icon: MdContentCopy,
+      onClick: () => {
+        void navigator.clipboard.writeText(formatRaForCopy(equatorial.ra));
+      },
+    });
+  }
+
+  if (equatorial?.dec !== undefined) {
+    actions.push({
+      title: "Copy Dec as DDdMMmSS.SSSSs",
+      icon: MdContentCopy,
+      onClick: () => {
+        void navigator.clipboard.writeText(formatDecForCopy(equatorial.dec));
+      },
+    });
+  }
+
   return (
-    <CatalogCard title="Equatorial">
+    <CatalogCard title="Equatorial" actions={actions}>
       {equatorial?.ra !== undefined && (
         <Field label="RA">
           <QuantityWithError

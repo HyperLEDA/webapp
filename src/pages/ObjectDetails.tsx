@@ -5,6 +5,7 @@ import { Loading } from "../components/core/Loading";
 import { ErrorPage } from "../components/ui/ErrorPage";
 import {
   CatalogCard,
+  CatalogCardAction,
   CatalogDetailSection,
   EquatorialCoordinatesCard,
   GalacticCoordinatesCard,
@@ -12,6 +13,7 @@ import {
   RedshiftCard,
   VelocitiesCard,
 } from "../components/ui/CatalogData";
+import { MdOpenInNew } from "react-icons/md";
 import {
   CommonTable,
   Column,
@@ -75,6 +77,14 @@ function IdentityHeader({
   const name = catalogs?.designation?.name || `PGC ${object.pgc}`;
   const redshift = catalogs?.redshift;
   const heliocentric = catalogs?.velocity?.heliocentric;
+  const ohpMirrorUrl = `http://atlas.obs-hp.fr/hyperleda/ledacat.cgi?o=%23${object.pgc}`;
+  const identityActions: CatalogCardAction[] = [
+    {
+      title: "Open OHP mirror",
+      icon: MdOpenInNew,
+      onClick: () => window.open(ohpMirrorUrl, "_blank", "noopener,noreferrer"),
+    },
+  ];
 
   return (
     <div className="flex flex-col lg:flex-row items-start gap-6">
@@ -87,16 +97,8 @@ function IdentityHeader({
         />
       )}
       <div className="flex-1 min-w-0 w-full">
-        <CatalogCard title={name}>
+        <CatalogCard title={name} actions={identityActions}>
           <Field label="PGC">{object.pgc}</Field>
-          <Field label="OHP Mirror">
-            <Link
-              href={`http://atlas.obs-hp.fr/hyperleda/ledacat.cgi?o=%23${object.pgc}`}
-              external
-            >
-              View on OHP
-            </Link>
-          </Field>
           {catalogs?.additional_designations &&
             catalogs.additional_designations.length > 0 && (
               <Field label="Also known as">
