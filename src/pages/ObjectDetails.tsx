@@ -3,7 +3,17 @@ import { useParams } from "react-router-dom";
 import { AladinViewer } from "../components/core/Aladin";
 import { Loading } from "../components/core/Loading";
 import { ErrorPage } from "../components/ui/ErrorPage";
-import { CatalogData } from "../components/ui/CatalogData";
+import {
+  CatalogCard,
+  CatalogCardAction,
+  CatalogDetailSection,
+  EquatorialCoordinatesCard,
+  GalacticCoordinatesCard,
+  Field,
+  RedshiftCard,
+  VelocitiesCard,
+} from "../components/ui/CatalogData";
+import { MdOpenInNew } from "react-icons/md";
 import {
   CommonTable,
   Column,
@@ -11,11 +21,11 @@ import {
 } from "../components/ui/CommonTable";
 import { Hint } from "../components/ui/Hint";
 import { Link } from "../components/core/Link";
-import { Accordion } from "../components/core/Accordion";
 import { querySimple } from "../clients/backend/sdk.gen";
 import { NoteEntry, PgcObject, Schema } from "../clients/backend/types.gen";
 import { useDataFetching } from "../hooks/useDataFetching";
 import { backendClient } from "../clients/config";
+import { Quantity, QuantityWithError } from "../components/core/Astronomy";
 
 interface ObjectDetailsProps {
   object: PgcObject;
@@ -47,43 +57,56 @@ function NotesSection({ notes }: { notes: NoteEntry[] }): ReactElement {
   }));
 
   return (
-    <Accordion title="Notes" defaultOpen>
-      <CommonTable columns={columns} data={data} />
-    </Accordion>
+    <section className="space-y-3">
+      <h2 className="text-lg font-semibold">Notes</h2>
+      <div className="rounded-lg border border-border bg-surface p-4 overflow-x-auto">
+        <CommonTable columns={columns} data={data} />
+      </div>
+    </section>
   );
 }
 
-function ObjectDetails({ object, schema }: ObjectDetailsProps): ReactElement {
-  if (!object || !schema) return <div />;
+function IdentityHeader({
+  object,
+  schema,
+}: {
+  object: PgcObject;
+  schema: Schema;
+}): ReactElement {
+  const catalogs = object.catalogs;
+  const name = catalogs?.designation?.name || `PGC ${object.pgc}`;
+  const redshift = catalogs?.redshift;
+  const heliocentric = catalogs?.velocity?.heliocentric;
+  const ohpMirrorUrl = `http://atlas.obs-hp.fr/hyperleda/ledacat.cgi?o=%23${object.pgc}`;
+  const identityActions: CatalogCardAction[] = [
+    {
+      title: "Open OHP mirror",
+      icon: MdOpenInNew,
+      href: ohpMirrorUrl,
+    },
+  ];
 
   return (
-    <div className="space-y-6 rounded-lg">
-      <div className="flex items-start space-x-6">
-        {object.catalogs?.coordinates && (
-          <AladinViewer
-            ra={object.catalogs.coordinates.equatorial.ra}
-            dec={object.catalogs.coordinates.equatorial.dec}
-            fov={0.02}
-            className="w-96 h-96"
-          />
-        )}
-        <div className="flex-1">
-          <h2 className="text-2xl font-bold mb-2">
-            {object.catalogs?.designation?.name || `PGC ${object.pgc}`}
-          </h2>
-          <p>PGC: {object.pgc}</p>
-          <Link
-            href={`http://atlas.obs-hp.fr/hyperleda/ledacat.cgi?o=%23${object.pgc}`}
-            external
-          >
-            OHP Mirror
-          </Link>
-          {object.catalogs?.additional_designations &&
-            object.catalogs.additional_designations.length > 0 && (
-              <div className="mt-4">
-                <p className="font-medium mb-1">Also known as:</p>
+    <div className="flex flex-col lg:flex-row items-start gap-6">
+      {catalogs?.coordinates?.equatorial && (
+        <AladinViewer
+          ra={catalogs.coordinates.equatorial.ra}
+          dec={catalogs.coordinates.equatorial.dec}
+          fov={0.02}
+          className="w-full max-w-96 aspect-square lg:w-96 lg:h-96 shrink-0"
+        />
+      )}
+      <div className="flex-1 min-w-0 w-full">
+        <CatalogCard title={name} actions={identityActions}>
+          <Field label="PGC">{object.pgc}</Field>
+          {catalogs?.nature?.type_name && (
+            <Field label="Nature">{catalogs.nature.type_name}</Field>
+          )}
+          {catalogs?.additional_designations &&
+            catalogs.additional_designations.length > 0 && (
+              <Field label="Also known as">
                 <ul className="list-none space-y-1">
-                  {object.catalogs.additional_designations.map((d, i) => (
+                  {catalogs.additional_designations.map((d, i) => (
                     <li key={i} className="flex items-center gap-2">
                       <span>{d.name}</span>
                       <Hint
@@ -103,12 +126,58 @@ function ObjectDetails({ object, schema }: ObjectDetailsProps): ReactElement {
                     </li>
                   ))}
                 </ul>
-              </div>
+              </Field>
             )}
-        </div>
+          {redshift?.z !== undefined && (
+            <Field label="Redshift">
+              <QuantityWithError error={redshift.e_z} decimalPlaces={5}>
+                {redshift.z.toFixed(5)}
+              </QuantityWithError>
+            </Field>
+          )}
+          {heliocentric?.v !== undefined && (
+            <Field label="Heliocentric">
+              <QuantityWithError
+                error={heliocentric.e_v}
+                unit={schema.units.velocity?.heliocentric?.v}
+              >
+                <Quantity
+                  value={heliocentric.v.toFixed(0)}
+                  unit={schema.units.velocity?.heliocentric?.v}
+                />
+              </QuantityWithError>
+            </Field>
+          )}
+        </CatalogCard>
       </div>
-      {object.catalogs?.notes && <NotesSection notes={object.catalogs.notes} />}
-      <CatalogData catalogs={object.catalogs} schema={schema} />
+    </div>
+  );
+}
+
+function ObjectDetails({ object, schema }: ObjectDetailsProps): ReactElement {
+  if (!object || !schema) return <div />;
+
+  const catalogs = object.catalogs;
+
+  return (
+    <div className="space-y-8 rounded-lg">
+      <IdentityHeader object={object} schema={schema} />
+
+      <div className="space-y-8">
+        <CatalogDetailSection title="Astrometry">
+          <EquatorialCoordinatesCard catalogs={catalogs} schema={schema} />
+          <GalacticCoordinatesCard catalogs={catalogs} schema={schema} />
+        </CatalogDetailSection>
+
+        <CatalogDetailSection title="Kinematics">
+          <RedshiftCard catalogs={catalogs} />
+          <VelocitiesCard catalogs={catalogs} schema={schema} />
+        </CatalogDetailSection>
+
+        {catalogs?.notes && catalogs.notes.length > 0 && (
+          <NotesSection notes={catalogs.notes} />
+        )}
+      </div>
     </div>
   );
 }

@@ -1,176 +1,279 @@
-import { ReactElement } from "react";
-import { CommonTable, Column } from "./CommonTable";
+import { Children, ReactElement, ReactNode } from "react";
+import { MdContentCopy, MdSearch } from "react-icons/md";
 import { Catalogs, Schema } from "../../clients/backend/types.gen";
 import {
+  buildNedPositionSearchUrl,
   Declination,
+  formatDecForCopy,
+  formatRaForCopy,
   RightAscension,
   Quantity,
   QuantityWithError,
 } from "../core/Astronomy";
+import { CardActionsMenu, CatalogCardAction } from "./CardActionsMenu";
 
-interface CatalogDataProps {
-  catalogs: Catalogs;
-  schema: Schema;
+export type { CatalogCardAction };
+
+export function CatalogCard({
+  title,
+  children,
+  actions,
+}: {
+  title: string;
+  children: ReactNode;
+  actions?: CatalogCardAction[];
+}): ReactElement {
+  const hasActions = actions !== undefined && actions.length > 0;
+
+  return (
+    <div className="rounded-lg border border-border bg-surface p-4">
+      <div
+        className={
+          hasActions ? "flex items-start justify-between gap-2 mb-3" : "mb-3"
+        }
+      >
+        <h3 className="text-base font-semibold min-w-0">{title}</h3>
+        {hasActions && <CardActionsMenu actions={actions} />}
+      </div>
+      <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-base">
+        {children}
+      </dl>
+    </div>
+  );
 }
 
-export function CatalogData({
+export function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}): ReactElement {
+  return (
+    <>
+      <dt className="text-muted">{label}</dt>
+      <dd>{children}</dd>
+    </>
+  );
+}
+
+export function CatalogDetailSection({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}): ReactElement | null {
+  const items = Children.toArray(children).filter(Boolean);
+  if (items.length === 0) return null;
+
+  return (
+    <section className="space-y-3">
+      <h2 className="text-lg font-semibold">{title}</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+        {items}
+      </div>
+    </section>
+  );
+}
+
+export function EquatorialCoordinatesCard({
   catalogs,
   schema,
-}: CatalogDataProps): ReactElement {
-  if (!catalogs) return <div />;
+}: {
+  catalogs: Catalogs;
+  schema: Schema;
+}): ReactElement | null {
+  const equatorial = catalogs?.coordinates?.equatorial;
+  const hasEquatorial =
+    equatorial?.ra !== undefined || equatorial?.dec !== undefined;
+  if (!hasEquatorial) return null;
 
-  const columns: Column[] = [{ name: "Parameter" }, { name: "Value" }];
+  const actions: CatalogCardAction[] = [];
 
-  const data = [];
-
-  if (catalogs?.designation?.name) {
-    data.push({
-      Parameter: "Name",
-      Value: catalogs.designation.name,
+  if (equatorial?.ra !== undefined) {
+    actions.push({
+      title: "Copy RA as HHhMMmSS.SSSSs",
+      icon: MdContentCopy,
+      onClick: () => {
+        void navigator.clipboard.writeText(formatRaForCopy(equatorial.ra));
+      },
     });
   }
 
-  if (catalogs?.coordinates) {
-    if (catalogs.coordinates.equatorial?.ra !== undefined) {
-      data.push({
-        Parameter: "Equatorial RA",
-        Value: (
+  if (equatorial?.dec !== undefined) {
+    actions.push({
+      title: "Copy Dec as DDdMMmSS.SSSSs",
+      icon: MdContentCopy,
+      onClick: () => {
+        void navigator.clipboard.writeText(formatDecForCopy(equatorial.dec));
+      },
+    });
+  }
+
+  if (equatorial?.ra !== undefined && equatorial?.dec !== undefined) {
+    actions.push({
+      title: "Search in NED",
+      icon: MdSearch,
+      href: buildNedPositionSearchUrl(equatorial.ra, equatorial.dec),
+    });
+  }
+
+  return (
+    <CatalogCard title="Equatorial" actions={actions}>
+      {equatorial?.ra !== undefined && (
+        <Field label="RA">
           <QuantityWithError
-            error={catalogs.coordinates.equatorial?.e_ra}
+            error={equatorial.e_ra}
             unit={schema.units.coordinates?.equatorial?.ra || "deg"}
           >
-            <RightAscension value={catalogs.coordinates.equatorial.ra} />
+            <RightAscension value={equatorial.ra} />
           </QuantityWithError>
-        ),
-      });
-    }
-
-    if (catalogs.coordinates.equatorial?.dec !== undefined) {
-      data.push({
-        Parameter: "Equatorial Dec",
-        Value: (
+        </Field>
+      )}
+      {equatorial?.dec !== undefined && (
+        <Field label="Dec">
           <QuantityWithError
-            error={catalogs.coordinates.equatorial?.e_dec}
+            error={equatorial.e_dec}
             unit={schema.units.coordinates?.equatorial?.dec || "deg"}
           >
-            <Declination value={catalogs.coordinates.equatorial.dec} />
+            <Declination value={equatorial.dec} />
           </QuantityWithError>
-        ),
-      });
-    }
+        </Field>
+      )}
+    </CatalogCard>
+  );
+}
 
-    data.push(
-      {
-        Parameter: "Galactic l",
-        Value: (
+export function GalacticCoordinatesCard({
+  catalogs,
+  schema,
+}: {
+  catalogs: Catalogs;
+  schema: Schema;
+}): ReactElement | null {
+  const galactic = catalogs?.coordinates?.galactic;
+  const hasGalactic =
+    galactic?.lon !== undefined || galactic?.lat !== undefined;
+  if (!hasGalactic) return null;
+
+  return (
+    <CatalogCard title="Galactic">
+      {galactic?.lon !== undefined && (
+        <Field label="l">
           <QuantityWithError
-            error={catalogs.coordinates.galactic?.e_lon}
+            error={galactic.e_lon}
             unit={schema.units.coordinates?.galactic?.lon}
           >
             <Quantity
-              value={catalogs.coordinates.galactic?.lon?.toFixed(2)}
+              value={galactic.lon.toFixed(2)}
               unit={schema.units.coordinates?.galactic?.lon}
             />
           </QuantityWithError>
-        ),
-      },
-      {
-        Parameter: "Galactic b",
-        Value: (
+        </Field>
+      )}
+      {galactic?.lat !== undefined && (
+        <Field label="b">
           <QuantityWithError
-            error={catalogs.coordinates.galactic?.e_lat}
+            error={galactic.e_lat}
             unit={schema.units.coordinates?.galactic?.lat}
           >
             <Quantity
-              value={catalogs.coordinates.galactic?.lat?.toFixed(2)}
+              value={galactic.lat.toFixed(2)}
               unit={schema.units.coordinates?.galactic?.lat}
             />
           </QuantityWithError>
-        ),
-      },
-    );
-  }
+        </Field>
+      )}
+    </CatalogCard>
+  );
+}
 
-  if (catalogs?.redshift) {
-    data.push({
-      Parameter: "Redshift z",
-      Value: (
-        <QuantityWithError error={catalogs.redshift.e_z} decimalPlaces={5}>
-          {catalogs.redshift.z?.toFixed(5) || "N/A"}
+export function RedshiftCard({
+  catalogs,
+}: {
+  catalogs: Catalogs;
+}): ReactElement | null {
+  const redshift = catalogs?.redshift;
+  if (!redshift || redshift.z === undefined) return null;
+
+  return (
+    <CatalogCard title="Redshift">
+      <Field label="z">
+        <QuantityWithError error={redshift.e_z} decimalPlaces={5}>
+          {redshift.z?.toFixed(5) || "N/A"}
         </QuantityWithError>
-      ),
-    });
-  }
+      </Field>
+    </CatalogCard>
+  );
+}
 
-  if (catalogs?.velocity) {
-    if (catalogs.velocity.heliocentric?.v !== undefined) {
-      data.push({
-        Parameter: "Heliocentric Velocity",
-        Value: (
-          <QuantityWithError
-            error={catalogs.velocity.heliocentric?.e_v}
+export function VelocitiesCard({
+  catalogs,
+  schema,
+}: {
+  catalogs: Catalogs;
+  schema: Schema;
+}): ReactElement | null {
+  const velocity = catalogs?.velocity;
+  if (!velocity) return null;
+
+  const fields = [
+    velocity.heliocentric?.v !== undefined && (
+      <Field key="heliocentric" label="Heliocentric">
+        <QuantityWithError
+          error={velocity.heliocentric.e_v}
+          unit={schema.units.velocity?.heliocentric?.v}
+        >
+          <Quantity
+            value={velocity.heliocentric.v.toFixed(0)}
             unit={schema.units.velocity?.heliocentric?.v}
-          >
-            <Quantity
-              value={catalogs.velocity.heliocentric?.v?.toFixed(0)}
-              unit={schema.units.velocity?.heliocentric?.v}
-            />
-          </QuantityWithError>
-        ),
-      });
-    }
-
-    if (catalogs.velocity.local_group?.v !== undefined) {
-      data.push({
-        Parameter: "Local Group Velocity",
-        Value: (
-          <QuantityWithError
-            error={catalogs.velocity.local_group?.e_v}
+          />
+        </QuantityWithError>
+      </Field>
+    ),
+    velocity.local_group?.v !== undefined && (
+      <Field key="local_group" label="Local Group">
+        <QuantityWithError
+          error={velocity.local_group.e_v}
+          unit={schema.units.velocity?.local_group?.v}
+        >
+          <Quantity
+            value={velocity.local_group.v.toFixed(0)}
             unit={schema.units.velocity?.local_group?.v}
-          >
-            <Quantity
-              value={catalogs.velocity.local_group?.v?.toFixed(0)}
-              unit={schema.units.velocity?.local_group?.v}
-            />
-          </QuantityWithError>
-        ),
-      });
-    }
-
-    if (catalogs.velocity.cmb_old?.v !== undefined) {
-      data.push({
-        Parameter: "CMB (old) Velocity",
-        Value: (
-          <QuantityWithError
-            error={catalogs.velocity.cmb_old?.e_v}
+          />
+        </QuantityWithError>
+      </Field>
+    ),
+    velocity.cmb_old?.v !== undefined && (
+      <Field key="cmb_old" label="CMB (old)">
+        <QuantityWithError
+          error={velocity.cmb_old.e_v}
+          unit={schema.units.velocity?.cmb_old?.v}
+        >
+          <Quantity
+            value={velocity.cmb_old.v.toFixed(0)}
             unit={schema.units.velocity?.cmb_old?.v}
-          >
-            <Quantity
-              value={catalogs.velocity.cmb_old?.v?.toFixed(0)}
-              unit={schema.units.velocity?.cmb_old?.v}
-            />
-          </QuantityWithError>
-        ),
-      });
-    }
-
-    if (catalogs.velocity.cmb?.v !== undefined) {
-      data.push({
-        Parameter: "CMB Velocity",
-        Value: (
-          <QuantityWithError
-            error={catalogs.velocity.cmb?.e_v}
+          />
+        </QuantityWithError>
+      </Field>
+    ),
+    velocity.cmb?.v !== undefined && (
+      <Field key="cmb" label="CMB">
+        <QuantityWithError
+          error={velocity.cmb.e_v}
+          unit={schema.units.velocity?.cmb?.v}
+        >
+          <Quantity
+            value={velocity.cmb.v.toFixed(0)}
             unit={schema.units.velocity?.cmb?.v}
-          >
-            <Quantity
-              value={catalogs.velocity.cmb?.v?.toFixed(0)}
-              unit={schema.units.velocity?.cmb?.v}
-            />
-          </QuantityWithError>
-        ),
-      });
-    }
-  }
+          />
+        </QuantityWithError>
+      </Field>
+    ),
+  ].filter(Boolean);
 
-  return <CommonTable columns={columns} data={data} />;
+  if (fields.length === 0) return null;
+
+  return <CatalogCard title="Velocities">{fields}</CatalogCard>;
 }
