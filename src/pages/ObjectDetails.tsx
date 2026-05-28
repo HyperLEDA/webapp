@@ -99,6 +99,9 @@ function IdentityHeader({
       <div className="flex-1 min-w-0 w-full">
         <CatalogCard title={name} actions={identityActions}>
           <Field label="PGC">{object.pgc}</Field>
+          {catalogs?.nature?.type_name && (
+            <Field label="Nature">{catalogs.nature.type_name}</Field>
+          )}
           {catalogs?.additional_designations &&
             catalogs.additional_designations.length > 0 && (
               <Field label="Also known as">
