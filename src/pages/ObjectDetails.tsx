@@ -67,48 +67,50 @@ function ObjectDetails({ object, schema }: ObjectDetailsProps): ReactElement {
             className="w-96 h-96"
           />
         )}
-        <div className="flex-1">
-          <h2 className="text-2xl font-bold mb-2">
-            {object.catalogs?.designation?.name || `PGC ${object.pgc}`}
-          </h2>
-          <p>PGC: {object.pgc}</p>
-          <Link
-            href={`http://atlas.obs-hp.fr/hyperleda/ledacat.cgi?o=%23${object.pgc}`}
-            external
-          >
-            OHP Mirror
-          </Link>
-          {object.catalogs?.additional_designations &&
-            object.catalogs.additional_designations.length > 0 && (
-              <div className="mt-4">
-                <p className="font-medium mb-1">Also known as:</p>
-                <ul className="list-none space-y-1">
-                  {object.catalogs.additional_designations.map((d, i) => (
-                    <li key={i} className="flex items-center gap-2">
-                      <span>{d.name}</span>
-                      <Hint
-                        hintContent={
-                          <span>
-                            <Link
-                              href={getSourceLink(d.source.bibcode)}
-                              external
-                            >
-                              {d.source.bibcode}
-                            </Link>
-                            {`. ${d.source.title}. ${d.source.authors.join(", ")}. ${d.source.year}`}
-                          </span>
-                        }
-                        className="gap-1"
-                      />
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+        <div className="flex-1 min-w-0 space-y-4">
+          <div>
+            <h2 className="text-2xl font-bold mb-2">
+              {object.catalogs?.designation?.name || `PGC ${object.pgc}`}
+            </h2>
+            <p>PGC: {object.pgc}</p>
+            <Link
+              href={`http://atlas.obs-hp.fr/hyperleda/ledacat.cgi?o=%23${object.pgc}`}
+              external
+            >
+              OHP Mirror
+            </Link>
+            {object.catalogs?.additional_designations &&
+              object.catalogs.additional_designations.length > 0 && (
+                <div className="mt-4">
+                  <p className="font-medium mb-1">Also known as:</p>
+                  <ul className="list-none space-y-1">
+                    {object.catalogs.additional_designations.map((d, i) => (
+                      <li key={i} className="flex items-center gap-2">
+                        <span>{d.name}</span>
+                        <Hint
+                          hintContent={
+                            <span>
+                              <Link
+                                href={getSourceLink(d.source.bibcode)}
+                                external
+                              >
+                                {d.source.bibcode}
+                              </Link>
+                              {`. ${d.source.title}. ${d.source.authors.join(", ")}. ${d.source.year}`}
+                            </span>
+                          }
+                          className="gap-1"
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+          </div>
+          <CatalogData catalogs={object.catalogs} schema={schema} />
         </div>
       </div>
       {object.catalogs?.notes && <NotesSection notes={object.catalogs.notes} />}
-      <CatalogData catalogs={object.catalogs} schema={schema} />
     </div>
   );
 }
