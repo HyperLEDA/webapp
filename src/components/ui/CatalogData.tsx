@@ -1,10 +1,16 @@
 import { Children, ReactElement, ReactNode } from "react";
-import { MdContentCopy, MdSearch } from "react-icons/md";
+import { MdCode, MdContentCopy, MdSearch } from "react-icons/md";
 import {
   Catalogs,
   PhotometryTotalMeasurement,
   Schema,
 } from "../../clients/backend/types.gen";
+import { isLoggedIn } from "../../auth/token";
+import {
+  buildEquatorialSqlQuery,
+  buildPhotometryTotalSqlQuery,
+  buildRedshiftSqlQuery,
+} from "../../lib/tap";
 import {
   buildNedPositionSearchUrl,
   Declination,
@@ -18,6 +24,18 @@ import { CardActionsMenu, CatalogCardAction } from "./CardActionsMenu";
 import { Plot } from "./Plot";
 
 export type { CatalogCardAction };
+
+function originalDataAction(
+  sql: string,
+  description: string,
+): CatalogCardAction {
+  return {
+    title: "View original data",
+    description,
+    icon: MdCode,
+    href: `/data-catalog/query?q=${encodeURIComponent(sql)}`,
+  };
+}
 
 export function CatalogCard({
   title,
@@ -85,9 +103,11 @@ export function CatalogDetailSection({
 export function EquatorialCoordinatesCard({
   catalogs,
   schema,
+  pgc,
 }: {
   catalogs: Catalogs;
   schema: Schema;
+  pgc: number;
 }): ReactElement | null {
   const equatorial = catalogs?.coordinates?.equatorial;
   const hasEquatorial =
@@ -95,6 +115,15 @@ export function EquatorialCoordinatesCard({
   if (!hasEquatorial) return null;
 
   const actions: CatalogCardAction[] = [];
+
+  if (isLoggedIn()) {
+    actions.push(
+      originalDataAction(
+        buildEquatorialSqlQuery(pgc),
+        "Open SQL query for underlying equatorial coordinate records",
+      ),
+    );
+  }
 
   if (equatorial?.ra !== undefined) {
     actions.push({
@@ -196,14 +225,25 @@ export function GalacticCoordinatesCard({
 
 export function RedshiftCard({
   catalogs,
+  pgc,
 }: {
   catalogs: Catalogs;
+  pgc: number;
 }): ReactElement | null {
   const redshift = catalogs?.redshift;
   if (!redshift || redshift.z === undefined) return null;
 
+  const actions: CatalogCardAction[] = isLoggedIn()
+    ? [
+        originalDataAction(
+          buildRedshiftSqlQuery(pgc),
+          "Open SQL query for underlying redshift records",
+        ),
+      ]
+    : [];
+
   return (
-    <CatalogCard title="Redshift">
+    <CatalogCard title="Redshift" actions={actions}>
       <Field label="z">
         <QuantityWithError error={redshift.e_z} decimalPlaces={5}>
           {redshift.z?.toFixed(5) || "N/A"}
@@ -302,8 +342,10 @@ function formatPhotometryDetails(
 
 export function PhotometryTotalCard({
   catalogs,
+  pgc,
 }: {
   catalogs: Catalogs;
+  pgc: number;
 }): ReactElement | null {
   const measurements = catalogs.photometry_total;
   if (!measurements?.length) {
@@ -316,9 +358,26 @@ export function PhotometryTotalCard({
   const yErrors = sorted.map((m) => m.e_mag);
   const details = sorted.map(formatPhotometryDetails);
 
+  const actions: CatalogCardAction[] = isLoggedIn()
+    ? [
+        originalDataAction(
+          buildPhotometryTotalSqlQuery(pgc),
+          "Open SQL query for underlying photometry records",
+        ),
+      ]
+    : [];
+  const hasActions = actions.length > 0;
+
   return (
     <div className="col-span-full rounded-lg border border-border bg-surface p-4">
-      <h3 className="text-base font-semibold mb-3">Total photometry</h3>
+      <div
+        className={
+          hasActions ? "flex items-start justify-between gap-2 mb-3" : "mb-3"
+        }
+      >
+        <h3 className="text-base font-semibold min-w-0">Total photometry</h3>
+        {hasActions && <CardActionsMenu actions={actions} />}
+      </div>
       <Plot
         x={x}
         y={y}

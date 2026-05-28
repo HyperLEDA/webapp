@@ -166,17 +166,21 @@ function ObjectDetails({ object, schema }: ObjectDetailsProps): ReactElement {
 
       <div className="space-y-8">
         <CatalogDetailSection title="Astrometry">
-          <EquatorialCoordinatesCard catalogs={catalogs} schema={schema} />
+          <EquatorialCoordinatesCard
+            catalogs={catalogs}
+            schema={schema}
+            pgc={object.pgc}
+          />
           <GalacticCoordinatesCard catalogs={catalogs} schema={schema} />
         </CatalogDetailSection>
 
         <CatalogDetailSection title="Kinematics">
-          <RedshiftCard catalogs={catalogs} />
+          <RedshiftCard catalogs={catalogs} pgc={object.pgc} />
           <VelocitiesCard catalogs={catalogs} schema={schema} />
         </CatalogDetailSection>
 
         <CatalogDetailSection title="Photometry">
-          <PhotometryTotalCard catalogs={catalogs} />
+          <PhotometryTotalCard catalogs={catalogs} pgc={object.pgc} />
         </CatalogDetailSection>
 
         {catalogs?.notes && catalogs.notes.length > 0 && (
