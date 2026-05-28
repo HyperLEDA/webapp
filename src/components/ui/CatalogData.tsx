@@ -1,7 +1,8 @@
 import { Children, ReactElement, ReactNode } from "react";
-import { MdContentCopy } from "react-icons/md";
+import { MdContentCopy, MdSearch } from "react-icons/md";
 import { Catalogs, Schema } from "../../clients/backend/types.gen";
 import {
+  buildNedPositionSearchUrl,
   Declination,
   formatDecForCopy,
   formatRaForCopy,
@@ -31,10 +32,10 @@ export function CatalogCard({
           hasActions ? "flex items-start justify-between gap-2 mb-3" : "mb-3"
         }
       >
-        <h3 className="text-sm font-semibold min-w-0">{title}</h3>
+        <h3 className="text-base font-semibold min-w-0">{title}</h3>
         {hasActions && <CardActionsMenu actions={actions} />}
       </div>
-      <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
+      <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-base">
         {children}
       </dl>
     </div>
@@ -106,6 +107,20 @@ export function EquatorialCoordinatesCard({
       icon: MdContentCopy,
       onClick: () => {
         void navigator.clipboard.writeText(formatDecForCopy(equatorial.dec));
+      },
+    });
+  }
+
+  if (equatorial?.ra !== undefined && equatorial?.dec !== undefined) {
+    actions.push({
+      title: "Search in NED",
+      icon: MdSearch,
+      onClick: () => {
+        window.open(
+          buildNedPositionSearchUrl(equatorial.ra, equatorial.dec),
+          "_blank",
+          "noopener,noreferrer",
+        );
       },
     });
   }

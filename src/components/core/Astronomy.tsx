@@ -81,6 +81,23 @@ export function formatDecForCopy(degrees: number): string {
   return `${sign}${deg}d${String(minutes).padStart(2, "0")}m${seconds.toFixed(4)}s`;
 }
 
+export function buildNedPositionSearchUrl(
+  raDegrees: number,
+  decDegrees: number,
+): string {
+  const params = new URLSearchParams({
+    search_type: "Near Position Search",
+    in_csys: "Equatorial",
+    in_equinox: "J2000",
+    ra: formatRaForCopy(raDegrees),
+    dec: formatDecForCopy(decDegrees),
+    radius: "1",
+    Z_CONSTRAINT: "Unconstrained",
+  });
+
+  return `https://ned.ipac.caltech.edu/conesearch?${params.toString()}`;
+}
+
 export function RightAscension({
   value,
   className,
