@@ -115,13 +115,7 @@ export function EquatorialCoordinatesCard({
     actions.push({
       title: "Search in NED",
       icon: MdSearch,
-      onClick: () => {
-        window.open(
-          buildNedPositionSearchUrl(equatorial.ra, equatorial.dec),
-          "_blank",
-          "noopener,noreferrer",
-        );
-      },
+      href: buildNedPositionSearchUrl(equatorial.ra, equatorial.dec),
     });
   }
 

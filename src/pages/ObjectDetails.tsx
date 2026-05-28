@@ -82,7 +82,7 @@ function IdentityHeader({
     {
       title: "Open OHP mirror",
       icon: MdOpenInNew,
-      onClick: () => window.open(ohpMirrorUrl, "_blank", "noopener,noreferrer"),
+      href: ohpMirrorUrl,
     },
   ];
 
