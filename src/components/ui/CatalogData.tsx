@@ -1,4 +1,4 @@
-import { ReactElement, ReactNode } from "react";
+import { Children, ReactElement, ReactNode } from "react";
 import { Catalogs, Schema } from "../../clients/backend/types.gen";
 import {
   Declination,
@@ -7,12 +7,7 @@ import {
   QuantityWithError,
 } from "../core/Astronomy";
 
-interface CatalogDataProps {
-  catalogs: Catalogs;
-  schema: Schema;
-}
-
-function CatalogCard({
+export function CatalogCard({
   title,
   children,
 }: {
@@ -29,7 +24,7 @@ function CatalogCard({
   );
 }
 
-function Field({
+export function Field({
   label,
   children,
 }: {
@@ -44,27 +39,40 @@ function Field({
   );
 }
 
-function CoordinatesCard({
+export function CatalogDetailSection({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}): ReactElement | null {
+  const items = Children.toArray(children).filter(Boolean);
+  if (items.length === 0) return null;
+
+  return (
+    <section className="space-y-3">
+      <h2 className="text-lg font-semibold">{title}</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+        {items}
+      </div>
+    </section>
+  );
+}
+
+export function EquatorialCoordinatesCard({
   catalogs,
   schema,
 }: {
   catalogs: Catalogs;
   schema: Schema;
 }): ReactElement | null {
-  const coordinates = catalogs?.coordinates;
-  if (!coordinates) return null;
-
-  const equatorial = coordinates.equatorial;
-  const galactic = coordinates.galactic;
+  const equatorial = catalogs?.coordinates?.equatorial;
   const hasEquatorial =
     equatorial?.ra !== undefined || equatorial?.dec !== undefined;
-  const hasGalactic =
-    galactic?.lon !== undefined || galactic?.lat !== undefined;
-
-  if (!hasEquatorial && !hasGalactic) return null;
+  if (!hasEquatorial) return null;
 
   return (
-    <CatalogCard title="Coordinates">
+    <CatalogCard title="Equatorial">
       {equatorial?.ra !== undefined && (
         <Field label="RA">
           <QuantityWithError
@@ -85,8 +93,26 @@ function CoordinatesCard({
           </QuantityWithError>
         </Field>
       )}
+    </CatalogCard>
+  );
+}
+
+export function GalacticCoordinatesCard({
+  catalogs,
+  schema,
+}: {
+  catalogs: Catalogs;
+  schema: Schema;
+}): ReactElement | null {
+  const galactic = catalogs?.coordinates?.galactic;
+  const hasGalactic =
+    galactic?.lon !== undefined || galactic?.lat !== undefined;
+  if (!hasGalactic) return null;
+
+  return (
+    <CatalogCard title="Galactic">
       {galactic?.lon !== undefined && (
-        <Field label="Galactic l">
+        <Field label="l">
           <QuantityWithError
             error={galactic.e_lon}
             unit={schema.units.coordinates?.galactic?.lon}
@@ -99,7 +125,7 @@ function CoordinatesCard({
         </Field>
       )}
       {galactic?.lat !== undefined && (
-        <Field label="Galactic b">
+        <Field label="b">
           <QuantityWithError
             error={galactic.e_lat}
             unit={schema.units.coordinates?.galactic?.lat}
@@ -115,7 +141,7 @@ function CoordinatesCard({
   );
 }
 
-function RedshiftCard({
+export function RedshiftCard({
   catalogs,
 }: {
   catalogs: Catalogs;
@@ -134,7 +160,7 @@ function RedshiftCard({
   );
 }
 
-function VelocitiesCard({
+export function VelocitiesCard({
   catalogs,
   schema,
 }: {
@@ -202,19 +228,4 @@ function VelocitiesCard({
   if (fields.length === 0) return null;
 
   return <CatalogCard title="Velocities">{fields}</CatalogCard>;
-}
-
-export function CatalogData({
-  catalogs,
-  schema,
-}: CatalogDataProps): ReactElement {
-  if (!catalogs) return <div />;
-
-  return (
-    <div className="space-y-4">
-      <CoordinatesCard catalogs={catalogs} schema={schema} />
-      <RedshiftCard catalogs={catalogs} />
-      <VelocitiesCard catalogs={catalogs} schema={schema} />
-    </div>
-  );
 }
