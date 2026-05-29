@@ -6,12 +6,10 @@ import { ErrorPage } from "../components/ui/ErrorPage";
 import {
   CatalogCard,
   CatalogCardAction,
-  CatalogDetailSection,
   AstrometryCard,
   Field,
   PhotometryTotalCard,
-  RedshiftCard,
-  VelocitiesCard,
+  KinematicsCard,
 } from "../components/ui/CatalogData";
 import { MdOpenInNew } from "react-icons/md";
 import {
@@ -163,18 +161,11 @@ function ObjectDetails({ object, schema }: ObjectDetailsProps): ReactElement {
     <div className="space-y-5 rounded-lg">
       <IdentityHeader object={object} schema={schema} />
 
-      <CatalogDetailSection title="Astrometry">
-        <AstrometryCard catalogs={catalogs} schema={schema} pgc={object.pgc} />
-      </CatalogDetailSection>
+      <AstrometryCard catalogs={catalogs} schema={schema} pgc={object.pgc} />
 
-      <CatalogDetailSection title="Kinematics">
-        <RedshiftCard catalogs={catalogs} pgc={object.pgc} />
-        <VelocitiesCard catalogs={catalogs} schema={schema} />
-      </CatalogDetailSection>
+      <KinematicsCard catalogs={catalogs} schema={schema} pgc={object.pgc} />
 
-      <CatalogDetailSection title="Photometry">
-        <PhotometryTotalCard catalogs={catalogs} pgc={object.pgc} />
-      </CatalogDetailSection>
+      <PhotometryTotalCard catalogs={catalogs} pgc={object.pgc} />
 
       {catalogs?.notes && catalogs.notes.length > 0 && (
         <NotesSection notes={catalogs.notes} />
