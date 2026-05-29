@@ -25,20 +25,53 @@ const PLOT_HEIGHT = 320;
 const MARKER_SIZE = 9;
 const ERROR_CAP_WIDTH = 4;
 const HIT_RADIUS = 20;
-const X_AXIS_PADDING_RATIO = 0.1;
+const AXIS_PADDING_RATIO = 0.1;
+
+function paddedRange(dataMin: number, dataMax: number): uPlot.Range.MinMax {
+  const span = dataMax - dataMin;
+  const padding =
+    span > 0
+      ? span * AXIS_PADDING_RATIO
+      : Math.abs(dataMin) * AXIS_PADDING_RATIO || 1;
+
+  return [dataMin - padding, dataMax + padding];
+}
 
 function paddedXRange(
   _u: uPlot,
   dataMin: number,
   dataMax: number,
 ): uPlot.Range.MinMax {
-  const span = dataMax - dataMin;
-  const padding =
-    span > 0
-      ? span * X_AXIS_PADDING_RATIO
-      : Math.abs(dataMin) * X_AXIS_PADDING_RATIO || 1;
+  return paddedRange(dataMin, dataMax);
+}
 
-  return [dataMin - padding, dataMax + padding];
+function yRangeWithErrors(
+  y: number[],
+  yErrors?: (number | null)[],
+): (_u: uPlot, dataMin: number, dataMax: number) => uPlot.Range.MinMax {
+  return (_u, dataMin, dataMax) => {
+    let min = dataMin;
+    let max = dataMax;
+
+    if (yErrors) {
+      for (let i = 0; i < y.length; i++) {
+        const err = yErrors[i];
+        if (err === null || err === undefined || err <= 0) {
+          continue;
+        }
+
+        const yVal = y[i];
+        if (yVal === null || yVal === undefined) {
+          continue;
+        }
+
+        min = Math.min(min, yVal - err);
+        max = Math.max(max, yVal + err);
+      }
+    }
+
+    return paddedRange(min, max);
+  };
 }
 
 function readCssToken(name: string): string {
@@ -240,6 +273,7 @@ export function Plot({
       height: PLOT_HEIGHT,
       scales: {
         x: { time: false, range: paddedXRange },
+        y: { range: yRangeWithErrors(aligned.y, aligned.yErrors) },
       },
       axes: [
         {

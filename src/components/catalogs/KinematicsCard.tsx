@@ -10,10 +10,12 @@ export function KinematicsCard({
   catalogs,
   schema,
   pgc,
+  className,
 }: {
   catalogs: Catalogs;
   schema: Schema;
   pgc: number;
+  className?: string;
 }): ReactElement | null {
   const redshift = catalogs?.redshift;
   const velocity = catalogs?.velocity;
@@ -84,7 +86,12 @@ export function KinematicsCard({
       : [];
 
   return (
-    <CatalogCard title="Kinematics" actions={actions} anchorId="kinematics">
+    <CatalogCard
+      title="Kinematics"
+      actions={actions}
+      anchorId="kinematics"
+      className={className}
+    >
       {hasRedshift && (
         <Field label="z">
           <QuantityWithError error={redshift.e_z} decimalPlaces={5}>

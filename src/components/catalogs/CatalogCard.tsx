@@ -1,3 +1,4 @@
+import classNames from "classnames";
 import { Children, ReactElement, ReactNode } from "react";
 import { useAnchoredElement } from "../../hooks/useAnchoredElement";
 import { CardActionsMenu, CatalogCardAction } from "../ui/CardActionsMenu";
@@ -14,11 +15,13 @@ export function CatalogCard({
   children,
   actions,
   anchorId,
+  className,
 }: {
   title: string;
   children: ReactNode;
   actions?: CatalogCardAction[];
   anchorId?: string;
+  className?: string;
 }): ReactElement {
   const { ref, highlighted } = useAnchoredElement(anchorId ?? "");
   const hasActions = actions !== undefined && actions.length > 0;
@@ -27,7 +30,11 @@ export function CatalogCard({
     <div
       ref={anchorId ? ref : undefined}
       id={anchorId}
-      className={`rounded-lg border border-border bg-surface p-3${anchorId && highlighted ? " card-anchor-highlight" : ""}`}
+      className={classNames(
+        "rounded-lg border border-border bg-surface p-3",
+        anchorId && highlighted && "card-anchor-highlight",
+        className,
+      )}
     >
       <div
         className={

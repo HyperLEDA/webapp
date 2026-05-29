@@ -19,10 +19,12 @@ export function AstrometryCard({
   catalogs,
   schema,
   pgc,
+  className,
 }: {
   catalogs: Catalogs;
   schema: Schema;
   pgc: number;
+  className?: string;
 }): ReactElement | null {
   const equatorial = catalogs?.coordinates?.equatorial;
   const galactic = catalogs?.coordinates?.galactic;
@@ -80,7 +82,12 @@ export function AstrometryCard({
         : eRaUnit;
 
   return (
-    <CatalogCard title="Astrometry" actions={actions} anchorId="astrometry">
+    <CatalogCard
+      title="Astrometry"
+      actions={actions}
+      anchorId="astrometry"
+      className={className}
+    >
       {hasEquatorial && (
         <>
           <Field label="ICRS">

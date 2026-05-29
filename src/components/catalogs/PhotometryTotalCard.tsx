@@ -1,3 +1,4 @@
+import classNames from "classnames";
 import { ReactElement } from "react";
 import {
   Catalogs,
@@ -32,9 +33,11 @@ function formatPhotometryDetails(
 export function PhotometryTotalCard({
   catalogs,
   pgc,
+  className,
 }: {
   catalogs: Catalogs;
   pgc: number;
+  className?: string;
 }): ReactElement | null {
   const measurements = catalogs.photometry_total;
   if (!measurements?.length) {
@@ -57,7 +60,11 @@ export function PhotometryTotalCard({
     <div
       ref={ref}
       id="photometry"
-      className={`col-span-full rounded-lg border border-border bg-surface p-3${highlighted ? " card-anchor-highlight" : ""}`}
+      className={classNames(
+        "rounded-lg border border-border bg-surface p-3",
+        highlighted && "card-anchor-highlight",
+        className,
+      )}
     >
       <div
         className={

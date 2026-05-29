@@ -124,12 +124,15 @@ function ObjectDetails({ object, schema }: ObjectDetailsProps): ReactElement {
     <div className="space-y-5 rounded-lg">
       <IdentityHeader object={object} schema={schema} />
 
-      <NotesCard catalogs={catalogs} />
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <NotesCard catalogs={catalogs} className="col-span-full" />
         <AstrometryCard catalogs={catalogs} schema={schema} pgc={object.pgc} />
         <KinematicsCard catalogs={catalogs} schema={schema} pgc={object.pgc} />
-        <PhotometryTotalCard catalogs={catalogs} pgc={object.pgc} />
+        <PhotometryTotalCard
+          catalogs={catalogs}
+          pgc={object.pgc}
+          className="col-span-full"
+        />
       </div>
     </div>
   );
