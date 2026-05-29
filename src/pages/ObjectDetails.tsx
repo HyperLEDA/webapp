@@ -1,7 +1,5 @@
 import { ReactElement, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { useAnchoredElement } from "../hooks/useAnchoredElement";
-import { CardAnchorLink } from "../components/ui/CardAnchorLink";
 import { AladinViewer } from "../components/core/Aladin";
 import { Loading } from "../components/core/Loading";
 import { ErrorPage } from "../components/ui/ErrorPage";
@@ -10,19 +8,16 @@ import {
   CatalogCardAction,
   AstrometryCard,
   Field,
+  getSourceLink,
   PhotometryTotalCard,
   KinematicsCard,
+  NotesCard,
 } from "../components/ui/CatalogData";
 import { MdOpenInNew } from "react-icons/md";
-import {
-  CommonTable,
-  Column,
-  CellPrimitive,
-} from "../components/ui/CommonTable";
 import { Hint } from "../components/ui/Hint";
 import { Link } from "../components/core/Link";
 import { querySimple } from "../clients/backend/sdk.gen";
-import { NoteEntry, PgcObject, Schema } from "../clients/backend/types.gen";
+import { PgcObject, Schema } from "../clients/backend/types.gen";
 import { useDataFetching } from "../hooks/useDataFetching";
 import { backendClient } from "../clients/config";
 import { Quantity, QuantityWithError } from "../components/core/Astronomy";
@@ -30,48 +25,6 @@ import { Quantity, QuantityWithError } from "../components/core/Astronomy";
 interface ObjectDetailsProps {
   object: PgcObject;
   schema: Schema | null;
-}
-
-function getSourceLink(bibcode: string): string {
-  return `https://ui.adsabs.harvard.edu/abs/${bibcode}/abstract`;
-}
-
-function renderNoteSourceHint(note: NoteEntry): string {
-  const source = note.source;
-  const authors = source.authors.join(", ");
-
-  return `${source.title} — ${authors} (${source.year})`;
-}
-
-function NotesSection({ notes }: { notes: NoteEntry[] }): ReactElement {
-  const { ref, highlighted } = useAnchoredElement("notes");
-  const columns: Column[] = [{ name: "Source" }, { name: "Note" }];
-  const data: Record<string, CellPrimitive>[] = notes.map((note) => ({
-    Source: (
-      <Hint hintContent={renderNoteSourceHint(note)} trigger="child">
-        <Link href={getSourceLink(note.source.bibcode)} external>
-          {note.source.bibcode}
-        </Link>
-      </Hint>
-    ),
-    Note: <span className="whitespace-pre-wrap">{note.note}</span>,
-  }));
-
-  return (
-    <section className="space-y-2">
-      <h2 className="text-base font-semibold flex items-center gap-1.5 group/card">
-        Notes
-        <CardAnchorLink anchorId="notes" />
-      </h2>
-      <div
-        ref={ref}
-        id="notes"
-        className={`rounded-lg border border-border bg-surface p-3 overflow-x-auto${highlighted ? " card-anchor-highlight" : ""}`}
-      >
-        <CommonTable columns={columns} data={data} />
-      </div>
-    </section>
-  );
 }
 
 function IdentityHeader({
@@ -171,15 +124,13 @@ function ObjectDetails({ object, schema }: ObjectDetailsProps): ReactElement {
     <div className="space-y-5 rounded-lg">
       <IdentityHeader object={object} schema={schema} />
 
+      <NotesCard catalogs={catalogs} />
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <AstrometryCard catalogs={catalogs} schema={schema} pgc={object.pgc} />
         <KinematicsCard catalogs={catalogs} schema={schema} pgc={object.pgc} />
         <PhotometryTotalCard catalogs={catalogs} pgc={object.pgc} />
       </div>
-
-      {catalogs?.notes && catalogs.notes.length > 0 && (
-        <NotesSection notes={catalogs.notes} />
-      )}
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { Children, ReactElement, ReactNode } from "react";
 import { MdCode, MdContentCopy, MdSearch } from "react-icons/md";
 import {
   Catalogs,
+  NoteEntry,
   PhotometryTotalMeasurement,
   Schema,
 } from "../../clients/backend/types.gen";
@@ -24,9 +25,22 @@ import {
 import { useAnchoredElement } from "../../hooks/useAnchoredElement";
 import { CardActionsMenu, CatalogCardAction } from "./CardActionsMenu";
 import { CardAnchorLink } from "./CardAnchorLink";
+import { Hint } from "./Hint";
+import { Link } from "../core/Link";
 import { Plot } from "../core/Plot";
 
 export type { CatalogCardAction };
+
+export function getSourceLink(bibcode: string): string {
+  return `https://ui.adsabs.harvard.edu/abs/${bibcode}/abstract`;
+}
+
+function renderNoteSourceHint(note: NoteEntry): string {
+  const source = note.source;
+  const authors = source.authors.join(", ");
+
+  return `${source.title} — ${authors} (${source.year})`;
+}
 
 const ORIGINAL_DATA_ACTION_DESCRIPTION =
   "Open SQL query for underlying records";
@@ -84,7 +98,7 @@ export function Field({
   label,
   children,
 }: {
-  label: string;
+  label: ReactNode;
   children: ReactNode;
 }): ReactElement {
   return (
@@ -390,5 +404,33 @@ export function PhotometryTotalCard({
         yLabel="mag"
       />
     </div>
+  );
+}
+
+export function NotesCard({
+  catalogs,
+}: {
+  catalogs: Catalogs;
+}): ReactElement | null {
+  const notes = catalogs.notes;
+  if (!notes?.length) return null;
+
+  return (
+    <CatalogCard title="Notes" anchorId="notes">
+      {notes.map((note, i) => (
+        <Field
+          key={`${note.source.bibcode}-${i}`}
+          label={
+            <Hint hintContent={renderNoteSourceHint(note)} trigger="child">
+              <Link href={getSourceLink(note.source.bibcode)} external>
+                {note.source.bibcode}
+              </Link>
+            </Hint>
+          }
+        >
+          <span className="whitespace-pre-wrap">{note.note}</span>
+        </Field>
+      ))}
+    </CatalogCard>
   );
 }
