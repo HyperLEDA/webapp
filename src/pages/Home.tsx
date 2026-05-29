@@ -6,7 +6,7 @@ const homePageHint: ReactElement = (
     <div>Examples:</div>
     <ul>
       <li>
-        By name (string match): <Link href="/query?q=IC1445">IC1445</Link>
+        By name (string match): <Link href="/query?q=IC%20144">IC 144</Link>
       </li>
       <li>
         By coordinates (hms+dms):{" "}

@@ -1,7 +1,9 @@
 import { ReactElement, useEffect, useMemo, useRef, useState } from "react";
+import { MdInfo } from "react-icons/md";
 import uPlot from "uplot";
 import "uplot/dist/uPlot.min.css";
 import { useTheme } from "../../hooks/useTheme";
+import { AppTooltip } from "../ui/AppTooltip";
 
 interface PlotProps {
   x: number[];
@@ -23,20 +25,53 @@ const PLOT_HEIGHT = 320;
 const MARKER_SIZE = 9;
 const ERROR_CAP_WIDTH = 4;
 const HIT_RADIUS = 20;
-const X_AXIS_PADDING_RATIO = 0.1;
+const AXIS_PADDING_RATIO = 0.1;
+
+function paddedRange(dataMin: number, dataMax: number): uPlot.Range.MinMax {
+  const span = dataMax - dataMin;
+  const padding =
+    span > 0
+      ? span * AXIS_PADDING_RATIO
+      : Math.abs(dataMin) * AXIS_PADDING_RATIO || 1;
+
+  return [dataMin - padding, dataMax + padding];
+}
 
 function paddedXRange(
   _u: uPlot,
   dataMin: number,
   dataMax: number,
 ): uPlot.Range.MinMax {
-  const span = dataMax - dataMin;
-  const padding =
-    span > 0
-      ? span * X_AXIS_PADDING_RATIO
-      : Math.abs(dataMin) * X_AXIS_PADDING_RATIO || 1;
+  return paddedRange(dataMin, dataMax);
+}
 
-  return [dataMin - padding, dataMax + padding];
+function yRangeWithErrors(
+  y: number[],
+  yErrors?: (number | null)[],
+): (_u: uPlot, dataMin: number, dataMax: number) => uPlot.Range.MinMax {
+  return (_u, dataMin, dataMax) => {
+    let min = dataMin;
+    let max = dataMax;
+
+    if (yErrors) {
+      for (let i = 0; i < y.length; i++) {
+        const err = yErrors[i];
+        if (err === null || err === undefined || err <= 0) {
+          continue;
+        }
+
+        const yVal = y[i];
+        if (yVal === null || yVal === undefined) {
+          continue;
+        }
+
+        min = Math.min(min, yVal - err);
+        max = Math.max(max, yVal + err);
+      }
+    }
+
+    return paddedRange(min, max);
+  };
 }
 
 function readCssToken(name: string): string {
@@ -238,6 +273,7 @@ export function Plot({
       height: PLOT_HEIGHT,
       scales: {
         x: { time: false, range: paddedXRange },
+        y: { range: yRangeWithErrors(aligned.y, aligned.yErrors) },
       },
       axes: [
         {
@@ -338,6 +374,21 @@ export function Plot({
   return (
     <div ref={wrapperRef} className={`relative ${className}`.trim()}>
       <div ref={containerRef} />
+      <div className="absolute top-2 right-2 z-10">
+        <AppTooltip
+          content="Drag to zoom in. Double-click to reset."
+          placement="left"
+          className="max-w-xs"
+        >
+          <button
+            type="button"
+            aria-label="Plot interaction help"
+            className="flex h-8 w-8 items-center justify-center rounded-md border border-border bg-surface-2/90 text-muted shadow-sm transition-colors hover:border-accent hover:text-primary"
+          >
+            <MdInfo size={18} />
+          </button>
+        </AppTooltip>
+      </div>
       {activePoint !== null && activeDetails && (
         <div
           className="pointer-events-none absolute z-10 max-w-xs rounded-md border border-border bg-surface-2 px-2.5 py-1.5 text-sm shadow-md whitespace-pre-wrap"

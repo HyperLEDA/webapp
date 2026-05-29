@@ -1,190 +1,72 @@
 import { ReactElement, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { AladinViewer } from "../components/core/Aladin";
 import { Loading } from "../components/core/Loading";
 import { ErrorPage } from "../components/ui/ErrorPage";
 import {
-  CatalogCard,
-  CatalogCardAction,
-  CatalogDetailSection,
-  EquatorialCoordinatesCard,
-  GalacticCoordinatesCard,
-  Field,
+  AstrometryCard,
+  IdentityCard,
+  KinematicsCard,
+  NotesCard,
   PhotometryTotalCard,
-  RedshiftCard,
-  VelocitiesCard,
-} from "../components/ui/CatalogData";
-import { MdOpenInNew } from "react-icons/md";
-import {
-  CommonTable,
-  Column,
-  CellPrimitive,
-} from "../components/ui/CommonTable";
-import { Hint } from "../components/ui/Hint";
-import { Link } from "../components/core/Link";
+  SkyViewCard,
+} from "../components/catalogs";
 import { querySimple } from "../clients/backend/sdk.gen";
-import { NoteEntry, PgcObject, Schema } from "../clients/backend/types.gen";
+import { PgcObject, Schema } from "../clients/backend/types.gen";
 import { useDataFetching } from "../hooks/useDataFetching";
 import { backendClient } from "../clients/config";
-import { Quantity, QuantityWithError } from "../components/core/Astronomy";
 
 interface ObjectDetailsProps {
   object: PgcObject;
   schema: Schema | null;
 }
 
-function getSourceLink(bibcode: string): string {
-  return `https://ui.adsabs.harvard.edu/abs/${bibcode}/abstract`;
-}
-
-function renderNoteSourceHint(note: NoteEntry): string {
-  const source = note.source;
-  const authors = source.authors.join(", ");
-
-  return `${source.title} — ${authors} (${source.year})`;
-}
-
-function NotesSection({ notes }: { notes: NoteEntry[] }): ReactElement {
-  const columns: Column[] = [{ name: "Source" }, { name: "Note" }];
-  const data: Record<string, CellPrimitive>[] = notes.map((note) => ({
-    Source: (
-      <Hint hintContent={renderNoteSourceHint(note)} trigger="child">
-        <Link href={getSourceLink(note.source.bibcode)} external>
-          {note.source.bibcode}
-        </Link>
-      </Hint>
-    ),
-    Note: <span className="whitespace-pre-wrap">{note.note}</span>,
-  }));
-
-  return (
-    <section className="space-y-2">
-      <h2 className="text-base font-semibold">Notes</h2>
-      <div className="rounded-lg border border-border bg-surface p-3 overflow-x-auto">
-        <CommonTable columns={columns} data={data} />
-      </div>
-    </section>
-  );
-}
-
-function IdentityHeader({
-  object,
-  schema,
-}: {
-  object: PgcObject;
-  schema: Schema;
-}): ReactElement {
-  const catalogs = object.catalogs;
-  const name = catalogs?.designation?.name || `PGC ${object.pgc}`;
-  const redshift = catalogs?.redshift;
-  const heliocentric = catalogs?.velocity?.heliocentric;
-  const ohpMirrorUrl = `http://atlas.obs-hp.fr/hyperleda/ledacat.cgi?o=%23${object.pgc}`;
-  const identityActions: CatalogCardAction[] = [
-    {
-      title: "Open OHP mirror",
-      icon: MdOpenInNew,
-      href: ohpMirrorUrl,
-    },
-  ];
-
-  return (
-    <div className="flex flex-col lg:flex-row items-start gap-4">
-      {catalogs?.coordinates?.equatorial && (
-        <AladinViewer
-          ra={catalogs.coordinates.equatorial.ra}
-          dec={catalogs.coordinates.equatorial.dec}
-          fov={0.02}
-          className="w-full max-w-96 aspect-square lg:w-96 lg:h-96 shrink-0"
-        />
-      )}
-      <div className="flex-1 min-w-0 w-full">
-        <CatalogCard title={name} actions={identityActions}>
-          <Field label="PGC">{object.pgc}</Field>
-          {catalogs?.nature?.type_name && (
-            <Field label="Nature">{catalogs.nature.type_name}</Field>
-          )}
-          {catalogs?.additional_designations &&
-            catalogs.additional_designations.length > 0 && (
-              <Field label="Also known as">
-                <ul className="list-none space-y-1">
-                  {catalogs.additional_designations.map((d, i) => (
-                    <li key={i} className="flex items-center gap-2">
-                      <span>{d.name}</span>
-                      <Hint
-                        hintContent={
-                          <span>
-                            <Link
-                              href={getSourceLink(d.source.bibcode)}
-                              external
-                            >
-                              {d.source.bibcode}
-                            </Link>
-                            {`. ${d.source.title}. ${d.source.authors.join(", ")}. ${d.source.year}`}
-                          </span>
-                        }
-                        className="gap-1"
-                      />
-                    </li>
-                  ))}
-                </ul>
-              </Field>
-            )}
-          {redshift?.z !== undefined && (
-            <Field label="Redshift">
-              <QuantityWithError error={redshift.e_z} decimalPlaces={5}>
-                {redshift.z.toFixed(5)}
-              </QuantityWithError>
-            </Field>
-          )}
-          {heliocentric?.v !== undefined && (
-            <Field label="Heliocentric">
-              <QuantityWithError
-                error={heliocentric.e_v}
-                unit={schema.units.velocity?.heliocentric?.v}
-              >
-                <Quantity
-                  value={heliocentric.v.toFixed(0)}
-                  unit={schema.units.velocity?.heliocentric?.v}
-                />
-              </QuantityWithError>
-            </Field>
-          )}
-        </CatalogCard>
-      </div>
-    </div>
-  );
-}
-
 function ObjectDetails({ object, schema }: ObjectDetailsProps): ReactElement {
   if (!object || !schema) return <div />;
 
   const catalogs = object.catalogs;
+  const equatorial = catalogs?.coordinates?.equatorial;
+  const hasSkyView =
+    equatorial?.ra !== undefined && equatorial?.dec !== undefined;
 
   return (
-    <div className="space-y-5 rounded-lg">
-      <IdentityHeader object={object} schema={schema} />
-
-      <CatalogDetailSection title="Astrometry">
-        <EquatorialCoordinatesCard
-          catalogs={catalogs}
-          schema={schema}
-          pgc={object.pgc}
-        />
-        <GalacticCoordinatesCard catalogs={catalogs} schema={schema} />
-      </CatalogDetailSection>
-
-      <CatalogDetailSection title="Kinematics">
-        <RedshiftCard catalogs={catalogs} pgc={object.pgc} />
-        <VelocitiesCard catalogs={catalogs} schema={schema} />
-      </CatalogDetailSection>
-
-      <CatalogDetailSection title="Photometry">
-        <PhotometryTotalCard catalogs={catalogs} pgc={object.pgc} />
-      </CatalogDetailSection>
-
-      {catalogs?.notes && catalogs.notes.length > 0 && (
-        <NotesSection notes={catalogs.notes} />
-      )}
+    <div className="grid grid-cols-1 lg:grid-cols-6 gap-5 rounded-lg">
+      <SkyViewCard
+        catalogs={catalogs}
+        anchorId="sky-view"
+        className="lg:col-span-2"
+      />
+      <IdentityCard
+        pgc={object.pgc}
+        catalogs={catalogs}
+        schema={schema}
+        anchorId="identity"
+        className={hasSkyView ? "lg:col-span-4" : "lg:col-span-6"}
+      />
+      <NotesCard
+        catalogs={catalogs}
+        anchorId="notes"
+        className="lg:col-span-6"
+      />
+      <AstrometryCard
+        catalogs={catalogs}
+        schema={schema}
+        pgc={object.pgc}
+        anchorId="astrometry"
+        className="lg:col-span-3"
+      />
+      <KinematicsCard
+        catalogs={catalogs}
+        schema={schema}
+        pgc={object.pgc}
+        anchorId="kinematics"
+        className="lg:col-span-3"
+      />
+      <PhotometryTotalCard
+        catalogs={catalogs}
+        pgc={object.pgc}
+        anchorId="photometry"
+        className="lg:col-span-6"
+      />
     </div>
   );
 }
