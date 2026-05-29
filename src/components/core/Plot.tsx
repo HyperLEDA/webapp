@@ -1,7 +1,9 @@
 import { ReactElement, useEffect, useMemo, useRef, useState } from "react";
+import { MdInfo } from "react-icons/md";
 import uPlot from "uplot";
 import "uplot/dist/uPlot.min.css";
 import { useTheme } from "../../hooks/useTheme";
+import { AppTooltip } from "../ui/AppTooltip";
 
 interface PlotProps {
   x: number[];
@@ -338,6 +340,21 @@ export function Plot({
   return (
     <div ref={wrapperRef} className={`relative ${className}`.trim()}>
       <div ref={containerRef} />
+      <div className="absolute top-2 right-2 z-10">
+        <AppTooltip
+          content="Drag to zoom in. Double-click to reset."
+          placement="left"
+          className="max-w-xs"
+        >
+          <button
+            type="button"
+            aria-label="Plot interaction help"
+            className="flex h-8 w-8 items-center justify-center rounded-md border border-border bg-surface-2/90 text-muted shadow-sm transition-colors hover:border-accent hover:text-primary"
+          >
+            <MdInfo size={18} />
+          </button>
+        </AppTooltip>
+      </div>
       {activePoint !== null && activeDetails && (
         <div
           className="pointer-events-none absolute z-10 max-w-xs rounded-md border border-border bg-surface-2 px-2.5 py-1.5 text-sm shadow-md whitespace-pre-wrap"

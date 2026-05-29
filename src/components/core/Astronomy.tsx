@@ -196,6 +196,33 @@ export function RightAscension({
   );
 }
 
+interface EquatorialDecimalDegreesProps {
+  ra: number;
+  dec: number;
+  className?: string;
+  decimalPlaces?: number;
+}
+
+export function EquatorialDecimalDegrees({
+  ra,
+  dec,
+  className,
+  decimalPlaces = 4,
+}: EquatorialDecimalDegreesProps): React.ReactElement {
+  if (isNaN(ra) || isNaN(dec)) {
+    return <span className={className}>N/A</span>;
+  }
+
+  return (
+    <span
+      className={`inline-flex flex-wrap items-center gap-x-2 ${className ?? ""}`}
+    >
+      <Quantity value={ra.toFixed(decimalPlaces)} unit="°" spaced={false} />
+      <Quantity value={dec.toFixed(decimalPlaces)} unit="°" spaced={false} />
+    </span>
+  );
+}
+
 export function Declination({
   value,
   className,

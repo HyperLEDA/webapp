@@ -15,6 +15,7 @@ import {
   buildNedPositionSearchUrl,
   Declination,
   EQUATORIAL_COPY_FORMATS,
+  EquatorialDecimalDegrees,
   formatEquatorialForCopy,
   RightAscension,
   Quantity,
@@ -147,24 +148,47 @@ export function AstrometryCard({
   }
 
   const raUnit = schema.units.coordinates?.equatorial?.ra || "deg";
-  const decUnit = schema.units.coordinates?.equatorial?.dec || "deg";
   const eRaUnit = schema.units.coordinates?.equatorial?.e_ra || raUnit;
-  const eDecUnit = schema.units.coordinates?.equatorial?.e_dec || decUnit;
+  const eDecUnit = schema.units.coordinates?.equatorial?.e_dec || raUnit;
+  const precisionErrors = [equatorial?.e_ra, equatorial?.e_dec].filter(
+    (value): value is number => value !== undefined,
+  );
+  const precision =
+    precisionErrors.length > 0
+      ? precisionErrors.reduce((sum, value) => sum + value, 0) /
+        precisionErrors.length
+      : undefined;
+  const precisionUnit =
+    equatorial?.e_ra !== undefined
+      ? eRaUnit
+      : equatorial?.e_dec !== undefined
+        ? eDecUnit
+        : eRaUnit;
 
   return (
     <div className="col-span-full">
       <CatalogCard title="Coordinates" actions={actions}>
         {hasEquatorial && (
-          <Field label="ICRS">
-            <span className="inline-flex flex-wrap items-center gap-x-2">
-              {equatorial?.ra !== undefined && (
-                <RightAscension value={equatorial.ra} />
-              )}
-              {equatorial?.dec !== undefined && (
-                <Declination value={equatorial.dec} />
-              )}
-            </span>
-          </Field>
+          <>
+            <Field label="ICRS">
+              <span className="inline-flex flex-wrap items-center gap-x-2">
+                {equatorial?.ra !== undefined && (
+                  <RightAscension value={equatorial.ra} />
+                )}
+                {equatorial?.dec !== undefined && (
+                  <Declination value={equatorial.dec} />
+                )}
+              </span>
+            </Field>
+            {equatorial?.ra !== undefined && equatorial?.dec !== undefined && (
+              <Field label="ICRS">
+                <EquatorialDecimalDegrees
+                  ra={equatorial.ra}
+                  dec={equatorial.dec}
+                />
+              </Field>
+            )}
+          </>
         )}
         {hasGalactic && (
           <Field label="Galactic">
@@ -184,25 +208,9 @@ export function AstrometryCard({
             </span>
           </Field>
         )}
-        {hasPrecision && (
+        {hasPrecision && precision !== undefined && (
           <Field label="Precision">
-            <span className="inline-flex flex-wrap items-center gap-x-2">
-              {equatorial?.e_ra !== undefined && (
-                <span>
-                  ±{" "}
-                  <Quantity value={equatorial.e_ra.toFixed(2)} unit={eRaUnit} />
-                </span>
-              )}
-              {equatorial?.e_dec !== undefined && (
-                <span>
-                  ±{" "}
-                  <Quantity
-                    value={equatorial.e_dec.toFixed(2)}
-                    unit={eDecUnit}
-                  />
-                </span>
-              )}
-            </span>
+            ± <Quantity value={precision.toFixed(2)} unit={precisionUnit} />
           </Field>
         )}
       </CatalogCard>
