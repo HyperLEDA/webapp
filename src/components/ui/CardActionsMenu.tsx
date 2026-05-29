@@ -3,7 +3,6 @@ import type { IconType } from "react-icons";
 import { MdMoreVert } from "react-icons/md";
 import classNames from "classnames";
 import { Button } from "../core/Button";
-import { AppTooltip } from "./AppTooltip";
 
 type CatalogCardActionCommon = {
   title: string;
@@ -39,8 +38,10 @@ function ActionMenuItemContent({
           <Icon className="size-full" />
         </span>
       )}
-      <span className="min-w-0">
-        <span className="block font-medium">{action.title}</span>
+      <span>
+        <span className="block font-medium whitespace-nowrap">
+          {action.title}
+        </span>
         {action.description && (
           <span className="block text-muted text-xs mt-0.5">
             {action.description}
@@ -85,24 +86,23 @@ export function CardActionsMenu({
 
   return (
     <div ref={containerRef} className="relative shrink-0">
-      <AppTooltip content="Actions" placement="left">
-        <Button
-          type="button"
-          className="!p-1.5 cursor-pointer"
-          onClick={() => setOpen((value) => !value)}
-          aria-haspopup="menu"
-          aria-expanded={open}
-          aria-controls={menuId}
-        >
-          <MdMoreVert size={18} className="text-muted" aria-hidden />
-        </Button>
-      </AppTooltip>
+      <Button
+        type="button"
+        className="!p-1.5 cursor-pointer"
+        onClick={() => setOpen((value) => !value)}
+        aria-label="Actions"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-controls={menuId}
+      >
+        <MdMoreVert size={18} className="text-muted" aria-hidden />
+      </Button>
       {open && (
         <div
           id={menuId}
           role="menu"
           className={classNames(
-            "absolute right-0 top-full z-20 mt-1 min-w-48 max-w-xs",
+            "absolute right-0 top-full z-20 mt-1 min-w-48 w-max",
             "rounded-lg border border-border bg-surface-2 py-1 shadow-lg",
           )}
         >

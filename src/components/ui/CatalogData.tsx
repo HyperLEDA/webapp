@@ -14,8 +14,8 @@ import {
 import {
   buildNedPositionSearchUrl,
   Declination,
-  formatDecForCopy,
-  formatRaForCopy,
+  EQUATORIAL_COPY_FORMATS,
+  formatEquatorialForCopy,
   RightAscension,
   Quantity,
   QuantityWithError,
@@ -126,27 +126,19 @@ export function AstrometryCard({
     actions.push(originalDataAction(buildEquatorialSqlQuery(pgc)));
   }
 
-  if (equatorial?.ra !== undefined) {
-    actions.push({
-      title: "Copy RA as HHhMMmSS.SSSSs",
-      icon: MdContentCopy,
-      onClick: () => {
-        void navigator.clipboard.writeText(formatRaForCopy(equatorial.ra));
-      },
-    });
-  }
-
-  if (equatorial?.dec !== undefined) {
-    actions.push({
-      title: "Copy Dec as DDdMMmSS.SSSSs",
-      icon: MdContentCopy,
-      onClick: () => {
-        void navigator.clipboard.writeText(formatDecForCopy(equatorial.dec));
-      },
-    });
-  }
-
   if (equatorial?.ra !== undefined && equatorial?.dec !== undefined) {
+    for (const { id, title } of EQUATORIAL_COPY_FORMATS) {
+      actions.push({
+        title: `Copy ICRS as ${title}`,
+        icon: MdContentCopy,
+        onClick: () => {
+          void navigator.clipboard.writeText(
+            formatEquatorialForCopy(equatorial.ra, equatorial.dec, id),
+          );
+        },
+      });
+    }
+
     actions.push({
       title: "Search in NED",
       icon: MdSearch,

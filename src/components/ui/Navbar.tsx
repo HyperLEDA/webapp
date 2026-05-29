@@ -10,7 +10,7 @@ import {
   MdTableChart,
 } from "react-icons/md";
 import { clearAuthToken, isLoggedIn } from "../../auth/token";
-import { logoutEnforced } from "../../clients/admin/sdk.gen";
+import { logout } from "../../clients/admin/sdk.gen";
 import { adminClient } from "../../clients/config";
 import { Link } from "../core/Link";
 import { AppTooltip } from "./AppTooltip";
@@ -79,7 +79,7 @@ export function Navbar() {
   async function handleLogout(): Promise<void> {
     setLoggingOut(true);
     try {
-      await logoutEnforced({
+      await logout({
         client: adminClient,
         body: {},
       });
