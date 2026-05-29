@@ -10,7 +10,7 @@ import {
   buildEquatorialSqlQuery,
   buildPhotometryTotalSqlQuery,
   buildRedshiftSqlQuery,
-} from "../../lib/tap";
+} from "../../lib/sql";
 import {
   buildNedPositionSearchUrl,
   Declination,
