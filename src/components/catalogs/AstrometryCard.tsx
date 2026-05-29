@@ -1,7 +1,6 @@
 import { ReactElement } from "react";
 import { MdContentCopy, MdSearch } from "react-icons/md";
 import { Catalogs, Schema } from "../../clients/backend/types.gen";
-import { isLoggedIn } from "../../auth/token";
 import { buildEquatorialSqlQuery } from "../../lib/sql";
 import {
   buildNedPositionSearchUrl,
@@ -39,11 +38,9 @@ export function AstrometryCard({
 
   if (!hasEquatorial && !hasGalactic) return null;
 
-  const actions: CatalogCardAction[] = [];
-
-  if (isLoggedIn()) {
-    actions.push(originalDataAction(buildEquatorialSqlQuery(pgc)));
-  }
+  const actions: CatalogCardAction[] = [
+    originalDataAction(buildEquatorialSqlQuery(pgc)),
+  ];
 
   if (equatorial?.ra !== undefined && equatorial?.dec !== undefined) {
     for (const { id, title } of EQUATORIAL_COPY_FORMATS) {

@@ -1,5 +1,5 @@
 import { FormEvent, ReactElement, useEffect, useRef, useState } from "react";
-import { Link as RouterLink, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import type {
   TapSchemaEntry,
   TapSyncResponse,
@@ -22,7 +22,6 @@ interface CatalogSqlPanelProps {
   sql: string;
   onSqlChange: (sql: string) => void;
   schemas?: TapSchemaEntry[];
-  loggedIn: boolean;
   permalinkRunKey?: string | null;
   onQueryRun?: (sql: string) => void;
 }
@@ -31,7 +30,6 @@ export function CatalogSqlPanel({
   sql,
   onSqlChange,
   schemas,
-  loggedIn,
   permalinkRunKey,
   onQueryRun,
 }: CatalogSqlPanelProps): ReactElement {
@@ -43,7 +41,7 @@ export function CatalogSqlPanel({
   const didAutoRun = useRef(false);
 
   async function runQuery(): Promise<void> {
-    if (!loggedIn || loading) {
+    if (loading) {
       return;
     }
     const trimmed = sql.trim();
@@ -80,7 +78,7 @@ export function CatalogSqlPanel({
   }, [location.key]);
 
   useEffect(() => {
-    if (!permalinkRunKey || !loggedIn || didAutoRun.current) {
+    if (!permalinkRunKey || didAutoRun.current) {
       return;
     }
     if (sql.trim() !== permalinkRunKey.trim()) {
@@ -88,26 +86,10 @@ export function CatalogSqlPanel({
     }
     didAutoRun.current = true;
     void runQuery();
-  }, [permalinkRunKey, loggedIn, sql]);
+  }, [permalinkRunKey, sql]);
 
   const tableData = result ? syncPayloadToTable(result) : null;
   const rowCount = tableData?.rows.length ?? 0;
-
-  if (!loggedIn) {
-    return (
-      <div className="rounded-lg border border-dashed border-border p-8 text-center">
-        <Text as="p" size="large">
-          Log in to run SQL queries
-        </Text>
-        <Text as="p" className="mt-2">
-          <RouterLink to="/login" className="text-accent hover:underline">
-            Sign in
-          </RouterLink>{" "}
-          to execute queries via TAP /sync.
-        </Text>
-      </div>
-    );
-  }
 
   return (
     <div className="flex flex-col gap-4">

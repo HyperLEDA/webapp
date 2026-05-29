@@ -1,6 +1,5 @@
 import { ReactElement } from "react";
 import { Catalogs, Schema } from "../../clients/backend/types.gen";
-import { isLoggedIn } from "../../auth/token";
 import { buildRedshiftSqlQuery } from "../../lib/sql";
 import { Quantity, QuantityWithError } from "../core/Astronomy";
 import { CatalogCard, CatalogCardAction, Field } from "./CatalogCard";
@@ -82,10 +81,9 @@ export function KinematicsCard({
   const hasRedshift = redshift?.z !== undefined;
   if (!hasRedshift && velocityFields.length === 0) return null;
 
-  const actions: CatalogCardAction[] =
-    hasRedshift && isLoggedIn()
-      ? [originalDataAction(buildRedshiftSqlQuery(pgc))]
-      : [];
+  const actions: CatalogCardAction[] = hasRedshift
+    ? [originalDataAction(buildRedshiftSqlQuery(pgc))]
+    : [];
 
   return (
     <CatalogCard

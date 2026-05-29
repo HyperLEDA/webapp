@@ -3,7 +3,6 @@ import {
   Catalogs,
   PhotometryTotalMeasurement,
 } from "../../clients/backend/types.gen";
-import { isLoggedIn } from "../../auth/token";
 import { buildPhotometryTotalSqlQuery } from "../../lib/sql";
 import { Plot } from "../core/Plot";
 import { CatalogCard, CatalogCardAction } from "./CatalogCard";
@@ -48,9 +47,9 @@ export function PhotometryTotalCard({
   const yErrors = sorted.map((m) => m.e_mag);
   const details = sorted.map(formatPhotometryDetails);
 
-  const actions: CatalogCardAction[] = isLoggedIn()
-    ? [originalDataAction(buildPhotometryTotalSqlQuery(pgc))]
-    : [];
+  const actions: CatalogCardAction[] = [
+    originalDataAction(buildPhotometryTotalSqlQuery(pgc)),
+  ];
 
   return (
     <CatalogCard
