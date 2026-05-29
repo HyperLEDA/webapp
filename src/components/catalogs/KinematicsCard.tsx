@@ -1,9 +1,20 @@
 import { ReactElement } from "react";
 import { Catalogs, Schema } from "../../clients/backend/types.gen";
-import { buildRedshiftSqlQuery } from "../../lib/sql";
 import { Quantity, QuantityWithError } from "../core/Astronomy";
-import { CatalogCard, CatalogCardAction, Field } from "./CatalogCard";
-import { originalDataAction } from "./catalogActions";
+import { CatalogCard, Field } from "./CatalogCard";
+
+function redshiftSqlQuery(pgc: number): string {
+  return `SELECT
+  r.pgc
+, c.cz
+, c.e_cz
+, bib.code AS bibcode
+FROM cz.data AS c
+  JOIN layer0.records AS r ON c.record_id = r.id
+  JOIN layer0.tables AS t ON r.table_id = t.id
+  JOIN common.bib AS bib ON t.bib = bib.id
+WHERE r.pgc = ${pgc}`;
+}
 
 export function KinematicsCard({
   catalogs,
@@ -81,14 +92,10 @@ export function KinematicsCard({
   const hasRedshift = redshift?.z !== undefined;
   if (!hasRedshift && velocityFields.length === 0) return null;
 
-  const actions: CatalogCardAction[] = hasRedshift
-    ? [originalDataAction(buildRedshiftSqlQuery(pgc))]
-    : [];
-
   return (
     <CatalogCard
       title="Kinematics"
-      actions={actions}
+      originalDataSql={hasRedshift ? redshiftSqlQuery(pgc) : undefined}
       anchorId={anchorId}
       className={className}
     >
