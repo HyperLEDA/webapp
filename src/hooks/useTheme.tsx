@@ -59,9 +59,7 @@ export function ThemeProvider({
     return systemDark ? "dark" : "light";
   }, [theme, systemDark]);
 
-  useEffect(() => {
-    applyEffectiveTheme(effectiveTheme);
-  }, [effectiveTheme]);
+  applyEffectiveTheme(effectiveTheme);
 
   useEffect(() => {
     if (theme !== "system") {
