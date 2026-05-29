@@ -3,11 +3,27 @@ import {
   Catalogs,
   PhotometryTotalMeasurement,
 } from "../../clients/backend/types.gen";
-import { isLoggedIn } from "../../auth/token";
-import { buildPhotometryTotalSqlQuery } from "../../lib/sql";
 import { Plot } from "../core/Plot";
-import { CatalogCard, CatalogCardAction } from "./CatalogCard";
-import { originalDataAction } from "./catalogActions";
+import { CatalogCard } from "./CatalogCard";
+
+function photometryTotalSqlQuery(pgc: number): string {
+  return `SELECT
+  r.pgc
+, pt.band
+, cb.magsys
+, pt.method
+, b.waveref AS wavelength
+, pt.mag
+, pt.e_mag
+, bib.code AS bibcode
+FROM photometry.total AS pt
+  JOIN layer0.records AS r ON pt.record_id = r.id
+  JOIN layer0.tables AS t ON r.table_id = t.id
+  JOIN common.bib AS bib ON t.bib = bib.id
+  JOIN photometry.calib_bands AS cb ON pt.band = cb.id
+  JOIN photometry.bands AS b ON cb.band = b.id
+WHERE r.pgc = ${pgc}`;
+}
 
 function formatPhotometryDetails(
   measurement: PhotometryTotalMeasurement,
@@ -48,16 +64,12 @@ export function PhotometryTotalCard({
   const yErrors = sorted.map((m) => m.e_mag);
   const details = sorted.map(formatPhotometryDetails);
 
-  const actions: CatalogCardAction[] = isLoggedIn()
-    ? [originalDataAction(buildPhotometryTotalSqlQuery(pgc))]
-    : [];
-
   return (
     <CatalogCard
       title="Total photometry"
       variant="block"
       anchorId={anchorId}
-      actions={actions}
+      originalDataSql={photometryTotalSqlQuery(pgc)}
       className={className}
     >
       <Plot

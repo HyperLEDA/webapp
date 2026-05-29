@@ -1,8 +1,6 @@
 import { ReactElement } from "react";
 import { MdContentCopy, MdSearch } from "react-icons/md";
 import { Catalogs, Schema } from "../../clients/backend/types.gen";
-import { isLoggedIn } from "../../auth/token";
-import { buildEquatorialSqlQuery } from "../../lib/sql";
 import {
   buildNedPositionSearchUrl,
   Declination,
@@ -13,7 +11,21 @@ import {
   Quantity,
 } from "../core/Astronomy";
 import { CatalogCard, CatalogCardAction, Field } from "./CatalogCard";
-import { originalDataAction } from "./catalogActions";
+
+function equatorialSqlQuery(pgc: number): string {
+  return `SELECT
+  r.pgc
+, i.ra
+, i.dec
+, i.e_ra
+, i.e_dec
+, bib.code AS bibcode
+FROM icrs.data AS i
+  JOIN layer0.records AS r ON i.record_id = r.id
+  JOIN layer0.tables AS t ON r.table_id = t.id
+  JOIN common.bib AS bib ON t.bib = bib.id
+WHERE r.pgc = ${pgc}`;
+}
 
 export function AstrometryCard({
   catalogs,
@@ -40,10 +52,6 @@ export function AstrometryCard({
   if (!hasEquatorial && !hasGalactic) return null;
 
   const actions: CatalogCardAction[] = [];
-
-  if (isLoggedIn()) {
-    actions.push(originalDataAction(buildEquatorialSqlQuery(pgc)));
-  }
 
   if (equatorial?.ra !== undefined && equatorial?.dec !== undefined) {
     for (const { id, title } of EQUATORIAL_COPY_FORMATS) {
@@ -87,6 +95,7 @@ export function AstrometryCard({
     <CatalogCard
       title="Astrometry"
       actions={actions}
+      originalDataSql={equatorialSqlQuery(pgc)}
       anchorId={anchorId}
       className={className}
     >

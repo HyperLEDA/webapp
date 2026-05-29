@@ -20,7 +20,6 @@ import type {
   TapTableInfo,
 } from "../clients/backend/types.gen";
 import { backendClient } from "../clients/config";
-import { isLoggedIn } from "../auth/token";
 import { useDataFetching } from "../hooks/useDataFetching";
 import { Loading } from "../components/core/Loading";
 import { ErrorPage } from "../components/ui/ErrorPage";
@@ -219,25 +218,11 @@ function CatalogBrowsePrompt({
   );
 }
 
-function CatalogLoginPrompt(): ReactElement {
-  return (
-    <div className={catalogPanelClassName}>
-      <Text as="p" size="large">
-        Log in to view data in tables
-      </Text>
-      <Text as="p">
-        Sign in to load rows after you choose a table on the left
-      </Text>
-    </div>
-  );
-}
-
 interface TableDetailProps {
   tableInfo: TapTableInfo;
   syncPayload: TapSyncResponse | null;
   syncLoading: boolean;
   syncError: string | null;
-  loggedIn: boolean;
   onOpenSql: () => void;
 }
 
@@ -246,7 +231,6 @@ function TableDetail({
   syncPayload,
   syncLoading,
   syncError,
-  loggedIn,
   onOpenSql,
 }: TableDetailProps): ReactElement {
   const metadataColumns = tableInfo.columns ?? [];
@@ -266,15 +250,15 @@ function TableDetail({
     hint: columnMetadataHint(c),
   }));
 
-  const rows: Record<string, CellPrimitive>[] = loggedIn
-    ? (syncTable?.data ?? []).map((row) => {
-        const out: Record<string, CellPrimitive> = {};
-        for (let i = 0; i < syncColumns.length; i++) {
-          out[syncColumns[i].name] = cellValue(row[i]);
-        }
-        return out;
-      })
-    : [];
+  const rows: Record<string, CellPrimitive>[] = (syncTable?.data ?? []).map(
+    (row) => {
+      const out: Record<string, CellPrimitive> = {};
+      for (let i = 0; i < syncColumns.length; i++) {
+        out[syncColumns[i].name] = cellValue(row[i]);
+      }
+      return out;
+    },
+  );
 
   return (
     <div>
@@ -298,9 +282,7 @@ function TableDetail({
         </Button>
       </div>
 
-      {!loggedIn ? (
-        <CatalogLoginPrompt />
-      ) : syncError ? (
+      {syncError ? (
         <ErrorPage title="Could not load table data" message={syncError} />
       ) : syncLoading ? (
         <Loading />
@@ -326,7 +308,6 @@ export function DataCatalogPage(): ReactElement {
   const permalinkSql = searchParams.get("q");
   const [filter, setFilter] = useState("");
   const [sqlDraft, setSqlDraft] = useState(DEFAULT_SQL_EXAMPLE);
-  const loggedIn = isLoggedIn();
 
   const [sqlSidebarSelection, setSqlSidebarSelection] = useState<{
     schema: string;
@@ -364,11 +345,11 @@ export function DataCatalogPage(): ReactElement {
     loading: syncLoading,
     error: syncError,
   } = useDataFetching((): Promise<TapSyncResponse | null> => {
-    if (!selectedSchema || !selectedTable || !loggedIn) {
+    if (!selectedSchema || !selectedTable) {
       return Promise.resolve(null);
     }
     return fetchTableRows(selectedTable);
-  }, [selectedTable ?? "", loggedIn]);
+  }, [selectedTable ?? ""]);
 
   const filtered = useMemo(
     () => filterSchemas(tablesPayload?.schemas, filter),
@@ -442,7 +423,6 @@ export function DataCatalogPage(): ReactElement {
           sql={sqlDraft}
           onSqlChange={setSqlDraft}
           schemas={tablesPayload?.schemas}
-          loggedIn={loggedIn}
           permalinkRunKey={
             permalinkSql ? parseSqlPermalink(permalinkSql) : null
           }
@@ -452,11 +432,7 @@ export function DataCatalogPage(): ReactElement {
     }
 
     if (!selectedSchema || !selectedTable) {
-      return loggedIn ? (
-        <CatalogBrowsePrompt onOpenSql={() => openSqlEditor()} />
-      ) : (
-        <CatalogLoginPrompt />
-      );
+      return <CatalogBrowsePrompt onOpenSql={() => openSqlEditor()} />;
     }
 
     if (tablesError && !tablesPayload) {
@@ -480,9 +456,8 @@ export function DataCatalogPage(): ReactElement {
       <TableDetail
         tableInfo={selectedTableInfo}
         syncPayload={syncPayload}
-        syncLoading={loggedIn && syncLoading}
-        syncError={loggedIn ? syncError : null}
-        loggedIn={loggedIn}
+        syncLoading={syncLoading}
+        syncError={syncError}
         onOpenSql={() => openSqlEditor(defaultSelectForTable(selectedTable))}
       />
     );
