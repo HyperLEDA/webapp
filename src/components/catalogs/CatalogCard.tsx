@@ -16,12 +16,14 @@ export function CatalogCard({
   actions,
   anchorId,
   className,
+  variant = "fields",
 }: {
   title: string;
   children: ReactNode;
   actions?: CatalogCardAction[];
   anchorId?: string;
   className?: string;
+  variant?: "fields" | "block";
 }): ReactElement {
   const { ref, highlighted } = useAnchoredElement(anchorId ?? "");
   const hasActions = actions !== undefined && actions.length > 0;
@@ -49,9 +51,13 @@ export function CatalogCard({
         </h3>
         {hasActions && <CardActionsMenu actions={actions} />}
       </div>
-      <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-base">
-        {children}
-      </dl>
+      {variant === "fields" ? (
+        <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-base">
+          {children}
+        </dl>
+      ) : (
+        children
+      )}
     </div>
   );
 }
