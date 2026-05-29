@@ -21,7 +21,7 @@ import {
   QuantityWithError,
 } from "../core/Astronomy";
 import { CardActionsMenu, CatalogCardAction } from "./CardActionsMenu";
-import { Plot } from "./Plot";
+import { Plot } from "../core/Plot";
 
 export type { CatalogCardAction };
 
