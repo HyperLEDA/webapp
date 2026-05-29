@@ -25,13 +25,13 @@ import { Plot } from "./Plot";
 
 export type { CatalogCardAction };
 
-function originalDataAction(
-  sql: string,
-  description: string,
-): CatalogCardAction {
+const ORIGINAL_DATA_ACTION_DESCRIPTION =
+  "Open SQL query for underlying records";
+
+function originalDataAction(sql: string): CatalogCardAction {
   return {
     title: "View original data",
-    description,
+    description: ORIGINAL_DATA_ACTION_DESCRIPTION,
     icon: MdCode,
     href: `/data-catalog/query?q=${encodeURIComponent(sql)}`,
   };
@@ -117,12 +117,7 @@ export function EquatorialCoordinatesCard({
   const actions: CatalogCardAction[] = [];
 
   if (isLoggedIn()) {
-    actions.push(
-      originalDataAction(
-        buildEquatorialSqlQuery(pgc),
-        "Open SQL query for underlying equatorial coordinate records",
-      ),
-    );
+    actions.push(originalDataAction(buildEquatorialSqlQuery(pgc)));
   }
 
   if (equatorial?.ra !== undefined) {
@@ -234,12 +229,7 @@ export function RedshiftCard({
   if (!redshift || redshift.z === undefined) return null;
 
   const actions: CatalogCardAction[] = isLoggedIn()
-    ? [
-        originalDataAction(
-          buildRedshiftSqlQuery(pgc),
-          "Open SQL query for underlying redshift records",
-        ),
-      ]
+    ? [originalDataAction(buildRedshiftSqlQuery(pgc))]
     : [];
 
   return (
@@ -359,12 +349,7 @@ export function PhotometryTotalCard({
   const details = sorted.map(formatPhotometryDetails);
 
   const actions: CatalogCardAction[] = isLoggedIn()
-    ? [
-        originalDataAction(
-          buildPhotometryTotalSqlQuery(pgc),
-          "Open SQL query for underlying photometry records",
-        ),
-      ]
+    ? [originalDataAction(buildPhotometryTotalSqlQuery(pgc))]
     : [];
   const hasActions = actions.length > 0;
 

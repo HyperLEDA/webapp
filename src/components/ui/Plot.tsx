@@ -39,12 +39,37 @@ function paddedXRange(
   return [dataMin - padding, dataMax + padding];
 }
 
-function getPlotColors(): { text: string; grid: string; accent: string } {
-  const style = getComputedStyle(document.documentElement);
+function readCssToken(name: string): string {
+  return getComputedStyle(document.documentElement)
+    .getPropertyValue(name)
+    .trim();
+}
+
+function getPlotColors(): {
+  text: string;
+  grid: string;
+  tick: string;
+  accent: string;
+} {
   return {
-    text: style.getPropertyValue("--token-primary").trim() || "#213547",
-    grid: style.getPropertyValue("--token-border").trim() || "#d1d5db",
-    accent: style.getPropertyValue("--token-accent").trim() || "#646cff",
+    text: readCssToken("--token-primary"),
+    grid: readCssToken("--token-border"),
+    tick: readCssToken("--token-muted"),
+    accent: readCssToken("--token-accent"),
+  };
+}
+
+function axisStrokeOptions(colors: ReturnType<typeof getPlotColors>): {
+  stroke: string;
+  grid: uPlot.Axis.Grid;
+  ticks: uPlot.Axis.Ticks;
+  border: uPlot.Axis.Border;
+} {
+  return {
+    stroke: colors.text,
+    grid: { show: true, stroke: colors.grid, width: 1 },
+    ticks: { show: true, stroke: colors.tick, width: 1, size: 4 },
+    border: { show: false },
   };
 }
 
@@ -206,6 +231,7 @@ export function Plot({
 
     const colors = getPlotColors();
     const data: uPlot.AlignedData = [aligned.x, aligned.y];
+    const axisStyle = axisStrokeOptions(colors);
 
     const options: uPlot.Options = {
       width: container.clientWidth || container.offsetWidth,
@@ -216,15 +242,11 @@ export function Plot({
       axes: [
         {
           label: xLabel,
-          stroke: colors.text,
-          grid: { stroke: colors.grid },
-          ticks: { stroke: colors.grid },
+          ...axisStyle,
         },
         {
           label: yLabel,
-          stroke: colors.text,
-          grid: { stroke: colors.grid },
-          ticks: { stroke: colors.grid },
+          ...axisStyle,
         },
       ],
       series: [
