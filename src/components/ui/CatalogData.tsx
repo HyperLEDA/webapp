@@ -100,7 +100,7 @@ export function CatalogDetailSection({
   );
 }
 
-export function EquatorialCoordinatesCard({
+export function AstrometryCard({
   catalogs,
   schema,
   pgc,
@@ -110,9 +110,15 @@ export function EquatorialCoordinatesCard({
   pgc: number;
 }): ReactElement | null {
   const equatorial = catalogs?.coordinates?.equatorial;
+  const galactic = catalogs?.coordinates?.galactic;
   const hasEquatorial =
     equatorial?.ra !== undefined || equatorial?.dec !== undefined;
-  if (!hasEquatorial) return null;
+  const hasGalactic =
+    galactic?.lon !== undefined || galactic?.lat !== undefined;
+  const hasPrecision =
+    equatorial?.e_ra !== undefined || equatorial?.e_dec !== undefined;
+
+  if (!hasEquatorial && !hasGalactic) return null;
 
   const actions: CatalogCardAction[] = [];
 
@@ -148,73 +154,67 @@ export function EquatorialCoordinatesCard({
     });
   }
 
-  return (
-    <CatalogCard title="Equatorial" actions={actions}>
-      {equatorial?.ra !== undefined && (
-        <Field label="RA">
-          <QuantityWithError
-            error={equatorial.e_ra}
-            unit={schema.units.coordinates?.equatorial?.ra || "deg"}
-          >
-            <RightAscension value={equatorial.ra} />
-          </QuantityWithError>
-        </Field>
-      )}
-      {equatorial?.dec !== undefined && (
-        <Field label="Dec">
-          <QuantityWithError
-            error={equatorial.e_dec}
-            unit={schema.units.coordinates?.equatorial?.dec || "deg"}
-          >
-            <Declination value={equatorial.dec} />
-          </QuantityWithError>
-        </Field>
-      )}
-    </CatalogCard>
-  );
-}
-
-export function GalacticCoordinatesCard({
-  catalogs,
-  schema,
-}: {
-  catalogs: Catalogs;
-  schema: Schema;
-}): ReactElement | null {
-  const galactic = catalogs?.coordinates?.galactic;
-  const hasGalactic =
-    galactic?.lon !== undefined || galactic?.lat !== undefined;
-  if (!hasGalactic) return null;
+  const raUnit = schema.units.coordinates?.equatorial?.ra || "deg";
+  const decUnit = schema.units.coordinates?.equatorial?.dec || "deg";
+  const eRaUnit = schema.units.coordinates?.equatorial?.e_ra || raUnit;
+  const eDecUnit = schema.units.coordinates?.equatorial?.e_dec || decUnit;
 
   return (
-    <CatalogCard title="Galactic">
-      {galactic?.lon !== undefined && (
-        <Field label="l">
-          <QuantityWithError
-            error={galactic.e_lon}
-            unit={schema.units.coordinates?.galactic?.lon}
-          >
-            <Quantity
-              value={galactic.lon.toFixed(2)}
-              unit={schema.units.coordinates?.galactic?.lon}
-            />
-          </QuantityWithError>
-        </Field>
-      )}
-      {galactic?.lat !== undefined && (
-        <Field label="b">
-          <QuantityWithError
-            error={galactic.e_lat}
-            unit={schema.units.coordinates?.galactic?.lat}
-          >
-            <Quantity
-              value={galactic.lat.toFixed(2)}
-              unit={schema.units.coordinates?.galactic?.lat}
-            />
-          </QuantityWithError>
-        </Field>
-      )}
-    </CatalogCard>
+    <div className="col-span-full">
+      <CatalogCard title="Coordinates" actions={actions}>
+        {hasEquatorial && (
+          <Field label="ICRS">
+            <span className="inline-flex flex-wrap items-center gap-x-2">
+              {equatorial?.ra !== undefined && (
+                <RightAscension value={equatorial.ra} />
+              )}
+              {equatorial?.dec !== undefined && (
+                <Declination value={equatorial.dec} />
+              )}
+            </span>
+          </Field>
+        )}
+        {hasGalactic && (
+          <Field label="Galactic">
+            <span className="inline-flex flex-wrap items-center gap-x-2">
+              {galactic?.lon !== undefined && (
+                <Quantity
+                  value={galactic.lon.toFixed(2)}
+                  unit={schema.units.coordinates?.galactic?.lon}
+                />
+              )}
+              {galactic?.lat !== undefined && (
+                <Quantity
+                  value={galactic.lat.toFixed(2)}
+                  unit={schema.units.coordinates?.galactic?.lat}
+                />
+              )}
+            </span>
+          </Field>
+        )}
+        {hasPrecision && (
+          <Field label="Precision">
+            <span className="inline-flex flex-wrap items-center gap-x-2">
+              {equatorial?.e_ra !== undefined && (
+                <span>
+                  ±{" "}
+                  <Quantity value={equatorial.e_ra.toFixed(2)} unit={eRaUnit} />
+                </span>
+              )}
+              {equatorial?.e_dec !== undefined && (
+                <span>
+                  ±{" "}
+                  <Quantity
+                    value={equatorial.e_dec.toFixed(2)}
+                    unit={eDecUnit}
+                  />
+                </span>
+              )}
+            </span>
+          </Field>
+        )}
+      </CatalogCard>
+    </div>
   );
 }
 

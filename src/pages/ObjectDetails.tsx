@@ -7,8 +7,7 @@ import {
   CatalogCard,
   CatalogCardAction,
   CatalogDetailSection,
-  EquatorialCoordinatesCard,
-  GalacticCoordinatesCard,
+  AstrometryCard,
   Field,
   PhotometryTotalCard,
   RedshiftCard,
@@ -165,12 +164,7 @@ function ObjectDetails({ object, schema }: ObjectDetailsProps): ReactElement {
       <IdentityHeader object={object} schema={schema} />
 
       <CatalogDetailSection title="Astrometry">
-        <EquatorialCoordinatesCard
-          catalogs={catalogs}
-          schema={schema}
-          pgc={object.pgc}
-        />
-        <GalacticCoordinatesCard catalogs={catalogs} schema={schema} />
+        <AstrometryCard catalogs={catalogs} schema={schema} pgc={object.pgc} />
       </CatalogDetailSection>
 
       <CatalogDetailSection title="Kinematics">
