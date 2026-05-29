@@ -1,6 +1,16 @@
 import { Children, ReactElement, ReactNode } from "react";
-import { MdContentCopy, MdSearch } from "react-icons/md";
-import { Catalogs, Schema } from "../../clients/backend/types.gen";
+import { MdCode, MdContentCopy, MdSearch } from "react-icons/md";
+import {
+  Catalogs,
+  PhotometryTotalMeasurement,
+  Schema,
+} from "../../clients/backend/types.gen";
+import { isLoggedIn } from "../../auth/token";
+import {
+  buildEquatorialSqlQuery,
+  buildPhotometryTotalSqlQuery,
+  buildRedshiftSqlQuery,
+} from "../../lib/sql";
 import {
   buildNedPositionSearchUrl,
   Declination,
@@ -11,8 +21,21 @@ import {
   QuantityWithError,
 } from "../core/Astronomy";
 import { CardActionsMenu, CatalogCardAction } from "./CardActionsMenu";
+import { Plot } from "../core/Plot";
 
 export type { CatalogCardAction };
+
+const ORIGINAL_DATA_ACTION_DESCRIPTION =
+  "Open SQL query for underlying records";
+
+function originalDataAction(sql: string): CatalogCardAction {
+  return {
+    title: "View original data",
+    description: ORIGINAL_DATA_ACTION_DESCRIPTION,
+    icon: MdCode,
+    href: `/data-catalog/query?q=${encodeURIComponent(sql)}`,
+  };
+}
 
 export function CatalogCard({
   title,
@@ -26,16 +49,16 @@ export function CatalogCard({
   const hasActions = actions !== undefined && actions.length > 0;
 
   return (
-    <div className="rounded-lg border border-border bg-surface p-4">
+    <div className="rounded-lg border border-border bg-surface p-3">
       <div
         className={
-          hasActions ? "flex items-start justify-between gap-2 mb-3" : "mb-3"
+          hasActions ? "flex items-start justify-between gap-2 mb-2" : "mb-2"
         }
       >
         <h3 className="text-base font-semibold min-w-0">{title}</h3>
         {hasActions && <CardActionsMenu actions={actions} />}
       </div>
-      <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-base">
+      <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-base">
         {children}
       </dl>
     </div>
@@ -68,9 +91,9 @@ export function CatalogDetailSection({
   if (items.length === 0) return null;
 
   return (
-    <section className="space-y-3">
-      <h2 className="text-lg font-semibold">{title}</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+    <section className="space-y-2">
+      <h2 className="text-base font-semibold">{title}</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
         {items}
       </div>
     </section>
@@ -80,9 +103,11 @@ export function CatalogDetailSection({
 export function EquatorialCoordinatesCard({
   catalogs,
   schema,
+  pgc,
 }: {
   catalogs: Catalogs;
   schema: Schema;
+  pgc: number;
 }): ReactElement | null {
   const equatorial = catalogs?.coordinates?.equatorial;
   const hasEquatorial =
@@ -90,6 +115,10 @@ export function EquatorialCoordinatesCard({
   if (!hasEquatorial) return null;
 
   const actions: CatalogCardAction[] = [];
+
+  if (isLoggedIn()) {
+    actions.push(originalDataAction(buildEquatorialSqlQuery(pgc)));
+  }
 
   if (equatorial?.ra !== undefined) {
     actions.push({
@@ -191,14 +220,20 @@ export function GalacticCoordinatesCard({
 
 export function RedshiftCard({
   catalogs,
+  pgc,
 }: {
   catalogs: Catalogs;
+  pgc: number;
 }): ReactElement | null {
   const redshift = catalogs?.redshift;
   if (!redshift || redshift.z === undefined) return null;
 
+  const actions: CatalogCardAction[] = isLoggedIn()
+    ? [originalDataAction(buildRedshiftSqlQuery(pgc))]
+    : [];
+
   return (
-    <CatalogCard title="Redshift">
+    <CatalogCard title="Redshift" actions={actions}>
       <Field label="z">
         <QuantityWithError error={redshift.e_z} decimalPlaces={5}>
           {redshift.z?.toFixed(5) || "N/A"}
@@ -276,4 +311,66 @@ export function VelocitiesCard({
   if (fields.length === 0) return null;
 
   return <CatalogCard title="Velocities">{fields}</CatalogCard>;
+}
+
+function formatPhotometryDetails(
+  measurement: PhotometryTotalMeasurement,
+): string {
+  const lines = [
+    `Band: ${measurement.band}`,
+    `λ: ${measurement.wavelength} Å`,
+    `mag: ${measurement.mag}${measurement.e_mag !== null && measurement.e_mag !== undefined ? ` ± ${measurement.e_mag}` : ""}`,
+    `Method: ${measurement.method}`,
+  ];
+
+  if (measurement.magsys) {
+    lines.push(`Magnitude system: ${measurement.magsys}`);
+  }
+
+  return lines.join("\n");
+}
+
+export function PhotometryTotalCard({
+  catalogs,
+  pgc,
+}: {
+  catalogs: Catalogs;
+  pgc: number;
+}): ReactElement | null {
+  const measurements = catalogs.photometry_total;
+  if (!measurements?.length) {
+    return null;
+  }
+
+  const sorted = [...measurements].sort((a, b) => a.wavelength - b.wavelength);
+  const x = sorted.map((m) => m.wavelength);
+  const y = sorted.map((m) => m.mag);
+  const yErrors = sorted.map((m) => m.e_mag);
+  const details = sorted.map(formatPhotometryDetails);
+
+  const actions: CatalogCardAction[] = isLoggedIn()
+    ? [originalDataAction(buildPhotometryTotalSqlQuery(pgc))]
+    : [];
+  const hasActions = actions.length > 0;
+
+  return (
+    <div className="col-span-full rounded-lg border border-border bg-surface p-3">
+      <div
+        className={
+          hasActions ? "flex items-start justify-between gap-2 mb-2" : "mb-2"
+        }
+      >
+        <h3 className="text-base font-semibold min-w-0">Total photometry</h3>
+        {hasActions && <CardActionsMenu actions={actions} />}
+      </div>
+      <Plot
+        x={x}
+        y={y}
+        yErrors={yErrors}
+        details={details}
+        xLabel="λ (Å)"
+        yLabel="mag"
+      />
+    </div>
+  );
 }

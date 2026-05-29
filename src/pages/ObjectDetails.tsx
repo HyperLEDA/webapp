@@ -10,6 +10,7 @@ import {
   EquatorialCoordinatesCard,
   GalacticCoordinatesCard,
   Field,
+  PhotometryTotalCard,
   RedshiftCard,
   VelocitiesCard,
 } from "../components/ui/CatalogData";
@@ -57,9 +58,9 @@ function NotesSection({ notes }: { notes: NoteEntry[] }): ReactElement {
   }));
 
   return (
-    <section className="space-y-3">
-      <h2 className="text-lg font-semibold">Notes</h2>
-      <div className="rounded-lg border border-border bg-surface p-4 overflow-x-auto">
+    <section className="space-y-2">
+      <h2 className="text-base font-semibold">Notes</h2>
+      <div className="rounded-lg border border-border bg-surface p-3 overflow-x-auto">
         <CommonTable columns={columns} data={data} />
       </div>
     </section>
@@ -87,7 +88,7 @@ function IdentityHeader({
   ];
 
   return (
-    <div className="flex flex-col lg:flex-row items-start gap-6">
+    <div className="flex flex-col lg:flex-row items-start gap-4">
       {catalogs?.coordinates?.equatorial && (
         <AladinViewer
           ra={catalogs.coordinates.equatorial.ra}
@@ -160,24 +161,30 @@ function ObjectDetails({ object, schema }: ObjectDetailsProps): ReactElement {
   const catalogs = object.catalogs;
 
   return (
-    <div className="space-y-8 rounded-lg">
+    <div className="space-y-5 rounded-lg">
       <IdentityHeader object={object} schema={schema} />
 
-      <div className="space-y-8">
-        <CatalogDetailSection title="Astrometry">
-          <EquatorialCoordinatesCard catalogs={catalogs} schema={schema} />
-          <GalacticCoordinatesCard catalogs={catalogs} schema={schema} />
-        </CatalogDetailSection>
+      <CatalogDetailSection title="Astrometry">
+        <EquatorialCoordinatesCard
+          catalogs={catalogs}
+          schema={schema}
+          pgc={object.pgc}
+        />
+        <GalacticCoordinatesCard catalogs={catalogs} schema={schema} />
+      </CatalogDetailSection>
 
-        <CatalogDetailSection title="Kinematics">
-          <RedshiftCard catalogs={catalogs} />
-          <VelocitiesCard catalogs={catalogs} schema={schema} />
-        </CatalogDetailSection>
+      <CatalogDetailSection title="Kinematics">
+        <RedshiftCard catalogs={catalogs} pgc={object.pgc} />
+        <VelocitiesCard catalogs={catalogs} schema={schema} />
+      </CatalogDetailSection>
 
-        {catalogs?.notes && catalogs.notes.length > 0 && (
-          <NotesSection notes={catalogs.notes} />
-        )}
-      </div>
+      <CatalogDetailSection title="Photometry">
+        <PhotometryTotalCard catalogs={catalogs} pgc={object.pgc} />
+      </CatalogDetailSection>
+
+      {catalogs?.notes && catalogs.notes.length > 0 && (
+        <NotesSection notes={catalogs.notes} />
+      )}
     </div>
   );
 }
