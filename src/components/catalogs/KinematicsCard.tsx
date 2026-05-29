@@ -10,11 +10,13 @@ export function KinematicsCard({
   catalogs,
   schema,
   pgc,
+  anchorId,
   className,
 }: {
   catalogs: Catalogs;
   schema: Schema;
   pgc: number;
+  anchorId?: string;
   className?: string;
 }): ReactElement | null {
   const redshift = catalogs?.redshift;
@@ -89,7 +91,7 @@ export function KinematicsCard({
     <CatalogCard
       title="Kinematics"
       actions={actions}
-      anchorId="kinematics"
+      anchorId={anchorId}
       className={className}
     >
       {hasRedshift && (

@@ -19,11 +19,13 @@ export function AstrometryCard({
   catalogs,
   schema,
   pgc,
+  anchorId,
   className,
 }: {
   catalogs: Catalogs;
   schema: Schema;
   pgc: number;
+  anchorId?: string;
   className?: string;
 }): ReactElement | null {
   const equatorial = catalogs?.coordinates?.equatorial;
@@ -85,7 +87,7 @@ export function AstrometryCard({
     <CatalogCard
       title="Astrometry"
       actions={actions}
-      anchorId="astrometry"
+      anchorId={anchorId}
       className={className}
     >
       {hasEquatorial && (

@@ -15,11 +15,13 @@ export function IdentityCard({
   pgc,
   catalogs,
   schema,
+  anchorId,
   className,
 }: {
   pgc: number;
   catalogs: Catalogs;
   schema: Schema;
+  anchorId?: string;
   className?: string;
 }): ReactElement {
   const name = catalogs?.designation?.name || `PGC ${pgc}`;
@@ -38,7 +40,7 @@ export function IdentityCard({
     <CatalogCard
       title={name}
       actions={identityActions}
-      anchorId="identity"
+      anchorId={anchorId}
       className={className}
     >
       <Field label="PGC">{pgc}</Field>

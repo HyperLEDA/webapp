@@ -29,10 +29,12 @@ function formatPhotometryDetails(
 export function PhotometryTotalCard({
   catalogs,
   pgc,
+  anchorId,
   className,
 }: {
   catalogs: Catalogs;
   pgc: number;
+  anchorId?: string;
   className?: string;
 }): ReactElement | null {
   const measurements = catalogs.photometry_total;
@@ -54,7 +56,7 @@ export function PhotometryTotalCard({
     <CatalogCard
       title="Total photometry"
       variant="block"
-      anchorId="photometry"
+      anchorId={anchorId}
       actions={actions}
       className={className}
     >

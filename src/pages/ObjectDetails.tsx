@@ -30,29 +30,41 @@ function ObjectDetails({ object, schema }: ObjectDetailsProps): ReactElement {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-6 gap-5 rounded-lg">
-      <SkyViewCard catalogs={catalogs} className="lg:col-span-2" />
+      <SkyViewCard
+        catalogs={catalogs}
+        anchorId="sky-view"
+        className="lg:col-span-2"
+      />
       <IdentityCard
         pgc={object.pgc}
         catalogs={catalogs}
         schema={schema}
+        anchorId="identity"
         className={hasSkyView ? "lg:col-span-4" : "lg:col-span-6"}
       />
-      <NotesCard catalogs={catalogs} className="lg:col-span-6" />
+      <NotesCard
+        catalogs={catalogs}
+        anchorId="notes"
+        className="lg:col-span-6"
+      />
       <AstrometryCard
         catalogs={catalogs}
         schema={schema}
         pgc={object.pgc}
+        anchorId="astrometry"
         className="lg:col-span-3"
       />
       <KinematicsCard
         catalogs={catalogs}
         schema={schema}
         pgc={object.pgc}
+        anchorId="kinematics"
         className="lg:col-span-3"
       />
       <PhotometryTotalCard
         catalogs={catalogs}
         pgc={object.pgc}
+        anchorId="photometry"
         className="lg:col-span-6"
       />
     </div>

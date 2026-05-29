@@ -5,9 +5,11 @@ import { CatalogCard } from "./CatalogCard";
 
 export function SkyViewCard({
   catalogs,
+  anchorId,
   className,
 }: {
   catalogs: Catalogs;
+  anchorId?: string;
   className?: string;
 }): ReactElement | null {
   const equatorial = catalogs?.coordinates?.equatorial;
@@ -19,7 +21,7 @@ export function SkyViewCard({
     <CatalogCard
       title="Sky view"
       variant="block"
-      anchorId="sky-view"
+      anchorId={anchorId}
       className={className}
     >
       <AladinViewer

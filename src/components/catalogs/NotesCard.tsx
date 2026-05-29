@@ -13,16 +13,18 @@ function renderNoteSourceHint(note: NoteEntry): string {
 
 export function NotesCard({
   catalogs,
+  anchorId,
   className,
 }: {
   catalogs: Catalogs;
+  anchorId?: string;
   className?: string;
 }): ReactElement | null {
   const notes = catalogs.notes;
   if (!notes?.length) return null;
 
   return (
-    <CatalogCard title="Notes" anchorId="notes" className={className}>
+    <CatalogCard title="Notes" anchorId={anchorId} className={className}>
       {notes.map((note, i) => (
         <Field
           key={`${note.source.bibcode}-${i}`}
