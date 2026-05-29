@@ -1,4 +1,3 @@
-import classNames from "classnames";
 import { ReactElement } from "react";
 import {
   Catalogs,
@@ -7,10 +6,7 @@ import {
 import { isLoggedIn } from "../../auth/token";
 import { buildPhotometryTotalSqlQuery } from "../../lib/sql";
 import { Plot } from "../core/Plot";
-import { useAnchoredElement } from "../../hooks/useAnchoredElement";
-import { CardActionsMenu } from "../ui/CardActionsMenu";
-import { CardAnchorLink } from "../ui/CardAnchorLink";
-import { CatalogCardAction } from "./CatalogCard";
+import { CatalogCard, CatalogCardAction } from "./CatalogCard";
 import { originalDataAction } from "./catalogActions";
 
 function formatPhotometryDetails(
@@ -53,32 +49,15 @@ export function PhotometryTotalCard({
   const actions: CatalogCardAction[] = isLoggedIn()
     ? [originalDataAction(buildPhotometryTotalSqlQuery(pgc))]
     : [];
-  const hasActions = actions.length > 0;
-  const { ref, highlighted } = useAnchoredElement("photometry");
 
   return (
-    <div
-      ref={ref}
-      id="photometry"
-      className={classNames(
-        "rounded-lg border border-border bg-surface p-3",
-        highlighted && "card-anchor-highlight",
-        className,
-      )}
+    <CatalogCard
+      title="Total photometry"
+      variant="block"
+      anchorId="photometry"
+      actions={actions}
+      className={className}
     >
-      <div
-        className={
-          hasActions
-            ? "group/card flex items-start justify-between gap-2 mb-2"
-            : "group/card mb-2"
-        }
-      >
-        <h3 className="text-base font-semibold min-w-0 flex items-center gap-1.5">
-          Total photometry
-          <CardAnchorLink anchorId="photometry" />
-        </h3>
-        {hasActions && <CardActionsMenu actions={actions} />}
-      </div>
       <Plot
         x={x}
         y={y}
@@ -87,6 +66,6 @@ export function PhotometryTotalCard({
         xLabel="λ (Å)"
         yLabel="mag"
       />
-    </div>
+    </CatalogCard>
   );
 }
