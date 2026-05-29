@@ -103,9 +103,9 @@ function IdentityHeader({
           {catalogs?.additional_designations &&
             catalogs.additional_designations.length > 0 && (
               <Field label="Also known as">
-                <ul className="list-none space-y-1">
+                <ul className="list-none grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
                   {catalogs.additional_designations.map((d, i) => (
-                    <li key={i} className="flex items-center gap-2">
+                    <li key={i} className="flex items-center gap-2 min-w-0">
                       <span>{d.name}</span>
                       <Hint
                         hintContent={
