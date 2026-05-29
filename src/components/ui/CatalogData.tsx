@@ -166,55 +166,53 @@ export function AstrometryCard({
         : eRaUnit;
 
   return (
-    <div className="col-span-full">
-      <CatalogCard title="Astrometry" actions={actions}>
-        {hasEquatorial && (
-          <>
-            <Field label="ICRS">
-              <span className="inline-flex flex-wrap items-center gap-x-2">
-                {equatorial?.ra !== undefined && (
-                  <RightAscension value={equatorial.ra} />
-                )}
-                {equatorial?.dec !== undefined && (
-                  <Declination value={equatorial.dec} />
-                )}
-              </span>
-            </Field>
-            {equatorial?.ra !== undefined && equatorial?.dec !== undefined && (
-              <Field label="ICRS">
-                <EquatorialDecimalDegrees
-                  ra={equatorial.ra}
-                  dec={equatorial.dec}
-                />
-              </Field>
-            )}
-          </>
-        )}
-        {hasGalactic && (
-          <Field label="Galactic">
+    <CatalogCard title="Astrometry" actions={actions}>
+      {hasEquatorial && (
+        <>
+          <Field label="ICRS">
             <span className="inline-flex flex-wrap items-center gap-x-2">
-              {galactic?.lon !== undefined && (
-                <Quantity
-                  value={galactic.lon.toFixed(2)}
-                  unit={schema.units.coordinates?.galactic?.lon}
-                />
+              {equatorial?.ra !== undefined && (
+                <RightAscension value={equatorial.ra} />
               )}
-              {galactic?.lat !== undefined && (
-                <Quantity
-                  value={galactic.lat.toFixed(2)}
-                  unit={schema.units.coordinates?.galactic?.lat}
-                />
+              {equatorial?.dec !== undefined && (
+                <Declination value={equatorial.dec} />
               )}
             </span>
           </Field>
-        )}
-        {hasPrecision && precision !== undefined && (
-          <Field label="Precision">
-            ± <Quantity value={precision.toFixed(2)} unit={precisionUnit} />
-          </Field>
-        )}
-      </CatalogCard>
-    </div>
+          {equatorial?.ra !== undefined && equatorial?.dec !== undefined && (
+            <Field label="ICRS">
+              <EquatorialDecimalDegrees
+                ra={equatorial.ra}
+                dec={equatorial.dec}
+              />
+            </Field>
+          )}
+        </>
+      )}
+      {hasGalactic && (
+        <Field label="Galactic">
+          <span className="inline-flex flex-wrap items-center gap-x-2">
+            {galactic?.lon !== undefined && (
+              <Quantity
+                value={galactic.lon.toFixed(2)}
+                unit={schema.units.coordinates?.galactic?.lon}
+              />
+            )}
+            {galactic?.lat !== undefined && (
+              <Quantity
+                value={galactic.lat.toFixed(2)}
+                unit={schema.units.coordinates?.galactic?.lat}
+              />
+            )}
+          </span>
+        </Field>
+      )}
+      {hasPrecision && precision !== undefined && (
+        <Field label="Precision">
+          ± <Quantity value={precision.toFixed(2)} unit={precisionUnit} />
+        </Field>
+      )}
+    </CatalogCard>
   );
 }
 

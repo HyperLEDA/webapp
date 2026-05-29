@@ -161,11 +161,11 @@ function ObjectDetails({ object, schema }: ObjectDetailsProps): ReactElement {
     <div className="space-y-5 rounded-lg">
       <IdentityHeader object={object} schema={schema} />
 
-      <AstrometryCard catalogs={catalogs} schema={schema} pgc={object.pgc} />
-
-      <KinematicsCard catalogs={catalogs} schema={schema} pgc={object.pgc} />
-
-      <PhotometryTotalCard catalogs={catalogs} pgc={object.pgc} />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <AstrometryCard catalogs={catalogs} schema={schema} pgc={object.pgc} />
+        <KinematicsCard catalogs={catalogs} schema={schema} pgc={object.pgc} />
+        <PhotometryTotalCard catalogs={catalogs} pgc={object.pgc} />
+      </div>
 
       {catalogs?.notes && catalogs.notes.length > 0 && (
         <NotesSection notes={catalogs.notes} />
