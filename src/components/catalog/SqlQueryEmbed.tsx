@@ -1,24 +1,27 @@
 import { ReactElement, useEffect, useState } from "react";
-import { MdCode } from "react-icons/md";
-import { useNavigate } from "react-router-dom";
 import type { TapSyncResponse } from "../../clients/backend/types.gen";
 import { executeSqlQuery, syncPayloadToTable } from "../../lib/tap";
-import { Button } from "../core/Button";
 import { Text } from "../core/Text";
 import { Loading } from "../core/Loading";
-import { AppTooltip } from "../ui/AppTooltip";
 import { CommonTable } from "../ui/CommonTable";
-import { originalDataCatalogLink } from "./catalogActions";
 
-export function CatalogOriginalDataEmbed({
+export function SqlQueryEmbed({
   sql,
+  onLoadingChange,
 }: {
   sql: string;
+  onLoadingChange?: (loading: boolean) => void;
 }): ReactElement {
-  const navigate = useNavigate();
   const [result, setResult] = useState<TapSyncResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    onLoadingChange?.(loading);
+    return () => {
+      onLoadingChange?.(false);
+    };
+  }, [loading, onLoadingChange]);
 
   useEffect(() => {
     let cancelled = false;
@@ -54,7 +57,7 @@ export function CatalogOriginalDataEmbed({
   const rowCount = tableData?.rows.length ?? 0;
 
   return (
-    <div className="mt-3 flex flex-col gap-3 border-t border-border pt-3">
+    <div className="flex flex-col gap-3">
       {loading ? <Loading /> : null}
       {error ? (
         <div
@@ -76,18 +79,6 @@ export function CatalogOriginalDataEmbed({
           </Text>
         </CommonTable>
       ) : null}
-      <div className="flex justify-end">
-        <AppTooltip content="Open in data catalog">
-          <Button
-            type="button"
-            className="!p-1.5 cursor-pointer"
-            onClick={() => navigate(originalDataCatalogLink(sql))}
-            aria-label="Open in data catalog"
-          >
-            <MdCode className="size-5 text-muted" aria-hidden />
-          </Button>
-        </AppTooltip>
-      </div>
     </div>
   );
 }

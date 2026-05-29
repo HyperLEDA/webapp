@@ -1,15 +1,10 @@
 import { FormEvent, ReactElement, useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
-import type {
-  TapSchemaEntry,
-  TapSyncResponse,
-} from "../../clients/backend/types.gen";
-import { executeSqlQuery, syncPayloadToTable } from "../../lib/tap";
+import type { TapSchemaEntry } from "../../clients/backend/types.gen";
 import { Button } from "../core/Button";
 import { Text } from "../core/Text";
-import { Loading } from "../core/Loading";
-import { CommonTable } from "../ui/CommonTable";
 import { SqlEditor } from "./SqlEditor";
+import { SqlQueryEmbed } from "./SqlQueryEmbed";
 
 function runQueryShortcutLabel(): string {
   if (typeof navigator === "undefined") {
@@ -33,44 +28,39 @@ export function CatalogSqlPanel({
   permalinkRunKey,
   onQueryRun,
 }: CatalogSqlPanelProps): ReactElement {
-  const [result, setResult] = useState<TapSyncResponse | null>(null);
+  const [executedSql, setExecutedSql] = useState<string | null>(null);
+  const [runId, setRunId] = useState(0);
+  const [validationError, setValidationError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const runShortcut = runQueryShortcutLabel();
   const location = useLocation();
   const didAutoRun = useRef(false);
 
-  async function runQuery(): Promise<void> {
+  function triggerRun(trimmed: string): void {
+    setValidationError(null);
+    setExecutedSql(trimmed);
+    setRunId((id) => id + 1);
+    setLoading(true);
+    onQueryRun?.(trimmed);
+  }
+
+  function runQuery(): void {
     if (loading) {
       return;
     }
     const trimmed = sql.trim();
     if (!trimmed) {
-      setError("Enter a SQL query to run.");
-      setResult(null);
+      setValidationError("Enter a SQL query to run.");
+      setExecutedSql(null);
+      setLoading(false);
       return;
     }
-
-    setLoading(true);
-    setError(null);
-    setResult(null);
-    onQueryRun?.(trimmed);
-
-    try {
-      const payload = await executeSqlQuery(trimmed);
-      setResult(payload);
-    } catch (runError) {
-      setError(`${runError}`);
-    } finally {
-      setLoading(false);
-    }
+    triggerRun(trimmed);
   }
 
-  async function handleSubmit(
-    event: FormEvent<HTMLFormElement>,
-  ): Promise<void> {
+  function handleSubmit(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault();
-    await runQuery();
+    runQuery();
   }
 
   useEffect(() => {
@@ -85,11 +75,8 @@ export function CatalogSqlPanel({
       return;
     }
     didAutoRun.current = true;
-    void runQuery();
+    triggerRun(sql.trim());
   }, [permalinkRunKey, sql]);
-
-  const tableData = result ? syncPayloadToTable(result) : null;
-  const rowCount = tableData?.rows.length ?? 0;
 
   return (
     <div className="flex flex-col gap-4">
@@ -106,7 +93,7 @@ export function CatalogSqlPanel({
             {loading ? "Running…" : `Run query (${runShortcut})`}
           </Button>
         </div>
-        {error ? (
+        {validationError ? (
           <div
             role="alert"
             className="rounded-lg border border-danger/40 bg-danger/10 px-4 py-3 text-left"
@@ -115,19 +102,18 @@ export function CatalogSqlPanel({
               Query failed
             </Text>
             <Text as="p" className="mt-1 text-danger">
-              {error}
+              {validationError}
             </Text>
           </div>
         ) : null}
-        {loading ? <Loading /> : null}
       </form>
 
-      {tableData ? (
-        <CommonTable columns={tableData.columns} data={tableData.rows}>
-          <Text style="header" size="small">
-            {rowCount === 1 ? "1 row" : `${rowCount} rows`}
-          </Text>
-        </CommonTable>
+      {executedSql ? (
+        <SqlQueryEmbed
+          key={runId}
+          sql={executedSql}
+          onLoadingChange={setLoading}
+        />
       ) : null}
     </div>
   );

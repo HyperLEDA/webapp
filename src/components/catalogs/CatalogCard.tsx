@@ -1,11 +1,14 @@
 import classNames from "classnames";
 import { Children, ReactElement, ReactNode, useState } from "react";
-import { MdKeyboardArrowDown } from "react-icons/md";
+import { MdCode, MdKeyboardArrowDown } from "react-icons/md";
+import { useNavigate } from "react-router-dom";
 import { useAnchoredElement } from "../../hooks/useAnchoredElement";
+import { SqlQueryEmbed } from "../catalog/SqlQueryEmbed";
 import { Button } from "../core/Button";
 import { CardActionsMenu, CatalogCardAction } from "../ui/CardActionsMenu";
 import { CardAnchorLink } from "../ui/CardAnchorLink";
-import { CatalogOriginalDataEmbed } from "./CatalogOriginalDataEmbed";
+import { AppTooltip } from "../ui/AppTooltip";
+import { originalDataCatalogLink } from "./catalogActions";
 
 export type { CatalogCardAction };
 
@@ -30,6 +33,7 @@ export function CatalogCard({
   className?: string;
   variant?: "fields" | "block";
 }): ReactElement {
+  const navigate = useNavigate();
   const { ref, highlighted } = useAnchoredElement(anchorId ?? "");
   const [originalDataOpen, setOriginalDataOpen] = useState(false);
   const [originalDataMounted, setOriginalDataMounted] = useState(false);
@@ -118,10 +122,23 @@ export function CatalogCard({
                 originalDataOpen ? "opacity-100" : "opacity-0",
               )}
             >
-              <CatalogOriginalDataEmbed
-                key={originalDataSql}
-                sql={originalDataSql}
-              />
+              <div className="mt-3 flex flex-col gap-3 border-t border-border pt-3">
+                <SqlQueryEmbed key={originalDataSql} sql={originalDataSql} />
+                <div className="flex justify-end">
+                  <AppTooltip content="Open in data catalog">
+                    <Button
+                      type="button"
+                      className="!p-1.5 cursor-pointer"
+                      onClick={() =>
+                        navigate(originalDataCatalogLink(originalDataSql))
+                      }
+                      aria-label="Open in data catalog"
+                    >
+                      <MdCode className="size-5 text-muted" aria-hidden />
+                    </Button>
+                  </AppTooltip>
+                </div>
+              </div>
             </div>
           </div>
         </div>
