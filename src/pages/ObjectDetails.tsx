@@ -12,7 +12,7 @@ import {
   PhotometryTotalCard,
   KinematicsCard,
   NotesCard,
-} from "../components/ui/CatalogData";
+} from "../components/catalogs";
 import { MdOpenInNew } from "react-icons/md";
 import { Hint } from "../components/ui/Hint";
 import { Link } from "../components/core/Link";
