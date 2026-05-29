@@ -21,7 +21,9 @@ import {
   Quantity,
   QuantityWithError,
 } from "../core/Astronomy";
+import { useAnchoredElement } from "../../hooks/useAnchoredElement";
 import { CardActionsMenu, CatalogCardAction } from "./CardActionsMenu";
+import { CardAnchorLink } from "./CardAnchorLink";
 import { Plot } from "../core/Plot";
 
 export type { CatalogCardAction };
@@ -42,21 +44,33 @@ export function CatalogCard({
   title,
   children,
   actions,
+  anchorId,
 }: {
   title: string;
   children: ReactNode;
   actions?: CatalogCardAction[];
+  anchorId?: string;
 }): ReactElement {
+  const { ref, highlighted } = useAnchoredElement(anchorId ?? "");
   const hasActions = actions !== undefined && actions.length > 0;
 
   return (
-    <div className="rounded-lg border border-border bg-surface p-3">
+    <div
+      ref={anchorId ? ref : undefined}
+      id={anchorId}
+      className={`rounded-lg border border-border bg-surface p-3${anchorId && highlighted ? " card-anchor-highlight" : ""}`}
+    >
       <div
         className={
-          hasActions ? "flex items-start justify-between gap-2 mb-2" : "mb-2"
+          hasActions || anchorId
+            ? "group/card flex items-start justify-between gap-2 mb-2"
+            : "mb-2"
         }
       >
-        <h3 className="text-base font-semibold min-w-0">{title}</h3>
+        <h3 className="text-base font-semibold min-w-0 flex items-center gap-1.5">
+          {title}
+          {anchorId && <CardAnchorLink anchorId={anchorId} />}
+        </h3>
         {hasActions && <CardActionsMenu actions={actions} />}
       </div>
       <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-base">
@@ -166,7 +180,7 @@ export function AstrometryCard({
         : eRaUnit;
 
   return (
-    <CatalogCard title="Astrometry" actions={actions}>
+    <CatalogCard title="Astrometry" actions={actions} anchorId="astrometry">
       {hasEquatorial && (
         <>
           <Field label="ICRS">
@@ -294,7 +308,7 @@ export function KinematicsCard({
       : [];
 
   return (
-    <CatalogCard title="Kinematics" actions={actions}>
+    <CatalogCard title="Kinematics" actions={actions} anchorId="kinematics">
       {hasRedshift && (
         <Field label="z">
           <QuantityWithError error={redshift.e_z} decimalPlaces={5}>
@@ -346,15 +360,25 @@ export function PhotometryTotalCard({
     ? [originalDataAction(buildPhotometryTotalSqlQuery(pgc))]
     : [];
   const hasActions = actions.length > 0;
+  const { ref, highlighted } = useAnchoredElement("photometry");
 
   return (
-    <div className="col-span-full rounded-lg border border-border bg-surface p-3">
+    <div
+      ref={ref}
+      id="photometry"
+      className={`col-span-full rounded-lg border border-border bg-surface p-3${highlighted ? " card-anchor-highlight" : ""}`}
+    >
       <div
         className={
-          hasActions ? "flex items-start justify-between gap-2 mb-2" : "mb-2"
+          hasActions
+            ? "group/card flex items-start justify-between gap-2 mb-2"
+            : "group/card mb-2"
         }
       >
-        <h3 className="text-base font-semibold min-w-0">Total photometry</h3>
+        <h3 className="text-base font-semibold min-w-0 flex items-center gap-1.5">
+          Total photometry
+          <CardAnchorLink anchorId="photometry" />
+        </h3>
         {hasActions && <CardActionsMenu actions={actions} />}
       </div>
       <Plot

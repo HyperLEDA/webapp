@@ -1,5 +1,7 @@
 import { ReactElement, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import { useAnchoredElement } from "../hooks/useAnchoredElement";
+import { CardAnchorLink } from "../components/ui/CardAnchorLink";
 import { AladinViewer } from "../components/core/Aladin";
 import { Loading } from "../components/core/Loading";
 import { ErrorPage } from "../components/ui/ErrorPage";
@@ -42,6 +44,7 @@ function renderNoteSourceHint(note: NoteEntry): string {
 }
 
 function NotesSection({ notes }: { notes: NoteEntry[] }): ReactElement {
+  const { ref, highlighted } = useAnchoredElement("notes");
   const columns: Column[] = [{ name: "Source" }, { name: "Note" }];
   const data: Record<string, CellPrimitive>[] = notes.map((note) => ({
     Source: (
@@ -56,8 +59,15 @@ function NotesSection({ notes }: { notes: NoteEntry[] }): ReactElement {
 
   return (
     <section className="space-y-2">
-      <h2 className="text-base font-semibold">Notes</h2>
-      <div className="rounded-lg border border-border bg-surface p-3 overflow-x-auto">
+      <h2 className="text-base font-semibold flex items-center gap-1.5 group/card">
+        Notes
+        <CardAnchorLink anchorId="notes" />
+      </h2>
+      <div
+        ref={ref}
+        id="notes"
+        className={`rounded-lg border border-border bg-surface p-3 overflow-x-auto${highlighted ? " card-anchor-highlight" : ""}`}
+      >
         <CommonTable columns={columns} data={data} />
       </div>
     </section>
@@ -95,7 +105,7 @@ function IdentityHeader({
         />
       )}
       <div className="flex-1 min-w-0 w-full">
-        <CatalogCard title={name} actions={identityActions}>
+        <CatalogCard title={name} actions={identityActions} anchorId="identity">
           <Field label="PGC">{object.pgc}</Field>
           {catalogs?.nature?.type_name && (
             <Field label="Nature">{catalogs.nature.type_name}</Field>
