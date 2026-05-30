@@ -94,7 +94,7 @@ export function KinematicsCard({
 
   return (
     <CatalogCard
-      title="Kinematics"
+      title="Redshift"
       originalDataSql={hasRedshift ? redshiftSqlQuery(pgc) : undefined}
       anchorId={anchorId}
       className={className}

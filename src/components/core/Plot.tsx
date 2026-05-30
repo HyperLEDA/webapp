@@ -12,6 +12,8 @@ interface PlotProps {
   details?: string[];
   xLabel: string;
   yLabel: string;
+  invertY?: boolean;
+  logX?: boolean;
   className?: string;
 }
 
@@ -43,6 +45,14 @@ function paddedXRange(
   dataMax: number,
 ): uPlot.Range.MinMax {
   return paddedRange(dataMin, dataMax);
+}
+
+function logXRange(
+  _u: uPlot,
+  dataMin: number,
+  dataMax: number,
+): uPlot.Range.MinMax {
+  return uPlot.rangeLog(dataMin, dataMax, 10, true);
 }
 
 function yRangeWithErrors(
@@ -241,6 +251,8 @@ export function Plot({
   details,
   xLabel,
   yLabel,
+  invertY = false,
+  logX = false,
   className = "",
 }: PlotProps): ReactElement | null {
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -272,8 +284,20 @@ export function Plot({
       width: container.clientWidth || container.offsetWidth,
       height: PLOT_HEIGHT,
       scales: {
-        x: { time: false, range: paddedXRange },
-        y: { range: yRangeWithErrors(aligned.y, aligned.yErrors) },
+        x: {
+          time: false,
+          ...(logX
+            ? {
+                distr: 3,
+                log: 10,
+                range: logXRange,
+              }
+            : { range: paddedXRange }),
+        },
+        y: {
+          range: yRangeWithErrors(aligned.y, aligned.yErrors),
+          ...(invertY ? { dir: -1 } : {}),
+        },
       },
       axes: [
         {
@@ -362,7 +386,7 @@ export function Plot({
       plotRef.current = null;
       setActivePoint(null);
     };
-  }, [aligned, xLabel, yLabel, effectiveTheme]);
+  }, [aligned, invertY, logX, xLabel, yLabel, effectiveTheme]);
 
   if (aligned.x.length === 0) {
     return null;

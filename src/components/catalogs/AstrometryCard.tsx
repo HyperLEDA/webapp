@@ -131,13 +131,13 @@ export function AstrometryCard({
           <span className="inline-flex flex-wrap items-center gap-x-2">
             {galactic?.lon !== undefined && (
               <Quantity
-                value={galactic.lon.toFixed(2)}
+                value={galactic.lon.toFixed(4)}
                 unit={schema.units.coordinates?.galactic?.lon}
               />
             )}
             {galactic?.lat !== undefined && (
               <Quantity
-                value={galactic.lat.toFixed(2)}
+                value={galactic.lat.toFixed(4)}
                 unit={schema.units.coordinates?.galactic?.lat}
               />
             )}

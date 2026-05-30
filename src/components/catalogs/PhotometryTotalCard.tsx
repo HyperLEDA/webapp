@@ -10,11 +10,11 @@ function photometryTotalSqlQuery(pgc: number): string {
   return `SELECT
   r.pgc
 , pt.band
-, cb.magsys
-, pt.method
-, b.waveref AS wavelength
 , pt.mag
 , pt.e_mag
+, b.waveref AS wavelength
+, cb.magsys
+, pt.method
 , bib.code AS bibcode
 FROM photometry.total AS pt
   JOIN layer0.records AS r ON pt.record_id = r.id
@@ -77,6 +77,8 @@ export function PhotometryTotalCard({
           details={details}
           xLabel="λ (Å)"
           yLabel="mag"
+          invertY
+          logX
         />
       ) : (
         <CatalogNoData />
