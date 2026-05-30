@@ -3,6 +3,10 @@ import {
   Catalogs,
   PhotometryTotalMeasurement,
 } from "../../clients/backend/types.gen";
+import {
+  magsysGroupFromMeasurements,
+  photometryFilterVlines,
+} from "../../lib/astronomy/photometryFilters";
 import { createPlot, PlotView } from "../core/Plot";
 import {
   bibcodeMarkdownSelect,
@@ -64,8 +68,10 @@ export function PhotometryTotalCard({
   const y = sorted.map((m) => m.mag);
   const yErrors = sorted.map((m) => m.e_mag);
   const details = sorted.map(formatPhotometryDetails);
+  const magsysGroup = magsysGroupFromMeasurements(sorted.map((m) => m.magsys));
   const plotProps = createPlot()
     .plot(x, y, yErrors, details)
+    .vlines(photometryFilterVlines(magsysGroup))
     .xlabel("λ (Å)")
     .ylabel("mag")
     .invertY()

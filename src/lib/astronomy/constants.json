@@ -1,0 +1,70 @@
+{
+  "photometricBands": {
+    "vega": {
+      "description": "Johnson–Cousins UBVRI and near-IR JHK λ_eff (Å). UBVRI: Bessell (1990, PASP 102, 1181, Table 1). JHK: 2MASS-style effective wavelengths (e.g. Carpenter 2001). ADS: https://ui.adsabs.harvard.edu/abs/1990PASP..102.1181",
+      "bands": [
+        {
+          "name": "U",
+          "wavelength": { "value": 3652, "unit": "Angstrom" }
+        },
+        {
+          "name": "B",
+          "wavelength": { "value": 4457, "unit": "Angstrom" }
+        },
+        {
+          "name": "V",
+          "wavelength": { "value": 5505, "unit": "Angstrom" }
+        },
+        {
+          "name": "R",
+          "wavelength": { "value": 6585, "unit": "Angstrom" }
+        },
+        {
+          "name": "I",
+          "wavelength": { "value": 8075, "unit": "Angstrom" }
+        },
+        {
+          "name": "J",
+          "wavelength": { "value": 12350, "unit": "Angstrom" }
+        },
+        {
+          "name": "H",
+          "wavelength": { "value": 16620, "unit": "Angstrom" }
+        },
+        {
+          "name": "K",
+          "wavelength": { "value": 21590, "unit": "Angstrom" }
+        }
+      ]
+    },
+    "ab": {
+      "description": "SDSS ugriz and Pan-STARRS y λ_eff (Å), AB system. ugriz: Fukugita et al. (1996, AJ 111, 1748, Table 2). y: Tonry et al. (2012, ApJ 746, 128). ADS: https://ui.adsabs.harvard.edu/abs/1996AJ....111.1748",
+      "bands": [
+        {
+          "name": "u",
+          "wavelength": { "value": 3543, "unit": "Angstrom" }
+        },
+        {
+          "name": "g",
+          "wavelength": { "value": 4770, "unit": "Angstrom" }
+        },
+        {
+          "name": "r",
+          "wavelength": { "value": 6231, "unit": "Angstrom" }
+        },
+        {
+          "name": "i",
+          "wavelength": { "value": 7625, "unit": "Angstrom" }
+        },
+        {
+          "name": "z",
+          "wavelength": { "value": 9134, "unit": "Angstrom" }
+        },
+        {
+          "name": "y",
+          "wavelength": { "value": 9620, "unit": "Angstrom" }
+        }
+      ]
+    }
+  }
+}
