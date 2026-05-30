@@ -1,6 +1,7 @@
 export {
   CatalogCard,
   CatalogDetailSection,
+  CatalogNoData,
   Field,
   getSourceLink,
   type CatalogCardAction,

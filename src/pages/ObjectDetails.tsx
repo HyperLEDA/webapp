@@ -24,9 +24,6 @@ function ObjectDetails({ object, schema }: ObjectDetailsProps): ReactElement {
   if (!object || !schema) return <div />;
 
   const catalogs = object.catalogs;
-  const equatorial = catalogs?.coordinates?.equatorial;
-  const hasSkyView =
-    equatorial?.ra !== undefined && equatorial?.dec !== undefined;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-6 gap-5 rounded-lg">
@@ -40,7 +37,7 @@ function ObjectDetails({ object, schema }: ObjectDetailsProps): ReactElement {
         catalogs={catalogs}
         schema={schema}
         anchorId="identity"
-        className={hasSkyView ? "lg:col-span-4" : "lg:col-span-6"}
+        className="lg:col-span-4"
       />
       <NotesCard
         catalogs={catalogs}

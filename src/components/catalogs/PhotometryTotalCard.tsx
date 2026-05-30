@@ -3,19 +3,27 @@ import {
   Catalogs,
   PhotometryTotalMeasurement,
 } from "../../clients/backend/types.gen";
-import { Plot } from "../core/Plot";
-import { CatalogCard } from "./CatalogCard";
+import {
+  magsysGroupFromMeasurements,
+  photometryFilterVlines,
+} from "../../lib/astronomy/photometryFilters";
+import { createPlot, PlotView } from "../core/Plot";
+import {
+  bibcodeMarkdownSelect,
+  CatalogCard,
+  CatalogNoData,
+} from "./CatalogCard";
 
 function photometryTotalSqlQuery(pgc: number): string {
   return `SELECT
   r.pgc
 , pt.band
-, cb.magsys
-, pt.method
-, b.waveref AS wavelength
 , pt.mag
 , pt.e_mag
-, bib.code AS bibcode
+, b.waveref AS wavelength
+, cb.magsys
+, pt.method
+, ${bibcodeMarkdownSelect()}
 FROM photometry.total AS pt
   JOIN layer0.records AS r ON pt.record_id = r.id
   JOIN layer0.tables AS t ON r.table_id = t.id
@@ -52,34 +60,33 @@ export function PhotometryTotalCard({
   pgc: number;
   anchorId?: string;
   className?: string;
-}): ReactElement | null {
-  const measurements = catalogs.photometry_total;
-  if (!measurements?.length) {
-    return null;
-  }
-
+}): ReactElement {
+  const measurements = catalogs.photometry_total ?? [];
+  const hasData = measurements.length > 0;
   const sorted = [...measurements].sort((a, b) => a.wavelength - b.wavelength);
   const x = sorted.map((m) => m.wavelength);
   const y = sorted.map((m) => m.mag);
   const yErrors = sorted.map((m) => m.e_mag);
   const details = sorted.map(formatPhotometryDetails);
+  const magsysGroup = magsysGroupFromMeasurements(sorted.map((m) => m.magsys));
+  const plotProps = createPlot()
+    .plot(x, y, yErrors, details)
+    .vlines(photometryFilterVlines(magsysGroup))
+    .xlabel("λ (Å)")
+    .ylabel("mag")
+    .invertY()
+    .logX()
+    .toProps();
 
   return (
     <CatalogCard
       title="Total photometry"
       variant="block"
       anchorId={anchorId}
-      originalDataSql={photometryTotalSqlQuery(pgc)}
+      originalDataSql={hasData ? photometryTotalSqlQuery(pgc) : undefined}
       className={className}
     >
-      <Plot
-        x={x}
-        y={y}
-        yErrors={yErrors}
-        details={details}
-        xLabel="λ (Å)"
-        yLabel="mag"
-      />
+      {hasData && plotProps ? <PlotView {...plotProps} /> : <CatalogNoData />}
     </CatalogCard>
   );
 }

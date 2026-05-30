@@ -16,6 +16,10 @@ export function getSourceLink(bibcode: string): string {
   return `https://ui.adsabs.harvard.edu/abs/${bibcode}/abstract`;
 }
 
+export function bibcodeMarkdownSelect(): string {
+  return `'[' || bib.code || '](https://ui.adsabs.harvard.edu/abs/' || bib.code || '/abstract)' AS bibcode`;
+}
+
 export function CatalogCard({
   title,
   children,
@@ -145,6 +149,10 @@ export function CatalogCard({
       ) : null}
     </div>
   );
+}
+
+export function CatalogNoData(): ReactElement {
+  return <p className="col-span-2 text-muted text-base">No data available.</p>;
 }
 
 export function Field({

@@ -5,13 +5,25 @@ import "uplot/dist/uPlot.min.css";
 import { useTheme } from "../../hooks/useTheme";
 import { AppTooltip } from "../ui/AppTooltip";
 
-interface PlotProps {
+export interface PlotSeries {
   x: number[];
   y: number[];
   yErrors?: (number | null)[];
   details?: string[];
+}
+
+export interface PlotVLine {
+  x: number;
+  label?: string;
+}
+
+export interface PlotViewProps {
+  series: PlotSeries;
   xLabel: string;
   yLabel: string;
+  invertY: boolean;
+  logX: boolean;
+  vlines?: PlotVLine[];
   className?: string;
 }
 
@@ -26,6 +38,11 @@ const MARKER_SIZE = 9;
 const ERROR_CAP_WIDTH = 4;
 const HIT_RADIUS = 20;
 const AXIS_PADDING_RATIO = 0.1;
+const VLINE_TOP_PADDING = 24;
+const VLINE_LABEL_OFFSET = 5;
+const AXIS_VALUE_FONT = "12px system-ui, sans-serif";
+const AXIS_LABEL_FONT = "600 13px system-ui, sans-serif";
+const VLINE_LABEL_FONT = "600 12px system-ui, sans-serif";
 
 function paddedRange(dataMin: number, dataMax: number): uPlot.Range.MinMax {
   const span = dataMax - dataMin;
@@ -43,6 +60,14 @@ function paddedXRange(
   dataMax: number,
 ): uPlot.Range.MinMax {
   return paddedRange(dataMin, dataMax);
+}
+
+function logXRange(
+  _u: uPlot,
+  dataMin: number,
+  dataMax: number,
+): uPlot.Range.MinMax {
+  return uPlot.rangeLog(dataMin, dataMax, 10, true);
 }
 
 function yRangeWithErrors(
@@ -82,43 +107,38 @@ function readCssToken(name: string): string {
 
 function getPlotColors(): {
   text: string;
+  subtle: string;
   grid: string;
-  tick: string;
   accent: string;
 } {
   return {
     text: readCssToken("--token-primary"),
+    subtle: readCssToken("--token-subtle"),
     grid: readCssToken("--token-border"),
-    tick: readCssToken("--token-muted"),
     accent: readCssToken("--token-accent"),
   };
 }
 
 function axisStrokeOptions(colors: ReturnType<typeof getPlotColors>): {
   stroke: string;
+  font: string;
+  labelFont: string;
   grid: uPlot.Axis.Grid;
   ticks: uPlot.Axis.Ticks;
   border: uPlot.Axis.Border;
 } {
   return {
     stroke: colors.text,
+    font: AXIS_VALUE_FONT,
+    labelFont: AXIS_LABEL_FONT,
     grid: { show: true, stroke: colors.grid, width: 1 },
-    ticks: { show: true, stroke: colors.tick, width: 1, size: 4 },
+    ticks: { show: true, stroke: colors.subtle, width: 1, size: 5 },
     border: { show: false },
   };
 }
 
-function alignSeriesData(
-  x: number[],
-  y: number[],
-  yErrors?: (number | null)[],
-  details?: string[],
-): {
-  x: number[];
-  y: number[];
-  yErrors: (number | null)[] | undefined;
-  details: string[] | undefined;
-} {
+function alignSeriesData(series: PlotSeries): PlotSeries {
+  const { x, y, yErrors, details } = series;
   const length = Math.min(x.length, y.length);
   return {
     x: x.slice(0, length),
@@ -234,26 +254,74 @@ function drawYErrorBars(
   }
 }
 
-export function Plot({
-  x,
-  y,
-  yErrors,
-  details,
+function drawVLines(
+  u: uPlot,
+  vlines: PlotVLine[],
+  lineColor: string,
+  labelColor: string,
+): void {
+  const { ctx } = u;
+  const xScale = u.scales.x;
+  const xMin = xScale.min;
+  const xMax = xScale.max;
+
+  if (xMin === undefined || xMax === undefined) {
+    return;
+  }
+
+  const plotTop = u.bbox.top;
+  const plotBottom = plotTop + u.bbox.height;
+  const labelY = plotTop + VLINE_LABEL_OFFSET;
+
+  ctx.save();
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 4]);
+  ctx.textAlign = "center";
+  ctx.textBaseline = "top";
+  ctx.font = VLINE_LABEL_FONT;
+
+  for (const line of vlines) {
+    if (line.x <= 0) {
+      continue;
+    }
+    if (line.x < xMin || line.x > xMax) {
+      continue;
+    }
+
+    const xPos = u.valToPos(line.x, "x", true);
+
+    ctx.strokeStyle = lineColor;
+    ctx.beginPath();
+    ctx.moveTo(xPos, plotTop);
+    ctx.lineTo(xPos, plotBottom);
+    ctx.stroke();
+
+    if (line.label) {
+      ctx.fillStyle = labelColor;
+      ctx.fillText(line.label, xPos, labelY);
+    }
+  }
+
+  ctx.restore();
+}
+
+export function PlotView({
+  series,
   xLabel,
   yLabel,
+  invertY,
+  logX,
+  vlines = [],
   className = "",
-}: PlotProps): ReactElement | null {
+}: PlotViewProps): ReactElement | null {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const plotRef = useRef<uPlot | null>(null);
-  const detailsRef = useRef(details);
+  const detailsRef = useRef(series.details);
   const { effectiveTheme } = useTheme();
   const [activePoint, setActivePoint] = useState<ActivePoint | null>(null);
 
-  const aligned = useMemo(
-    () => alignSeriesData(x, y, yErrors, details),
-    [x, y, yErrors, details],
-  );
+  const aligned = useMemo(() => alignSeriesData(series), [series]);
 
   detailsRef.current = aligned.details;
 
@@ -268,12 +336,27 @@ export function Plot({
     const data: uPlot.AlignedData = [aligned.x, aligned.y];
     const axisStyle = axisStrokeOptions(colors);
 
+    const topPadding = vlines.length > 0 ? VLINE_TOP_PADDING : 0;
+
     const options: uPlot.Options = {
       width: container.clientWidth || container.offsetWidth,
       height: PLOT_HEIGHT,
+      padding: [topPadding, 8, 8, 8],
       scales: {
-        x: { time: false, range: paddedXRange },
-        y: { range: yRangeWithErrors(aligned.y, aligned.yErrors) },
+        x: {
+          time: false,
+          ...(logX
+            ? {
+                distr: 3,
+                log: 10,
+                range: logXRange,
+              }
+            : { range: paddedXRange }),
+        },
+        y: {
+          range: yRangeWithErrors(aligned.y, aligned.yErrors),
+          ...(invertY ? { dir: -1 } : {}),
+        },
       },
       axes: [
         {
@@ -301,6 +384,13 @@ export function Plot({
         drag: { x: true, y: true, setScale: true },
       },
       hooks: {
+        draw: [
+          (u) => {
+            if (vlines.length > 0) {
+              drawVLines(u, vlines, colors.grid, colors.text);
+            }
+          },
+        ],
         drawSeries: [
           (u, seriesIdx) => {
             drawYErrorBars(u, seriesIdx, aligned.yErrors, colors.accent);
@@ -362,7 +452,7 @@ export function Plot({
       plotRef.current = null;
       setActivePoint(null);
     };
-  }, [aligned, xLabel, yLabel, effectiveTheme]);
+  }, [aligned, invertY, logX, vlines, xLabel, yLabel, effectiveTheme]);
 
   if (aligned.x.length === 0) {
     return null;
@@ -403,4 +493,70 @@ export function Plot({
       )}
     </div>
   );
+}
+
+export class PlotBuilder {
+  private series: PlotSeries[] = [];
+  private vlinesList: PlotVLine[] = [];
+  private invertYFlag = false;
+  private logXFlag = false;
+  private xLabelText = "";
+  private yLabelText = "";
+  private classNameText = "";
+
+  plot(
+    x: number[],
+    y: number[],
+    yErrors?: (number | null)[],
+    details?: string[],
+  ): this {
+    this.series.push({ x, y, yErrors, details });
+    return this;
+  }
+
+  vlines(lines: PlotVLine[]): this {
+    this.vlinesList = lines;
+    return this;
+  }
+
+  invertY(): this {
+    this.invertYFlag = true;
+    return this;
+  }
+
+  logX(): this {
+    this.logXFlag = true;
+    return this;
+  }
+
+  xlabel(label: string): this {
+    this.xLabelText = label;
+    return this;
+  }
+
+  ylabel(label: string): this {
+    this.yLabelText = label;
+    return this;
+  }
+
+  toProps(className?: string): PlotViewProps | null {
+    const primary = this.series[0];
+    if (!primary) {
+      return null;
+    }
+
+    return {
+      series: primary,
+      xLabel: this.xLabelText,
+      yLabel: this.yLabelText,
+      invertY: this.invertYFlag,
+      logX: this.logXFlag,
+      vlines: this.vlinesList.length > 0 ? this.vlinesList : undefined,
+      className: className ?? this.classNameText,
+    };
+  }
+}
+
+export function createPlot(): PlotBuilder {
+  return new PlotBuilder();
 }

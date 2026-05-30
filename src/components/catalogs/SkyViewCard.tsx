@@ -1,7 +1,7 @@
 import { ReactElement } from "react";
 import { Catalogs } from "../../clients/backend/types.gen";
 import { AladinViewer } from "../core/Aladin";
-import { CatalogCard } from "./CatalogCard";
+import { CatalogCard, CatalogNoData } from "./CatalogCard";
 
 export function SkyViewCard({
   catalogs,
@@ -11,11 +11,10 @@ export function SkyViewCard({
   catalogs: Catalogs;
   anchorId?: string;
   className?: string;
-}): ReactElement | null {
+}): ReactElement {
   const equatorial = catalogs?.coordinates?.equatorial;
-  if (equatorial?.ra === undefined || equatorial?.dec === undefined) {
-    return null;
-  }
+  const hasCoordinates =
+    equatorial?.ra !== undefined && equatorial?.dec !== undefined;
 
   return (
     <CatalogCard
@@ -24,12 +23,16 @@ export function SkyViewCard({
       anchorId={anchorId}
       className={className}
     >
-      <AladinViewer
-        ra={equatorial.ra}
-        dec={equatorial.dec}
-        fov={0.02}
-        className="w-full aspect-square border-0"
-      />
+      {hasCoordinates ? (
+        <AladinViewer
+          ra={equatorial.ra}
+          dec={equatorial.dec}
+          fov={0.02}
+          className="w-full aspect-square border-0"
+        />
+      ) : (
+        <CatalogNoData />
+      )}
     </CatalogCard>
   );
 }

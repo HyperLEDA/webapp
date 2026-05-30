@@ -10,7 +10,13 @@ import {
   RightAscension,
   Quantity,
 } from "../core/Astronomy";
-import { CatalogCard, CatalogCardAction, Field } from "./CatalogCard";
+import {
+  bibcodeMarkdownSelect,
+  CatalogCard,
+  CatalogCardAction,
+  CatalogNoData,
+  Field,
+} from "./CatalogCard";
 
 function equatorialSqlQuery(pgc: number): string {
   return `SELECT
@@ -19,7 +25,7 @@ function equatorialSqlQuery(pgc: number): string {
 , i.dec
 , i.e_ra
 , i.e_dec
-, bib.code AS bibcode
+, ${bibcodeMarkdownSelect()}
 FROM icrs.data AS i
   JOIN layer0.records AS r ON i.record_id = r.id
   JOIN layer0.tables AS t ON r.table_id = t.id
@@ -39,17 +45,19 @@ export function AstrometryCard({
   pgc: number;
   anchorId?: string;
   className?: string;
-}): ReactElement | null {
+}): ReactElement {
   const equatorial = catalogs?.coordinates?.equatorial;
   const galactic = catalogs?.coordinates?.galactic;
+  const supergalactic = catalogs?.coordinates?.supergalactic;
   const hasEquatorial =
     equatorial?.ra !== undefined || equatorial?.dec !== undefined;
   const hasGalactic =
     galactic?.lon !== undefined || galactic?.lat !== undefined;
+  const hasSupergalactic =
+    supergalactic?.lon !== undefined || supergalactic?.lat !== undefined;
   const hasPrecision =
     equatorial?.e_ra !== undefined || equatorial?.e_dec !== undefined;
-
-  if (!hasEquatorial && !hasGalactic) return null;
+  const hasData = hasEquatorial || hasGalactic || hasSupergalactic;
 
   const actions: CatalogCardAction[] = [];
 
@@ -94,11 +102,12 @@ export function AstrometryCard({
   return (
     <CatalogCard
       title="Astrometry"
-      actions={actions}
-      originalDataSql={equatorialSqlQuery(pgc)}
+      actions={hasData ? actions : undefined}
+      originalDataSql={hasData ? equatorialSqlQuery(pgc) : undefined}
       anchorId={anchorId}
       className={className}
     >
+      {!hasData && <CatalogNoData />}
       {hasEquatorial && (
         <>
           <Field label="ICRS">
@@ -126,14 +135,36 @@ export function AstrometryCard({
           <span className="inline-flex flex-wrap items-center gap-x-2">
             {galactic?.lon !== undefined && (
               <Quantity
-                value={galactic.lon.toFixed(2)}
-                unit={schema.units.coordinates?.galactic?.lon}
+                value={galactic.lon.toFixed(4)}
+                unit="°"
+                spaced={false}
               />
             )}
             {galactic?.lat !== undefined && (
               <Quantity
-                value={galactic.lat.toFixed(2)}
-                unit={schema.units.coordinates?.galactic?.lat}
+                value={galactic.lat.toFixed(4)}
+                unit="°"
+                spaced={false}
+              />
+            )}
+          </span>
+        </Field>
+      )}
+      {hasSupergalactic && (
+        <Field label="Supergalactic">
+          <span className="inline-flex flex-wrap items-center gap-x-2">
+            {supergalactic?.lon !== undefined && (
+              <Quantity
+                value={supergalactic.lon.toFixed(4)}
+                unit="°"
+                spaced={false}
+              />
+            )}
+            {supergalactic?.lat !== undefined && (
+              <Quantity
+                value={supergalactic.lat.toFixed(4)}
+                unit="°"
+                spaced={false}
               />
             )}
           </span>

@@ -1,9 +1,27 @@
-import { ReactElement, useEffect, useState } from "react";
+import React, { ReactElement, ReactNode, useEffect, useState } from "react";
 import type { TapSyncResponse } from "../../clients/backend/types.gen";
 import { executeSqlQuery, syncPayloadToTable } from "../../lib/tap";
+import { Markdown } from "../ui/Markdown";
 import { Text } from "../core/Text";
 import { Loading } from "../core/Loading";
-import { CommonTable } from "../ui/CommonTable";
+import { CellPrimitive, Column, CommonTable } from "../ui/CommonTable";
+
+function renderMarkdownCell(value: CellPrimitive): ReactNode {
+  if (value === undefined || value === null) {
+    return <div />;
+  }
+  if (React.isValidElement(value)) {
+    return value;
+  }
+  return <Markdown>{String(value)}</Markdown>;
+}
+
+function markdownColumns(columns: Column[]): Column[] {
+  return columns.map((column) => ({
+    ...column,
+    renderCell: renderMarkdownCell,
+  }));
+}
 
 export function SqlQueryEmbed({
   sql,
@@ -73,7 +91,10 @@ export function SqlQueryEmbed({
         </div>
       ) : null}
       {tableData ? (
-        <CommonTable columns={tableData.columns} data={tableData.rows}>
+        <CommonTable
+          columns={markdownColumns(tableData.columns)}
+          data={tableData.rows}
+        >
           <Text style="header" size="small">
             {rowCount === 1 ? "1 row" : `${rowCount} rows`}
           </Text>
