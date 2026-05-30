@@ -5,15 +5,19 @@ import "uplot/dist/uPlot.min.css";
 import { useTheme } from "../../hooks/useTheme";
 import { AppTooltip } from "../ui/AppTooltip";
 
-interface PlotProps {
+export interface PlotSeries {
   x: number[];
   y: number[];
   yErrors?: (number | null)[];
   details?: string[];
+}
+
+export interface PlotViewProps {
+  series: PlotSeries;
   xLabel: string;
   yLabel: string;
-  invertY?: boolean;
-  logX?: boolean;
+  invertY: boolean;
+  logX: boolean;
   className?: string;
 }
 
@@ -118,17 +122,8 @@ function axisStrokeOptions(colors: ReturnType<typeof getPlotColors>): {
   };
 }
 
-function alignSeriesData(
-  x: number[],
-  y: number[],
-  yErrors?: (number | null)[],
-  details?: string[],
-): {
-  x: number[];
-  y: number[];
-  yErrors: (number | null)[] | undefined;
-  details: string[] | undefined;
-} {
+function alignSeriesData(series: PlotSeries): PlotSeries {
+  const { x, y, yErrors, details } = series;
   const length = Math.min(x.length, y.length);
   return {
     x: x.slice(0, length),
@@ -244,28 +239,22 @@ function drawYErrorBars(
   }
 }
 
-export function Plot({
-  x,
-  y,
-  yErrors,
-  details,
+export function PlotView({
+  series,
   xLabel,
   yLabel,
-  invertY = false,
-  logX = false,
+  invertY,
+  logX,
   className = "",
-}: PlotProps): ReactElement | null {
+}: PlotViewProps): ReactElement | null {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const plotRef = useRef<uPlot | null>(null);
-  const detailsRef = useRef(details);
+  const detailsRef = useRef(series.details);
   const { effectiveTheme } = useTheme();
   const [activePoint, setActivePoint] = useState<ActivePoint | null>(null);
 
-  const aligned = useMemo(
-    () => alignSeriesData(x, y, yErrors, details),
-    [x, y, yErrors, details],
-  );
+  const aligned = useMemo(() => alignSeriesData(series), [series]);
 
   detailsRef.current = aligned.details;
 
@@ -427,4 +416,63 @@ export function Plot({
       )}
     </div>
   );
+}
+
+export class PlotBuilder {
+  private series: PlotSeries[] = [];
+  private invertYFlag = false;
+  private logXFlag = false;
+  private xLabelText = "";
+  private yLabelText = "";
+  private classNameText = "";
+
+  plot(
+    x: number[],
+    y: number[],
+    yErrors?: (number | null)[],
+    details?: string[],
+  ): this {
+    this.series.push({ x, y, yErrors, details });
+    return this;
+  }
+
+  invertY(): this {
+    this.invertYFlag = true;
+    return this;
+  }
+
+  logX(): this {
+    this.logXFlag = true;
+    return this;
+  }
+
+  xlabel(label: string): this {
+    this.xLabelText = label;
+    return this;
+  }
+
+  ylabel(label: string): this {
+    this.yLabelText = label;
+    return this;
+  }
+
+  toProps(className?: string): PlotViewProps | null {
+    const primary = this.series[0];
+    if (!primary) {
+      return null;
+    }
+
+    return {
+      series: primary,
+      xLabel: this.xLabelText,
+      yLabel: this.yLabelText,
+      invertY: this.invertYFlag,
+      logX: this.logXFlag,
+      className: className ?? this.classNameText,
+    };
+  }
+}
+
+export function createPlot(): PlotBuilder {
+  return new PlotBuilder();
 }

@@ -3,7 +3,7 @@ import {
   Catalogs,
   PhotometryTotalMeasurement,
 } from "../../clients/backend/types.gen";
-import { Plot } from "../core/Plot";
+import { createPlot, PlotView } from "../core/Plot";
 import {
   bibcodeMarkdownSelect,
   CatalogCard,
@@ -64,6 +64,13 @@ export function PhotometryTotalCard({
   const y = sorted.map((m) => m.mag);
   const yErrors = sorted.map((m) => m.e_mag);
   const details = sorted.map(formatPhotometryDetails);
+  const plotProps = createPlot()
+    .plot(x, y, yErrors, details)
+    .xlabel("λ (Å)")
+    .ylabel("mag")
+    .invertY()
+    .logX()
+    .toProps();
 
   return (
     <CatalogCard
@@ -73,20 +80,7 @@ export function PhotometryTotalCard({
       originalDataSql={hasData ? photometryTotalSqlQuery(pgc) : undefined}
       className={className}
     >
-      {hasData ? (
-        <Plot
-          x={x}
-          y={y}
-          yErrors={yErrors}
-          details={details}
-          xLabel="λ (Å)"
-          yLabel="mag"
-          invertY
-          logX
-        />
-      ) : (
-        <CatalogNoData />
-      )}
+      {hasData && plotProps ? <PlotView {...plotProps} /> : <CatalogNoData />}
     </CatalogCard>
   );
 }
