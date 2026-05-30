@@ -1,5 +1,34 @@
 import classNames from "classnames";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+
+const ALADIN_SURVEYS = [
+  {
+    label: "DESI Legacy",
+    survey: "CDS/P/DESI-Legacy-Surveys/DR10/color",
+  },
+  {
+    label: "SDSS",
+    survey: "CDS/P/SDSS9/color",
+  },
+  {
+    label: "Pan-STARRS1",
+    survey: "CDS/P/PanSTARRS/DR1/color-i-r-g",
+  },
+  {
+    label: "DSS",
+    survey: "CDS/P/DSS2/color",
+  },
+  {
+    label: "2MASS",
+    survey: "CDS/P/2MASS/color",
+  },
+  {
+    label: "unWISE",
+    survey: "CDS/P/unWISE/color-W2-W1W2-W1",
+  },
+] as const;
+
+const DEFAULT_ALADIN_SURVEY = ALADIN_SURVEYS[0].survey;
 
 const SOURCE_SIZE = 8;
 const LABEL_FONT = "14px sans-serif";
@@ -98,12 +127,17 @@ export function AladinViewer({
   ra,
   dec,
   fov = 0.5,
-  survey = "CDS/P/DESI-Legacy-Surveys/DR10/color",
+  survey = DEFAULT_ALADIN_SURVEY,
   className = "w-full h-96",
   additionalSources,
 }: AladinViewerProps) {
   const aladinDivRef = useRef<HTMLDivElement>(null);
+  const [selectedSurvey, setSelectedSurvey] = useState(survey);
   const additionalSourcesKey = JSON.stringify(additionalSources ?? []);
+
+  useEffect(() => {
+    setSelectedSurvey(survey);
+  }, [survey]);
 
   useEffect(() => {
     if (!aladinDivRef.current || !window.A) return;
@@ -112,7 +146,7 @@ export function AladinViewer({
       aladinDivRef.current.replaceChildren();
 
       const aladin = window.A.aladin(aladinDivRef.current, {
-        survey,
+        survey: selectedSurvey,
         fov,
         showReticle: false,
         showZoomControl: true,
@@ -155,9 +189,25 @@ export function AladinViewer({
     } catch (error) {
       console.error("Error initializing Aladin:", error);
     }
-  }, [ra, dec, fov, survey, additionalSourcesKey]);
+  }, [ra, dec, fov, selectedSurvey, additionalSourcesKey]);
 
-  return <div ref={aladinDivRef} className={classNames("border", className)} />;
+  return (
+    <div className="space-y-2">
+      <div ref={aladinDivRef} className={classNames("border", className)} />
+      <select
+        value={selectedSurvey}
+        onChange={(event) => setSelectedSurvey(event.target.value)}
+        className="bg-surface-2 border border-border rounded px-3 py-2 text-primary text-sm w-full"
+        aria-label="Image survey"
+      >
+        {ALADIN_SURVEYS.map((option) => (
+          <option key={option.survey} value={option.survey}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
 }
 
 interface AladinCatalog {
