@@ -48,13 +48,16 @@ export function AstrometryCard({
 }): ReactElement {
   const equatorial = catalogs?.coordinates?.equatorial;
   const galactic = catalogs?.coordinates?.galactic;
+  const supergalactic = catalogs?.coordinates?.supergalactic;
   const hasEquatorial =
     equatorial?.ra !== undefined || equatorial?.dec !== undefined;
   const hasGalactic =
     galactic?.lon !== undefined || galactic?.lat !== undefined;
+  const hasSupergalactic =
+    supergalactic?.lon !== undefined || supergalactic?.lat !== undefined;
   const hasPrecision =
     equatorial?.e_ra !== undefined || equatorial?.e_dec !== undefined;
-  const hasData = hasEquatorial || hasGalactic;
+  const hasData = hasEquatorial || hasGalactic || hasSupergalactic;
 
   const actions: CatalogCardAction[] = [];
 
@@ -133,13 +136,35 @@ export function AstrometryCard({
             {galactic?.lon !== undefined && (
               <Quantity
                 value={galactic.lon.toFixed(4)}
-                unit={schema.units.coordinates?.galactic?.lon}
+                unit="°"
+                spaced={false}
               />
             )}
             {galactic?.lat !== undefined && (
               <Quantity
                 value={galactic.lat.toFixed(4)}
-                unit={schema.units.coordinates?.galactic?.lat}
+                unit="°"
+                spaced={false}
+              />
+            )}
+          </span>
+        </Field>
+      )}
+      {hasSupergalactic && (
+        <Field label="Supergalactic">
+          <span className="inline-flex flex-wrap items-center gap-x-2">
+            {supergalactic?.lon !== undefined && (
+              <Quantity
+                value={supergalactic.lon.toFixed(4)}
+                unit="°"
+                spaced={false}
+              />
+            )}
+            {supergalactic?.lat !== undefined && (
+              <Quantity
+                value={supergalactic.lat.toFixed(4)}
+                unit="°"
+                spaced={false}
               />
             )}
           </span>

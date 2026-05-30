@@ -63,6 +63,12 @@ function convertAdminSchemaToBackendSchema(
           e_lon: getCoordinateUnit("galactic", "e_lon"),
           e_lat: getCoordinateUnit("galactic", "e_lat"),
         },
+        supergalactic: {
+          lon: getCoordinateUnit("supergalactic", "lon"),
+          lat: getCoordinateUnit("supergalactic", "lat"),
+          e_lon: getCoordinateUnit("supergalactic", "e_lon"),
+          e_lat: getCoordinateUnit("supergalactic", "e_lat"),
+        },
       },
       velocity: {
         heliocentric: {
