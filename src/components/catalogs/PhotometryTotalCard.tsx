@@ -4,7 +4,7 @@ import {
   PhotometryTotalMeasurement,
 } from "../../clients/backend/types.gen";
 import { Plot } from "../core/Plot";
-import { CatalogCard } from "./CatalogCard";
+import { CatalogCard, CatalogNoData } from "./CatalogCard";
 
 function photometryTotalSqlQuery(pgc: number): string {
   return `SELECT
@@ -52,12 +52,9 @@ export function PhotometryTotalCard({
   pgc: number;
   anchorId?: string;
   className?: string;
-}): ReactElement | null {
-  const measurements = catalogs.photometry_total;
-  if (!measurements?.length) {
-    return null;
-  }
-
+}): ReactElement {
+  const measurements = catalogs.photometry_total ?? [];
+  const hasData = measurements.length > 0;
   const sorted = [...measurements].sort((a, b) => a.wavelength - b.wavelength);
   const x = sorted.map((m) => m.wavelength);
   const y = sorted.map((m) => m.mag);
@@ -69,17 +66,21 @@ export function PhotometryTotalCard({
       title="Total photometry"
       variant="block"
       anchorId={anchorId}
-      originalDataSql={photometryTotalSqlQuery(pgc)}
+      originalDataSql={hasData ? photometryTotalSqlQuery(pgc) : undefined}
       className={className}
     >
-      <Plot
-        x={x}
-        y={y}
-        yErrors={yErrors}
-        details={details}
-        xLabel="λ (Å)"
-        yLabel="mag"
-      />
+      {hasData ? (
+        <Plot
+          x={x}
+          y={y}
+          yErrors={yErrors}
+          details={details}
+          xLabel="λ (Å)"
+          yLabel="mag"
+        />
+      ) : (
+        <CatalogNoData />
+      )}
     </CatalogCard>
   );
 }

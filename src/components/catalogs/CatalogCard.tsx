@@ -147,6 +147,10 @@ export function CatalogCard({
   );
 }
 
+export function CatalogNoData(): ReactElement {
+  return <p className="col-span-2 text-muted text-base">No data available.</p>;
+}
+
 export function Field({
   label,
   children,

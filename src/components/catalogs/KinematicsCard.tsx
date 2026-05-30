@@ -1,7 +1,7 @@
 import { ReactElement } from "react";
 import { Catalogs, Schema } from "../../clients/backend/types.gen";
 import { Quantity, QuantityWithError } from "../core/Astronomy";
-import { CatalogCard, Field } from "./CatalogCard";
+import { CatalogCard, CatalogNoData, Field } from "./CatalogCard";
 
 function redshiftSqlQuery(pgc: number): string {
   return `SELECT
@@ -28,7 +28,7 @@ export function KinematicsCard({
   pgc: number;
   anchorId?: string;
   className?: string;
-}): ReactElement | null {
+}): ReactElement {
   const redshift = catalogs?.redshift;
   const velocity = catalogs?.velocity;
 
@@ -90,7 +90,7 @@ export function KinematicsCard({
     : [];
 
   const hasRedshift = redshift?.z !== undefined;
-  if (!hasRedshift && velocityFields.length === 0) return null;
+  const hasData = hasRedshift || velocityFields.length > 0;
 
   return (
     <CatalogCard
@@ -99,6 +99,7 @@ export function KinematicsCard({
       anchorId={anchorId}
       className={className}
     >
+      {!hasData && <CatalogNoData />}
       {hasRedshift && (
         <Field label="z">
           <QuantityWithError error={redshift.e_z} decimalPlaces={5}>

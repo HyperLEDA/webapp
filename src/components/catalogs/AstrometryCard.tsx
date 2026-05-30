@@ -10,7 +10,12 @@ import {
   RightAscension,
   Quantity,
 } from "../core/Astronomy";
-import { CatalogCard, CatalogCardAction, Field } from "./CatalogCard";
+import {
+  CatalogCard,
+  CatalogCardAction,
+  CatalogNoData,
+  Field,
+} from "./CatalogCard";
 
 function equatorialSqlQuery(pgc: number): string {
   return `SELECT
@@ -39,7 +44,7 @@ export function AstrometryCard({
   pgc: number;
   anchorId?: string;
   className?: string;
-}): ReactElement | null {
+}): ReactElement {
   const equatorial = catalogs?.coordinates?.equatorial;
   const galactic = catalogs?.coordinates?.galactic;
   const hasEquatorial =
@@ -48,8 +53,7 @@ export function AstrometryCard({
     galactic?.lon !== undefined || galactic?.lat !== undefined;
   const hasPrecision =
     equatorial?.e_ra !== undefined || equatorial?.e_dec !== undefined;
-
-  if (!hasEquatorial && !hasGalactic) return null;
+  const hasData = hasEquatorial || hasGalactic;
 
   const actions: CatalogCardAction[] = [];
 
@@ -94,11 +98,12 @@ export function AstrometryCard({
   return (
     <CatalogCard
       title="Astrometry"
-      actions={actions}
-      originalDataSql={equatorialSqlQuery(pgc)}
+      actions={hasData ? actions : undefined}
+      originalDataSql={hasData ? equatorialSqlQuery(pgc) : undefined}
       anchorId={anchorId}
       className={className}
     >
+      {!hasData && <CatalogNoData />}
       {hasEquatorial && (
         <>
           <Field label="ICRS">
