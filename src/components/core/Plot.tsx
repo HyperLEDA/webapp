@@ -99,11 +99,10 @@ function yRangeWithErrors(
   };
 }
 
-function readCssToken(name: string, fallback: string): string {
-  const value = getComputedStyle(document.documentElement)
+function readCssToken(name: string): string {
+  return getComputedStyle(document.documentElement)
     .getPropertyValue(name)
     .trim();
-  return value || fallback;
 }
 
 function getPlotColors(): {
@@ -113,10 +112,10 @@ function getPlotColors(): {
   accent: string;
 } {
   return {
-    text: readCssToken("--token-primary", "#e5e7eb"),
-    subtle: readCssToken("--token-subtle", "#d1d5db"),
-    grid: readCssToken("--token-border", "#4b5563"),
-    accent: readCssToken("--token-accent", "#646cff"),
+    text: readCssToken("--token-primary"),
+    subtle: readCssToken("--token-subtle"),
+    grid: readCssToken("--token-border"),
+    accent: readCssToken("--token-accent"),
   };
 }
 
