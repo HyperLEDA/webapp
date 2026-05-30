@@ -11,6 +11,7 @@ import {
   Quantity,
 } from "../core/Astronomy";
 import {
+  bibcodeMarkdownSelect,
   CatalogCard,
   CatalogCardAction,
   CatalogNoData,
@@ -24,7 +25,7 @@ function equatorialSqlQuery(pgc: number): string {
 , i.dec
 , i.e_ra
 , i.e_dec
-, bib.code AS bibcode
+, ${bibcodeMarkdownSelect()}
 FROM icrs.data AS i
   JOIN layer0.records AS r ON i.record_id = r.id
   JOIN layer0.tables AS t ON r.table_id = t.id

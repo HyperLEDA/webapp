@@ -16,6 +16,10 @@ export function getSourceLink(bibcode: string): string {
   return `https://ui.adsabs.harvard.edu/abs/${bibcode}/abstract`;
 }
 
+export function bibcodeMarkdownSelect(): string {
+  return `'[' || bib.code || '](https://ui.adsabs.harvard.edu/abs/' || bib.code || '/abstract)' AS bibcode`;
+}
+
 export function CatalogCard({
   title,
   children,

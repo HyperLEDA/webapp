@@ -1,14 +1,19 @@
 import { ReactElement } from "react";
 import { Catalogs, Schema } from "../../clients/backend/types.gen";
 import { Quantity, QuantityWithError } from "../core/Astronomy";
-import { CatalogCard, CatalogNoData, Field } from "./CatalogCard";
+import {
+  bibcodeMarkdownSelect,
+  CatalogCard,
+  CatalogNoData,
+  Field,
+} from "./CatalogCard";
 
 function redshiftSqlQuery(pgc: number): string {
   return `SELECT
   r.pgc
 , c.cz
 , c.e_cz
-, bib.code AS bibcode
+, ${bibcodeMarkdownSelect()}
 FROM cz.data AS c
   JOIN layer0.records AS r ON c.record_id = r.id
   JOIN layer0.tables AS t ON r.table_id = t.id

@@ -4,7 +4,11 @@ import {
   PhotometryTotalMeasurement,
 } from "../../clients/backend/types.gen";
 import { Plot } from "../core/Plot";
-import { CatalogCard, CatalogNoData } from "./CatalogCard";
+import {
+  bibcodeMarkdownSelect,
+  CatalogCard,
+  CatalogNoData,
+} from "./CatalogCard";
 
 function photometryTotalSqlQuery(pgc: number): string {
   return `SELECT
@@ -15,7 +19,7 @@ function photometryTotalSqlQuery(pgc: number): string {
 , b.waveref AS wavelength
 , cb.magsys
 , pt.method
-, bib.code AS bibcode
+, ${bibcodeMarkdownSelect()}
 FROM photometry.total AS pt
   JOIN layer0.records AS r ON pt.record_id = r.id
   JOIN layer0.tables AS t ON r.table_id = t.id
