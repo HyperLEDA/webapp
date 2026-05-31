@@ -482,8 +482,7 @@ function RecordCrossmatchDetails({
     table_name: tableName,
     original_data: originalData,
   } = data;
-  const showResolveControls =
-    isLoggedIn() && crossmatch.triage_status === "pending";
+  const showResolveControls = isLoggedIn();
   const backendSchema = convertAdminSchemaToBackendSchema(schema);
   const candidateSources = convertCandidatesToAdditionalSources(
     candidates,
