@@ -4,18 +4,18 @@ import { MdMoreVert } from "react-icons/md";
 import classNames from "classnames";
 import { Button } from "../core/Button";
 
-type CatalogCardActionCommon = {
+type CardActionCommon = {
   title: string;
   description?: string;
   icon?: IconType;
 };
 
-export type CatalogCardAction =
-  | (CatalogCardActionCommon & { href: string; onClick?: never })
-  | (CatalogCardActionCommon & { onClick: () => void; href?: never });
+export type CardAction =
+  | (CardActionCommon & { href: string; onClick?: never })
+  | (CardActionCommon & { onClick: () => void; href?: never });
 
 interface CardActionsMenuProps {
-  actions: CatalogCardAction[];
+  actions: CardAction[];
 }
 
 const menuItemClassName =
@@ -24,7 +24,7 @@ const menuItemClassName =
 function ActionMenuItemContent({
   action,
 }: {
-  action: CatalogCardAction;
+  action: CardAction;
 }): ReactElement {
   const Icon = action.icon;
 
@@ -77,7 +77,7 @@ export function CardActionsMenu({
     return () => document.removeEventListener("mousedown", handlePointerDown);
   }, [open]);
 
-  function runAction(action: CatalogCardAction): void {
+  function runAction(action: CardAction): void {
     if ("onClick" in action && action.onClick) {
       action.onClick();
     }
