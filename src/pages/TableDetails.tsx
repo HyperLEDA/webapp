@@ -1,10 +1,10 @@
+import classNames from "classnames";
 import { KeyboardEvent, ReactElement, useEffect, useState } from "react";
 import {
   Bibliography,
-  CrossmatchTriageStatus,
   DataType,
   GetTableResponse,
-  TableCrossmatchResultStatus,
+  TableProgress,
 } from "../clients/admin/types.gen";
 import { getTable, patchTable } from "../clients/admin/sdk.gen";
 import { useNavigate, useParams } from "react-router-dom";
@@ -14,12 +14,17 @@ import {
   Column,
   CommonTable,
 } from "../components/ui/CommonTable";
-import { Button } from "../components/core/Button";
 import { CopyButton } from "../components/ui/CopyButton";
-import { Badge, BadgeType } from "../components/ui/Badge";
+import { Badge } from "../components/ui/Badge";
 import { Link } from "../components/core/Link";
 import { Loading } from "../components/core/Loading";
+import {
+  CatalogCard,
+  CatalogCardAction,
+  Field,
+} from "../components/catalogs/CatalogCard";
 import { ErrorPage } from "../components/ui/ErrorPage";
+import { Hint } from "../components/ui/Hint";
 import { useDataFetching } from "../hooks/useDataFetching";
 import { adminClient } from "../clients/config";
 import { isLoggedIn } from "../auth/token";
@@ -44,29 +49,22 @@ function asDataType(value: unknown): DataType {
 }
 
 function renderBibliography(bib: Bibliography): ReactElement {
-  let authors = "";
-
-  if (bib.authors.length >= 1) {
-    authors += bib.authors[0];
-  }
-  if (bib.authors.length >= 2) {
-    authors += " et al.";
-  }
-
-  authors += ` ${bib.year}`;
-
-  const targetLink =
-    "https://ui.adsabs.harvard.edu/abs/" + bib.bibcode + "/abstract";
+  const targetLink = `https://ui.adsabs.harvard.edu/abs/${bib.bibcode}/abstract`;
 
   return (
-    <CopyButton textToCopy={bib.bibcode}>
-      <div>
-        <Link href={targetLink} external>
-          {bib.bibcode}
-        </Link>{" "}
-        | {authors}: "{bib.title}"
-      </div>
-    </CopyButton>
+    <div className="flex items-center gap-2">
+      <Link href={targetLink} external>
+        {bib.bibcode}
+      </Link>
+      <Hint
+        hintContent={
+          <span>
+            "{bib.title}". {bib.authors.join(", ")}. {bib.year}
+          </span>
+        }
+        className="gap-1"
+      />
+    </div>
   );
 }
 
@@ -106,6 +104,7 @@ interface TableMetaProps {
   tableName: string;
   table: GetTableResponse;
   onAfterPatch: () => void;
+  className?: string;
 }
 
 function TableMeta(props: TableMetaProps): ReactElement {
@@ -113,7 +112,8 @@ function TableMeta(props: TableMetaProps): ReactElement {
   const canEdit = isLoggedIn();
   const [editingName, setEditingName] = useState(false);
   const [editingDescription, setEditingDescription] = useState(false);
-  const showEditPencils = canEdit && !editingName && !editingDescription;
+  const showNameEdit = canEdit && !editingDescription;
+  const showSlugEdit = canEdit && !editingName;
   const [draftName, setDraftName] = useState(props.tableName);
   const [draftDescription, setDraftDescription] = useState(
     props.table.description,
@@ -252,9 +252,7 @@ function TableMeta(props: TableMetaProps): ReactElement {
     );
   }
 
-  const columns = [{ name: "Parameter" }, { name: "Value" }];
-
-  const datatypeValue: CellPrimitive = canEdit ? (
+  const datatypeControl = canEdit ? (
     <select
       value={asDataType(props.table.meta.datatype)}
       onChange={(event) => void commitDatatype(event.target.value as DataType)}
@@ -271,169 +269,216 @@ function TableMeta(props: TableMetaProps): ReactElement {
     String(props.table.meta.datatype)
   );
 
-  const values: Record<string, CellPrimitive>[] = [
-    {
-      Parameter: "Table ID",
-      Value: props.table.id,
-    },
-    {
-      Parameter: "Source paper",
-      Value: renderBibliography(props.table.bibliography),
-    },
-    {
-      Parameter: "Number of records",
-      Value: props.table.rows_num,
-    },
-    {
-      Parameter: "Type of data",
-      Value: datatypeValue,
-    },
-    {
-      Parameter: "Modification time",
-      Value: renderTime(props.table.meta.modification_dt as string),
-    },
-  ];
-
   return (
-    <CommonTable columns={columns} data={values} className="pb-5">
-      <div className="flex items-start gap-2 mb-2">
-        {editingDescription ? (
-          <input
-            type="text"
-            value={draftDescription}
-            onChange={(event) => setDraftDescription(event.target.value)}
-            onKeyDown={handleDescriptionKeyDown}
-            disabled={savingField === "description"}
-            className="text-2xl font-bold bg-transparent border border-border rounded px-2 py-0.5 flex-1 min-w-0 text-primary"
-            autoFocus
-          />
-        ) : (
-          <h2 className="text-2xl font-bold flex-1 min-w-0">
-            {props.table.description}
-          </h2>
-        )}
-        {showEditPencils && (
-          <button
-            type="button"
-            aria-label="Edit table description"
-            className="shrink-0 p-1 rounded text-muted hover:text-primary cursor-pointer"
-            onClick={() => {
-              setPatchError(null);
-              setEditingDescription(true);
-            }}
-          >
-            <MdEdit className="w-5 h-5" />
-          </button>
-        )}
-      </div>
-      <div className="flex items-center gap-2">
-        {editingName ? (
-          <input
-            type="text"
-            value={draftName}
-            onChange={(event) => setDraftName(event.target.value)}
-            onKeyDown={handleNameKeyDown}
-            disabled={savingField === "name"}
-            className="text-subtle font-mono bg-transparent border border-border rounded px-2 py-0.5 flex-1 min-w-0"
-            autoFocus
-          />
-        ) : (
-          <p className="text-subtle font-mono flex-1 min-w-0 break-all">
-            {props.tableName}
-          </p>
-        )}
-        {showEditPencils && (
-          <button
-            type="button"
-            aria-label="Edit table name"
-            className="shrink-0 p-1 rounded text-muted hover:text-primary cursor-pointer"
-            onClick={() => {
-              setPatchError(null);
-              setEditingName(true);
-            }}
-          >
-            <MdEdit className="w-5 h-5" />
-          </button>
-        )}
-      </div>
+    <CatalogCard title="Overview" variant="fields" className={props.className}>
+      <Field label="Table name">
+        <div className="flex items-center gap-2 min-w-0">
+          {editingDescription ? (
+            <input
+              type="text"
+              value={draftDescription}
+              onChange={(event) => setDraftDescription(event.target.value)}
+              onKeyDown={handleDescriptionKeyDown}
+              disabled={savingField === "description"}
+              className="bg-transparent border border-border rounded px-2 py-0.5 flex-1 min-w-0 text-primary"
+              autoFocus
+            />
+          ) : (
+            <span className="min-w-0">{props.table.description}</span>
+          )}
+          {showNameEdit && (
+            <button
+              type="button"
+              aria-label="Edit table name"
+              className="shrink-0 p-1 rounded text-muted hover:text-primary cursor-pointer"
+              onClick={() => {
+                setPatchError(null);
+                setEditingDescription(true);
+              }}
+            >
+              <MdEdit className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      </Field>
+      <Field label="Slug">
+        <div className="flex items-center gap-2 min-w-0">
+          {editingName ? (
+            <input
+              type="text"
+              value={draftName}
+              onChange={(event) => setDraftName(event.target.value)}
+              onKeyDown={handleNameKeyDown}
+              disabled={savingField === "name"}
+              className="font-mono bg-transparent border border-border rounded px-2 py-0.5 flex-1 min-w-0"
+              autoFocus
+            />
+          ) : (
+            <span className="font-mono min-w-0 break-all">
+              {props.tableName}
+            </span>
+          )}
+          {showSlugEdit && (
+            <button
+              type="button"
+              aria-label="Edit table slug"
+              className="shrink-0 p-1 rounded text-muted hover:text-primary cursor-pointer"
+              onClick={() => {
+                setPatchError(null);
+                setEditingName(true);
+              }}
+            >
+              <MdEdit className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      </Field>
+      <Field label="Table ID">{props.table.id}</Field>
+      <Field label="Source paper">
+        {renderBibliography(props.table.bibliography)}
+      </Field>
+      <Field label="Number of records">{props.table.rows_num}</Field>
+      <Field label="Type of data">{datatypeControl}</Field>
+      <Field label="Modification time">
+        {renderTime(props.table.meta.modification_dt as string)}
+      </Field>
       {patchError ? (
-        <p className="text-sm text-danger mt-2">{patchError}</p>
+        <>
+          <dt className="sr-only">Error</dt>
+          <dd className="col-span-2 text-sm text-danger">{patchError}</dd>
+        </>
       ) : null}
-    </CommonTable>
+    </CatalogCard>
   );
 }
 
-interface CrossmatchStatsProps {
-  table: GetTableResponse;
-  tableName: string;
-  navigate: (path: string) => void;
+function formatProgressValue(count: number, total: number): ReactElement {
+  if (total <= 0) {
+    return <>{count}</>;
+  }
+
+  const percent = (count / total) * 100;
+  return (
+    <>
+      {count} <span className="text-muted">({percent.toFixed(1)}%)</span>
+    </>
+  );
 }
 
-function CrossmatchStats(props: CrossmatchStatsProps): ReactElement {
-  const columns: Column[] = [{ name: "Status" }, { name: "Count" }];
+function progressTabClassName(isActive: boolean): string {
+  return classNames(
+    "px-3 py-2 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap",
+    isActive
+      ? "border-accent text-primary"
+      : "border-transparent text-muted hover:text-primary hover:border-border",
+  );
+}
 
-  const values: Record<string, CellPrimitive>[] = [];
-
-  if (!props.table.crossmatch) {
-    return <div></div>;
-  }
-
-  const triageLabels: Record<CrossmatchTriageStatus, string> = {
-    unprocessed: "Unprocessed",
-    pending: "Pending",
-    resolved: "Resolved",
-  };
-  const resultLabels: Record<TableCrossmatchResultStatus, string> = {
-    not_started: "Not started",
-    in_progress: "In progress",
-    done: "Done",
-  };
-  const resultBadgeTypes: Record<TableCrossmatchResultStatus, BadgeType> = {
-    not_started: "info",
-    in_progress: "warning",
-    done: "success",
-  };
-  const triageOrder: CrossmatchTriageStatus[] = [
-    "unprocessed",
-    "pending",
-    "resolved",
-  ];
-
-  triageOrder.forEach((status) => {
-    const count = props.table.crossmatch.statuses[status] ?? 0;
-    if (count <= 0) {
-      return;
-    }
-    values.push({
-      Status: triageLabels[status],
-      Count: count,
-    });
-  });
-
-  function handleViewCrossmatchResults(event: React.MouseEvent): void {
-    const url = `/crossmatch?table_name=${encodeURIComponent(props.tableName)}&triage_status=pending`;
-
-    if (event.ctrlKey || event.metaKey) {
-      window.open(url, "_blank");
-    } else {
-      props.navigate(url);
-    }
-  }
+function TableProgressSummaryCard({
+  progress,
+  tableName,
+  hasCrossmatch,
+  navigate,
+  className,
+}: {
+  progress: TableProgress;
+  tableName: string;
+  hasCrossmatch: boolean;
+  navigate: (path: string) => void;
+  className?: string;
+}): ReactElement {
+  const actions: CatalogCardAction[] = hasCrossmatch
+    ? [
+        {
+          title: "View crossmatch results",
+          onClick: () => {
+            navigate(
+              `/crossmatch?table_name=${encodeURIComponent(tableName)}&triage_status=pending`,
+            );
+          },
+        },
+      ]
+    : [];
 
   return (
-    <CommonTable columns={columns} data={values} className="pb-5">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <h2 className="text-2xl font-bold">Crossmatch</h2>
-          <Badge type={resultBadgeTypes[props.table.crossmatch.result]}>
-            {resultLabels[props.table.crossmatch.result]}
-          </Badge>
-        </div>
-        <Button onClick={handleViewCrossmatchResults}>
-          View crossmatch results
-        </Button>
-      </div>
-    </CommonTable>
+    <CatalogCard
+      title="Progress"
+      variant="fields"
+      className={className}
+      actions={actions}
+    >
+      <Field label="Total records">{progress.total_records}</Field>
+      <Field label="Waiting for cross-identification">
+        {formatProgressValue(progress.unprocessed, progress.total_records)}
+      </Field>
+      <Field label="Waiting for manual check">
+        {formatProgressValue(progress.pending_triage, progress.total_records)}
+      </Field>
+      <Field label="Waiting for submission">
+        {formatProgressValue(
+          progress.resolved_unsubmitted,
+          progress.total_records,
+        )}
+      </Field>
+      <Field label="Submitted">
+        {formatProgressValue(progress.submitted, progress.total_records)}
+      </Field>
+    </CatalogCard>
+  );
+}
+
+function CatalogProgressCard({
+  catalogs,
+  className,
+}: {
+  catalogs: TableProgress["catalogs"];
+  className?: string;
+}): ReactElement {
+  const catalogEntries = Object.entries(catalogs);
+  const [selectedCatalog, setSelectedCatalog] = useState(
+    catalogEntries[0]?.[0] ?? "",
+  );
+
+  useEffect(() => {
+    if (
+      catalogEntries.length > 0 &&
+      !catalogEntries.some(([name]) => name === selectedCatalog)
+    ) {
+      setSelectedCatalog(catalogEntries[0][0]);
+    }
+  }, [catalogEntries, selectedCatalog]);
+
+  const selectedProgress = catalogs[selectedCatalog];
+
+  return (
+    <CatalogCard title="Catalog progress" variant="block" className={className}>
+      <nav
+        className="flex gap-1 border-b border-border mb-3 overflow-x-auto"
+        role="tablist"
+      >
+        {catalogEntries.map(([catalogName]) => (
+          <button
+            key={catalogName}
+            type="button"
+            role="tab"
+            aria-selected={catalogName === selectedCatalog}
+            className={progressTabClassName(catalogName === selectedCatalog)}
+            onClick={() => setSelectedCatalog(catalogName)}
+          >
+            {catalogName}
+          </button>
+        ))}
+      </nav>
+      {selectedProgress ? (
+        <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-base">
+          <Field label="Structured">{selectedProgress.structured}</Field>
+          <Field label="In layer 2">{selectedProgress.in_layer2}</Field>
+          <Field label="Layer 2 pending">
+            {selectedProgress.layer2_pending}
+          </Field>
+        </dl>
+      ) : null}
+    </CatalogCard>
   );
 }
 
@@ -523,19 +568,34 @@ export function TableDetailsPage(): ReactElement {
     if (error) return <ErrorPage message={error} />;
     if (payload) {
       return (
-        <>
-          <TableMeta
-            tableName={tableName ?? ""}
-            table={payload}
-            onAfterPatch={() => setRefreshKey((key) => key + 1)}
-          />
-          <CrossmatchStats
-            table={payload}
-            tableName={tableName ?? ""}
-            navigate={navigate}
-          />
+        <div className="space-y-5">
+          <div className="grid grid-cols-1 lg:grid-cols-6 gap-5">
+            <TableMeta
+              tableName={tableName ?? ""}
+              table={payload}
+              onAfterPatch={() => setRefreshKey((key) => key + 1)}
+              className="lg:col-span-6"
+            />
+            <TableProgressSummaryCard
+              progress={payload.progress}
+              tableName={tableName ?? ""}
+              hasCrossmatch={Boolean(payload.crossmatch)}
+              navigate={navigate}
+              className={
+                Object.keys(payload.progress.catalogs).length > 0
+                  ? "lg:col-span-3"
+                  : "lg:col-span-6"
+              }
+            />
+            {Object.keys(payload.progress.catalogs).length > 0 ? (
+              <CatalogProgressCard
+                catalogs={payload.progress.catalogs}
+                className="lg:col-span-3"
+              />
+            ) : null}
+          </div>
           <ColumnInfo table={payload} />
-        </>
+        </div>
       );
     }
 
