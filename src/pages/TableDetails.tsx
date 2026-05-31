@@ -65,9 +65,16 @@ function renderBibliography(bib: Bibliography): ReactElement {
 }
 
 function renderTime(time: string): string {
-  const dt = new Date(time as string);
+  const dt = new Date(time);
 
-  return dt.toString();
+  return dt.toLocaleString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "short",
+  });
 }
 
 function renderUCD(ucd: CellPrimitive): ReactElement {
@@ -333,7 +340,6 @@ function TableMeta(props: TableMetaProps): ReactElement {
       <Field label="Source paper">
         {renderBibliography(props.table.bibliography)}
       </Field>
-      <Field label="Number of records">{props.table.rows_num}</Field>
       <Field label="Type of data">{datatypeControl}</Field>
       <Field label="Modification time">
         {renderTime(props.table.meta.modification_dt as string)}
