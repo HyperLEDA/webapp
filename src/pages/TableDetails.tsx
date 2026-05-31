@@ -558,9 +558,9 @@ function ColumnInfo(props: ColumnInfoProps): ReactElement {
   });
 
   return (
-    <CommonTable columns={columns} data={values}>
-      <h2 className="text-2xl font-bold">Column information</h2>
-    </CommonTable>
+    <CatalogCard title="Column information" variant="block">
+      <CommonTable columns={columns} data={values} />
+    </CatalogCard>
   );
 }
 
