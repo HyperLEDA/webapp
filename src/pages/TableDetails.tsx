@@ -383,28 +383,28 @@ function catalogProgressTabClassName(isActive: boolean): string {
   );
 }
 
+function hasCrossmatchWork(progress: TableProgress): boolean {
+  return (
+    progress.unprocessed > 0 ||
+    progress.pending_triage > 0 ||
+    progress.resolved_unsubmitted > 0
+  );
+}
+
 function TableProgressSummaryCard({
   progress,
   tableName,
-  hasCrossmatch,
-  navigate,
   className,
 }: {
   progress: TableProgress;
   tableName: string;
-  hasCrossmatch: boolean;
-  navigate: (path: string) => void;
   className?: string;
 }): ReactElement {
-  const actions: CardAction[] = hasCrossmatch
+  const actions: CardAction[] = hasCrossmatchWork(progress)
     ? [
         {
           title: "View crossmatch results",
-          onClick: () => {
-            navigate(
-              `/crossmatch?table_name=${encodeURIComponent(tableName)}&triage_status=pending`,
-            );
-          },
+          href: `/crossmatch?table_name=${encodeURIComponent(tableName)}&triage_status=pending`,
         },
       ]
     : [];
@@ -586,7 +586,6 @@ async function fetcher(
 
 export function TableDetailsPage(): ReactElement {
   const { tableName } = useParams<{ tableName: string }>();
-  const navigate = useNavigate();
   const [refreshKey, setRefreshKey] = useState(0);
 
   const {
@@ -611,8 +610,6 @@ export function TableDetailsPage(): ReactElement {
             <TableProgressSummaryCard
               progress={payload.progress}
               tableName={tableName ?? ""}
-              hasCrossmatch={Boolean(payload.crossmatch)}
-              navigate={navigate}
               className={
                 Object.keys(payload.progress.catalogs).length > 0
                   ? "lg:col-span-3"
