@@ -352,22 +352,29 @@ function TableMeta(props: TableMetaProps): ReactElement {
   );
 }
 
-function formatProgressValue(count: number, total: number): ReactElement {
+function formatPercent(marked: number, total: number): string {
   if (total <= 0) {
+    return "";
+  }
+  return `${Math.floor((marked / total) * 100)}%`;
+}
+
+function formatProgressValue(count: number, total: number): ReactElement {
+  const percent = formatPercent(count, total);
+  if (!percent) {
     return <>{count}</>;
   }
 
-  const percent = (count / total) * 100;
   return (
     <>
-      {count} <span className="text-muted">({percent.toFixed(1)}%)</span>
+      {count} <span className="text-muted">({percent})</span>
     </>
   );
 }
 
-function progressTabClassName(isActive: boolean): string {
+function catalogProgressTabClassName(isActive: boolean): string {
   return classNames(
-    "px-3 py-2 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap",
+    "w-full text-left px-2 py-1 text-xs font-medium border-l-2 transition-colors truncate",
     isActive
       ? "border-accent text-primary"
       : "border-transparent text-muted hover:text-primary hover:border-border",
@@ -429,9 +436,11 @@ function TableProgressSummaryCard({
 
 function CatalogProgressCard({
   catalogs,
+  totalRecords,
   className,
 }: {
   catalogs: TableProgress["catalogs"];
+  totalRecords: number;
   className?: string;
 }): ReactElement {
   const catalogEntries = Object.entries(catalogs);
@@ -452,32 +461,53 @@ function CatalogProgressCard({
 
   return (
     <CatalogCard title="Catalog progress" variant="block" className={className}>
-      <nav
-        className="flex gap-1 border-b border-border mb-3 overflow-x-auto"
-        role="tablist"
-      >
-        {catalogEntries.map(([catalogName]) => (
-          <button
-            key={catalogName}
-            type="button"
-            role="tab"
-            aria-selected={catalogName === selectedCatalog}
-            className={progressTabClassName(catalogName === selectedCatalog)}
-            onClick={() => setSelectedCatalog(catalogName)}
-          >
-            {catalogName}
-          </button>
-        ))}
-      </nav>
-      {selectedProgress ? (
-        <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-base">
-          <Field label="Structured">{selectedProgress.structured}</Field>
-          <Field label="In layer 2">{selectedProgress.in_layer2}</Field>
-          <Field label="Layer 2 pending">
-            {selectedProgress.layer2_pending}
-          </Field>
-        </dl>
-      ) : null}
+      <div className="flex items-start gap-3">
+        <nav
+          className="flex flex-col gap-0.5 shrink-0 w-max border-r border-border pr-2"
+          role="tablist"
+        >
+          {catalogEntries.map(([catalogName, catalogProgress]) => {
+            const markedPercent = formatPercent(
+              catalogProgress.structured,
+              totalRecords,
+            );
+
+            return (
+              <button
+                key={catalogName}
+                type="button"
+                role="tab"
+                aria-selected={catalogName === selectedCatalog}
+                className={catalogProgressTabClassName(
+                  catalogName === selectedCatalog,
+                )}
+                onClick={() => setSelectedCatalog(catalogName)}
+              >
+                {catalogName}
+                {markedPercent ? (
+                  <span className="text-muted"> ({markedPercent})</span>
+                ) : null}
+              </button>
+            );
+          })}
+        </nav>
+        {selectedProgress ? (
+          <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-base min-w-0 flex-1 content-start">
+            <Field label="Marked">
+              {formatProgressValue(selectedProgress.structured, totalRecords)}
+            </Field>
+            <Field label="Aggregated">
+              {formatProgressValue(selectedProgress.in_layer2, totalRecords)}
+            </Field>
+            <Field label="Waiting for aggregation">
+              {formatProgressValue(
+                selectedProgress.layer2_pending,
+                totalRecords,
+              )}
+            </Field>
+          </dl>
+        ) : null}
+      </div>
     </CatalogCard>
   );
 }
@@ -590,6 +620,7 @@ export function TableDetailsPage(): ReactElement {
             {Object.keys(payload.progress.catalogs).length > 0 ? (
               <CatalogProgressCard
                 catalogs={payload.progress.catalogs}
+                totalRecords={payload.progress.total_records}
                 className="lg:col-span-3"
               />
             ) : null}
