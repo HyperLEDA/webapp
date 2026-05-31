@@ -18,11 +18,7 @@ import { CopyButton } from "../components/ui/CopyButton";
 import { Badge } from "../components/ui/Badge";
 import { Link } from "../components/core/Link";
 import { Loading } from "../components/core/Loading";
-import {
-  CatalogCard,
-  CatalogCardAction,
-  Field,
-} from "../components/catalogs/CatalogCard";
+import { Card, CardAction, Field } from "../components/ui/Card";
 import { ErrorPage } from "../components/ui/ErrorPage";
 import { Hint } from "../components/ui/Hint";
 import { useDataFetching } from "../hooks/useDataFetching";
@@ -270,7 +266,7 @@ function TableMeta(props: TableMetaProps): ReactElement {
   );
 
   return (
-    <CatalogCard title="Overview" variant="fields" className={props.className}>
+    <Card title="Overview" variant="fields" className={props.className}>
       <Field label="Table name">
         <div className="flex items-center gap-2 min-w-0">
           {editingDescription ? (
@@ -348,7 +344,7 @@ function TableMeta(props: TableMetaProps): ReactElement {
           <dd className="col-span-2 text-sm text-danger">{patchError}</dd>
         </>
       ) : null}
-    </CatalogCard>
+    </Card>
   );
 }
 
@@ -394,7 +390,7 @@ function TableProgressSummaryCard({
   navigate: (path: string) => void;
   className?: string;
 }): ReactElement {
-  const actions: CatalogCardAction[] = hasCrossmatch
+  const actions: CardAction[] = hasCrossmatch
     ? [
         {
           title: "View crossmatch results",
@@ -408,7 +404,7 @@ function TableProgressSummaryCard({
     : [];
 
   return (
-    <CatalogCard
+    <Card
       title="Progress"
       variant="fields"
       className={className}
@@ -430,7 +426,7 @@ function TableProgressSummaryCard({
       <Field label="Submitted">
         {formatProgressValue(progress.submitted, progress.total_records)}
       </Field>
-    </CatalogCard>
+    </Card>
   );
 }
 
@@ -460,7 +456,7 @@ function CatalogProgressCard({
   const selectedProgress = catalogs[selectedCatalog];
 
   return (
-    <CatalogCard title="Catalog progress" variant="block" className={className}>
+    <Card title="Catalog progress" variant="block" className={className}>
       <div className="flex items-start gap-3">
         <nav
           className="flex flex-col gap-0.5 shrink-0 w-max border-r border-border pr-2"
@@ -508,7 +504,7 @@ function CatalogProgressCard({
           </dl>
         ) : null}
       </div>
-    </CatalogCard>
+    </Card>
   );
 }
 
@@ -558,9 +554,9 @@ function ColumnInfo(props: ColumnInfoProps): ReactElement {
   });
 
   return (
-    <CatalogCard title="Column information" variant="block">
+    <Card title="Column information" variant="block">
       <CommonTable columns={columns} data={values} />
-    </CatalogCard>
+    </Card>
   );
 }
 
