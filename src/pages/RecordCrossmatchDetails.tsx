@@ -36,6 +36,7 @@ import {
   RightAscension,
 } from "../components/core/Astronomy";
 import classNames from "classnames";
+import { MdAdd, MdClose } from "react-icons/md";
 
 function convertAdminSchemaToBackendSchema(
   adminSchema: AdminSchema,
@@ -233,9 +234,11 @@ interface ResolutionSelectorProps {
   schema: BackendSchema;
   showResolveControls: boolean;
   resolving: ResolutionChoice | null;
+  addingCandidate: boolean;
   selected: ResolutionChoice | null;
   onSelect: (choice: ResolutionChoice) => void;
   onSubmit: () => void;
+  onAddCandidate: (pgc: number) => Promise<void>;
 }
 
 function ResolutionSelector({
@@ -244,12 +247,40 @@ function ResolutionSelector({
   schema,
   showResolveControls,
   resolving,
+  addingCandidate,
   selected,
   onSelect,
   onSubmit,
+  onAddCandidate,
 }: ResolutionSelectorProps): ReactElement {
+  const [showAddCandidate, setShowAddCandidate] = useState(false);
+  const [pgcInput, setPgcInput] = useState("");
+  const [addCandidateError, setAddCandidateError] = useState<string | null>(
+    null,
+  );
+  const busy = resolving !== null || addingCandidate;
   const matchedPgc =
     crossmatch.status === "existing" ? crossmatch.metadata.pgc : null;
+
+  async function submitNewCandidate(): Promise<void> {
+    const pgc = Number.parseInt(pgcInput.trim(), 10);
+    if (!Number.isFinite(pgc) || pgc <= 0) {
+      setAddCandidateError("Enter a valid PGC number");
+      return;
+    }
+
+    if (candidates.some((candidate) => candidate.pgc === pgc)) {
+      setAddCandidateError("This PGC is already a candidate");
+      return;
+    }
+
+    setAddCandidateError(null);
+    try {
+      await onAddCandidate(pgc);
+    } catch (err) {
+      setAddCandidateError(`${err}`);
+    }
+  }
 
   function renderCandidateSummary(candidate: PgcCandidate): ReactElement {
     return (
@@ -307,7 +338,7 @@ function ResolutionSelector({
             selected === "new"
               ? "border-accent bg-accent/15"
               : "border-border bg-surface hover:bg-surface-2",
-            resolving !== null && "opacity-50 cursor-wait",
+            busy && "opacity-50 cursor-wait",
           )}
         >
           <div className="flex items-center gap-3">
@@ -316,7 +347,7 @@ function ResolutionSelector({
               name="crossmatch-resolution"
               className="shrink-0"
               checked={selected === "new"}
-              disabled={resolving !== null}
+              disabled={busy}
               onChange={() => onSelect("new")}
             />
             <span className="text-sm font-semibold">
@@ -333,7 +364,7 @@ function ResolutionSelector({
               selected === candidate.pgc
                 ? "border-accent bg-accent/15"
                 : "border-border bg-surface hover:bg-surface-2",
-              resolving !== null && "opacity-50 cursor-wait",
+              busy && "opacity-50 cursor-wait",
             )}
           >
             <div className="flex items-center gap-3">
@@ -342,7 +373,7 @@ function ResolutionSelector({
                 name="crossmatch-resolution"
                 className="shrink-0"
                 checked={selected === candidate.pgc}
-                disabled={resolving !== null}
+                disabled={busy}
                 onChange={() => onSelect(candidate.pgc)}
               />
               <div className="min-w-0 flex-1">
@@ -354,7 +385,60 @@ function ResolutionSelector({
 
         <Button
           type="button"
-          disabled={selected === null || resolving !== null}
+          disabled={busy}
+          className="w-8 h-8 p-0 justify-center"
+          onClick={() => {
+            setShowAddCandidate((current) => !current);
+            setPgcInput("");
+            setAddCandidateError(null);
+          }}
+        >
+          {showAddCandidate ? (
+            <MdClose className="w-5 h-5" />
+          ) : (
+            <MdAdd className="w-5 h-5" />
+          )}
+        </Button>
+
+        {showAddCandidate && (
+          <div className="rounded-lg border border-border bg-surface px-4 py-2">
+            <input
+              type="text"
+              inputMode="numeric"
+              placeholder="PGC number"
+              value={pgcInput}
+              disabled={busy}
+              autoFocus
+              onChange={(event) => {
+                setPgcInput(event.target.value);
+                setAddCandidateError(null);
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  void submitNewCandidate();
+                }
+                if (event.key === "Escape") {
+                  event.preventDefault();
+                  setShowAddCandidate(false);
+                  setPgcInput("");
+                  setAddCandidateError(null);
+                }
+              }}
+              className="bg-surface-2 border border-border rounded px-3 py-2 text-sm text-primary placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent w-full"
+            />
+          </div>
+        )}
+
+        {addCandidateError && (
+          <p className="text-danger text-sm" role="alert">
+            {addCandidateError}
+          </p>
+        )}
+
+        <Button
+          type="button"
+          disabled={selected === null || busy}
           onClick={onSubmit}
         >
           {resolving !== null ? "Saving…" : "Save resolution"}
@@ -389,6 +473,7 @@ function RecordCrossmatchDetails({
 }: RecordCrossmatchDetailsProps): ReactElement {
   const [selected, setSelected] = useState<ResolutionChoice | null>(null);
   const [resolving, setResolving] = useState<ResolutionChoice | null>(null);
+  const [addingCandidate, setAddingCandidate] = useState(false);
   const [resolveError, setResolveError] = useState<string | null>(null);
   const {
     crossmatch,
@@ -466,6 +551,26 @@ function RecordCrossmatchDetails({
     }
   }
 
+  async function addCandidate(pgc: number): Promise<void> {
+    setResolveError(null);
+    setAddingCandidate(true);
+    try {
+      const currentPgcs = candidates.map((candidate) => candidate.pgc);
+      await submitCrossmatchResolution({
+        collided: {
+          record_ids: [crossmatch.record_id],
+          possible_matches: [[...currentPgcs, pgc]],
+          triage_statuses: ["pending"],
+        },
+      });
+    } catch (err) {
+      setResolveError(`${err}`);
+      throw err;
+    } finally {
+      setAddingCandidate(false);
+    }
+  }
+
   async function submitResolution(): Promise<void> {
     if (selected === null) return;
     if (selected === "new") {
@@ -527,9 +632,11 @@ function RecordCrossmatchDetails({
         schema={backendSchema}
         showResolveControls={showResolveControls}
         resolving={resolving}
+        addingCandidate={addingCandidate}
         selected={selected}
         onSelect={setSelected}
         onSubmit={() => void submitResolution()}
+        onAddCandidate={addCandidate}
       />
 
       {resolveError && (
