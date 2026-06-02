@@ -1,16 +1,13 @@
 import { ReactElement, useEffect, useState, useRef } from "react";
-import { useSearchParams } from "react-router-dom";
-import {
-  CommonTable,
-  Column,
-  CellPrimitive,
-} from "../components/ui/CommonTable";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import classNames from "classnames";
 import { DropdownFilter } from "../components/core/DropdownFilter";
 import { TextFilter } from "../components/core/TextFilter";
 import { getTableList } from "../clients/admin/sdk.gen";
 import type {
   GetTableListResponse,
   TableListItem,
+  TableProgress,
   ValidationError,
 } from "../clients/admin/types.gen";
 import { Loading } from "../components/core/Loading";
@@ -19,6 +16,8 @@ import { useDataFetching } from "../hooks/useDataFetching";
 import { Pagination } from "../components/ui/Pagination";
 import { adminClient } from "../clients/config";
 import { Link } from "../components/core/Link";
+import { getSourceLink } from "../components/catalogs/CatalogCard";
+import { Card, CardAction, Field } from "../components/ui/Card";
 
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -97,35 +96,117 @@ function formatModificationDate(isoString: string): string {
     .replace(",", "");
 }
 
-function TablesResults({ data, loading }: TablesResultsProps): ReactElement {
-  const columns: Column[] = [
+function formatProgressPercent(count: number, total: number): string {
+  if (total <= 0) {
+    return "—";
+  }
+  return `${Math.floor((count / total) * 100)}%`;
+}
+
+function formatCatalogsSummary(
+  catalogs: TableProgress["catalogs"],
+  total: number,
+): string {
+  if (total <= 0) {
+    return "—";
+  }
+
+  const parts = Object.entries(catalogs)
+    .map(([name, { structured }]) => ({
+      name,
+      percent: Math.floor((structured / total) * 100),
+    }))
+    .filter(({ percent }) => percent > 0)
+    .map(({ name, percent }) => `${name} (${percent}%)`);
+
+  return parts.length > 0 ? parts.join(", ") : "—";
+}
+
+function crossmatchListHref(tableName: string): string {
+  return `/crossmatch?table_name=${encodeURIComponent(tableName)}&triage_status=pending`;
+}
+
+function TableListCard({ table }: { table: TableListItem }): ReactElement {
+  const navigate = useNavigate();
+  const { progress } = table;
+  const total = progress.total_records;
+  const actions: CardAction[] = [
     {
-      name: "Name",
-      renderCell: (value: CellPrimitive) => {
-        if (typeof value === "string") {
-          return <Link href={`/table/${value}`}>{value}</Link>;
-        }
-        return <span>—</span>;
-      },
+      title: "View crossmatch results",
+      onClick: () => navigate(crossmatchListHref(table.name)),
     },
-    { name: "Description" },
-    { name: "Number of records" },
-    { name: "Number of columns" },
-    { name: "Modification date" },
   ];
 
-  const tableData: Record<string, CellPrimitive>[] =
-    data?.tables.map((table: TableListItem) => ({
-      Name: table.name,
-      Description: table.description,
-      "Number of records": table.num_entries,
-      "Number of columns": table.num_fields,
-      "Modification date": table.modification_dt
-        ? formatModificationDate(table.modification_dt)
-        : "—",
-    })) ?? [];
+  return (
+    <Card
+      title={
+        <Link href={`/table/${table.name}`} className="hover:opacity-80">
+          {table.description || "—"}
+        </Link>
+      }
+      className="w-full"
+      actions={actions}
+    >
+      <Field label="Slug">
+        <span className="font-mono break-all">{table.name}</span>
+      </Field>
+      <Field label="Source paper">
+        {table.bibcode ? (
+          <Link href={getSourceLink(table.bibcode)} external>
+            {table.bibcode}
+          </Link>
+        ) : (
+          "—"
+        )}
+      </Field>
+      <Field label="Number of records">{table.num_entries}</Field>
+      <Field label="Number of columns">{table.num_fields}</Field>
+      <Field label="Modification date">
+        {table.modification_dt
+          ? formatModificationDate(table.modification_dt)
+          : "—"}
+      </Field>
+      <Field label="Waiting for cross-identification">
+        {formatProgressPercent(progress.unprocessed, total)}
+      </Field>
+      <Field label="Waiting for manual check">
+        {formatProgressPercent(progress.pending_triage, total)}
+      </Field>
+      <Field label="Waiting for submission">
+        {formatProgressPercent(progress.resolved_unsubmitted, total)}
+      </Field>
+      <Field label="Submitted">
+        {formatProgressPercent(progress.submitted, total)}
+      </Field>
+      <Field label="Catalogs">
+        {formatCatalogsSummary(progress.catalogs, total)}
+      </Field>
+    </Card>
+  );
+}
 
-  return <CommonTable columns={columns} data={tableData} loading={loading} />;
+function TablesResults({ data, loading }: TablesResultsProps): ReactElement {
+  const tables = data?.tables ?? [];
+
+  return (
+    <div className="relative">
+      <div
+        className={classNames(
+          "flex w-full flex-col gap-4",
+          loading && "opacity-50 pointer-events-none",
+        )}
+      >
+        {tables.map((table) => (
+          <TableListCard key={table.name} table={table} />
+        ))}
+      </div>
+      {loading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-app/60">
+          <Loading />
+        </div>
+      )}
+    </div>
+  );
 }
 
 async function fetcher(

@@ -16,7 +16,7 @@ export function Card({
   className,
   variant = "fields",
 }: {
-  title: string;
+  title: ReactNode;
   children: ReactNode;
   actions?: CardAction[];
   headerControls?: ReactNode;
