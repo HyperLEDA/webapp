@@ -23,7 +23,7 @@ export function Card({
   afterChildren?: ReactNode;
   anchorId?: string;
   className?: string;
-  variant?: "fields" | "block";
+  variant?: "fields" | "responsive-fields" | "block";
 }): ReactElement {
   const { ref, highlighted } = useAnchoredElement(anchorId ?? "");
   const cardActions = actions ?? [];
@@ -63,6 +63,17 @@ export function Card({
         <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-base">
           {children}
         </dl>
+      ) : variant === "responsive-fields" ? (
+        <dl
+          className={classNames(
+            "grid gap-x-3 gap-y-0.5 text-base",
+            "grid-cols-[auto_1fr]",
+            "md:grid-cols-[auto_1fr_auto_1fr]",
+            "xl:grid-cols-[auto_1fr_auto_1fr_auto_1fr]",
+          )}
+        >
+          {children}
+        </dl>
       ) : (
         children
       )}
@@ -80,8 +91,8 @@ export function Field({
 }): ReactElement {
   return (
     <>
-      <dt className="text-muted">{label}</dt>
-      <dd>{children}</dd>
+      <dt className="text-muted shrink-0">{label}</dt>
+      <dd className="min-w-0">{children}</dd>
     </>
   );
 }

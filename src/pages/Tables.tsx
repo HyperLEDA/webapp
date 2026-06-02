@@ -145,6 +145,7 @@ function TableListCard({ table }: { table: TableListItem }): ReactElement {
         </Link>
       }
       className="w-full"
+      variant="responsive-fields"
       actions={actions}
     >
       <Field label="Slug">
