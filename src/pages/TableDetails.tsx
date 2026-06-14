@@ -25,6 +25,7 @@ import { Hint } from "../components/ui/Hint";
 import { useDataFetching } from "../hooks/useDataFetching";
 import { adminClient } from "../clients/config";
 import { isLoggedIn } from "../auth/token";
+import { originalDataCatalogLink } from "../components/catalogs/catalogActions";
 
 const DATA_TYPES: DataType[] = [
   "regular",
@@ -43,6 +44,26 @@ function asDataType(value: unknown): DataType {
     return value;
   }
   return "regular";
+}
+
+function quoteSqlIdentifier(identifier: string): string {
+  return `"${identifier.replace(/"/g, '""')}"`;
+}
+
+function selectAllColumnsFromRawdataTable(
+  tableName: string,
+  columns: GetTableResponse["column_info"],
+  limit = 25,
+): string {
+  const qualifiedTable = `rawdata.${quoteSqlIdentifier(tableName)}`;
+  if (columns.length === 0) {
+    return `SELECT * FROM ${qualifiedTable} LIMIT ${limit}`;
+  }
+
+  const columnList = columns
+    .map((column) => quoteSqlIdentifier(column.name))
+    .join(", ");
+  return `SELECT ${columnList} FROM ${qualifiedTable} LIMIT ${limit}`;
 }
 
 function renderBibliography(bib: Bibliography): ReactElement {
@@ -516,6 +537,7 @@ function CatalogProgressCard({
 }
 
 interface ColumnInfoProps {
+  tableName: string;
   table: GetTableResponse;
 }
 
@@ -536,7 +558,23 @@ function columnMatchesSearch(
 }
 
 function ColumnInfo(props: ColumnInfoProps): ReactElement {
+  const navigate = useNavigate();
   const [query, setQuery] = useState("");
+
+  const actions: CardAction[] = [
+    {
+      title: "View table data",
+      onClick: () =>
+        navigate(
+          originalDataCatalogLink(
+            selectAllColumnsFromRawdataTable(
+              props.tableName,
+              props.table.column_info,
+            ),
+          ),
+        ),
+    },
+  ];
 
   const columns: Column[] = [
     { name: "Name", renderCell: renderColumnName },
@@ -581,13 +619,13 @@ function ColumnInfo(props: ColumnInfoProps): ReactElement {
     });
 
   return (
-    <Card title="Column information" variant="block">
+    <Card title="Column information" variant="block" actions={actions}>
       <div className="mb-4 max-w-md">
         <TextFilter
           title="Search columns"
           value={query}
           onChange={setQuery}
-          placeholder="Search by name, description, or UCD"
+          placeholder="Search column by name, description, or UCD"
         />
       </div>
       <CommonTable columns={columns} data={values} />
@@ -653,7 +691,7 @@ export function TableDetailsPage(): ReactElement {
               />
             ) : null}
           </div>
-          <ColumnInfo table={payload} />
+          <ColumnInfo tableName={tableName ?? ""} table={payload} />
         </div>
       );
     }
