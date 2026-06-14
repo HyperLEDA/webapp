@@ -1,5 +1,11 @@
 import classNames from "classnames";
-import { KeyboardEvent, ReactElement, useEffect, useState } from "react";
+import {
+  KeyboardEvent,
+  ReactElement,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import {
   Bibliography,
   DataType,
@@ -17,6 +23,7 @@ import {
 import { CopyButton } from "../components/ui/CopyButton";
 import { Badge } from "../components/ui/Badge";
 import { Link } from "../components/core/Link";
+import { TextFilter } from "../components/core/TextFilter";
 import { Loading } from "../components/core/Loading";
 import { Card, CardAction, Field } from "../components/ui/Card";
 import { ErrorPage } from "../components/ui/ErrorPage";
@@ -24,6 +31,7 @@ import { Hint } from "../components/ui/Hint";
 import { useDataFetching } from "../hooks/useDataFetching";
 import { adminClient } from "../clients/config";
 import { isLoggedIn } from "../auth/token";
+import { originalDataCatalogLink } from "../components/catalogs/catalogActions";
 
 const DATA_TYPES: DataType[] = [
   "regular",
@@ -42,6 +50,26 @@ function asDataType(value: unknown): DataType {
     return value;
   }
   return "regular";
+}
+
+function quoteSqlIdentifier(identifier: string): string {
+  return `"${identifier.replace(/"/g, '""')}"`;
+}
+
+function selectAllColumnsFromRawdataTable(
+  tableName: string,
+  columns: GetTableResponse["column_info"],
+  limit = 25,
+): string {
+  const qualifiedTable = `rawdata.${quoteSqlIdentifier(tableName)}`;
+  if (columns.length === 0) {
+    return `SELECT * FROM ${qualifiedTable} LIMIT ${limit}`;
+  }
+
+  const columnList = columns
+    .map((column) => quoteSqlIdentifier(column.name))
+    .join(", ");
+  return `SELECT ${columnList} FROM ${qualifiedTable} LIMIT ${limit}`;
 }
 
 function renderBibliography(bib: Bibliography): ReactElement {
@@ -515,52 +543,155 @@ function CatalogProgressCard({
 }
 
 interface ColumnInfoProps {
+  tableName: string;
   table: GetTableResponse;
 }
 
+const COLUMN_SELECT_KEY = "";
+
+function columnMatchesSearch(
+  col: GetTableResponse["column_info"][number],
+  query: string,
+): boolean {
+  const needle = query.trim().toLowerCase();
+  if (!needle) {
+    return true;
+  }
+
+  const fields = [col.name, col.description, col.ucd];
+  return fields.some(
+    (value) =>
+      typeof value === "string" && value.toLowerCase().includes(needle),
+  );
+}
+
 function ColumnInfo(props: ColumnInfoProps): ReactElement {
-  const columns: Column[] = [
-    { name: "Name", renderCell: renderColumnName },
-    { name: "Description" },
-    { name: "Unit" },
+  const navigate = useNavigate();
+  const [query, setQuery] = useState("");
+  const [selectedColumns, setSelectedColumns] = useState<Set<string>>(
+    () => new Set(),
+  );
+
+  useEffect(() => {
+    setSelectedColumns(new Set());
+  }, [props.tableName]);
+
+  useEffect(() => {
+    setSelectedColumns((prev) => {
+      const names = new Set(props.table.column_info.map((col) => col.name));
+      return new Set([...prev].filter((name) => names.has(name)));
+    });
+  }, [props.table.column_info]);
+
+  function toggleColumn(name: string): void {
+    setSelectedColumns((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) {
+        next.delete(name);
+      } else {
+        next.add(name);
+      }
+      return next;
+    });
+  }
+
+  const selectedColumnInfo = useMemo(
+    () =>
+      props.table.column_info.filter((col) => selectedColumns.has(col.name)),
+    [props.table.column_info, selectedColumns],
+  );
+
+  const actions: CardAction[] = [
     {
-      name: "UCD",
-      renderCell: renderUCD,
-      hint: (
-        <p>
-          Unified Content Descriptor. Describes astronomical quantities in a
-          structured way. For more information see{" "}
-          <Link href="https://www.ivoa.net/documents/latest/UCD.html" external>
-            IVOA Recommendation
-          </Link>
-          .
-        </p>
-      ),
+      title: "View table data",
+      onClick: () =>
+        navigate(
+          originalDataCatalogLink(
+            selectAllColumnsFromRawdataTable(
+              props.tableName,
+              selectedColumnInfo,
+            ),
+          ),
+        ),
     },
   ];
 
+  const columns: Column[] = useMemo(
+    () => [
+      {
+        name: COLUMN_SELECT_KEY,
+        renderCell: (value: CellPrimitive) => {
+          const columnName = String(value);
+          return (
+            <div className="flex justify-center">
+              <input
+                type="checkbox"
+                checked={selectedColumns.has(columnName)}
+                onChange={() => toggleColumn(columnName)}
+                onClick={(event) => event.stopPropagation()}
+                aria-label={`Select column ${columnName}`}
+                className="size-4 accent-accent cursor-pointer"
+              />
+            </div>
+          );
+        },
+      },
+      { name: "Name", renderCell: renderColumnName },
+      { name: "Description" },
+      { name: "Unit" },
+      {
+        name: "UCD",
+        renderCell: renderUCD,
+        hint: (
+          <p>
+            Unified Content Descriptor. Describes astronomical quantities in a
+            structured way. For more information see{" "}
+            <Link
+              href="https://www.ivoa.net/documents/latest/UCD.html"
+              external
+            >
+              IVOA Recommendation
+            </Link>
+            .
+          </p>
+        ),
+      },
+    ],
+    [selectedColumns],
+  );
+
   const values: Record<string, CellPrimitive>[] = [];
 
-  props.table.column_info.forEach((col) => {
-    const colValue: Record<string, CellPrimitive> = {
-      Name: col.name,
-    };
+  props.table.column_info
+    .filter((col) => columnMatchesSearch(col, query))
+    .forEach((col) => {
+      const colValue: Record<string, CellPrimitive> = {
+        [COLUMN_SELECT_KEY]: col.name,
+        Name: col.name,
+      };
 
-    if (col.description) {
-      colValue.Description = col.description;
-    }
-    if (col.unit) {
-      colValue.Unit = col.unit;
-    }
-    if (col.ucd) {
-      colValue.UCD = col.ucd;
-    }
+      if (col.description) {
+        colValue.Description = col.description;
+      }
+      if (col.unit) {
+        colValue.Unit = col.unit;
+      }
+      if (col.ucd) {
+        colValue.UCD = col.ucd;
+      }
 
-    values.push(colValue);
-  });
+      values.push(colValue);
+    });
 
   return (
-    <Card title="Column information" variant="block">
+    <Card title="Column information" variant="block" actions={actions}>
+      <div className="mb-4 max-w-md">
+        <TextFilter
+          value={query}
+          onChange={setQuery}
+          placeholder="Search column by name, description, or UCD"
+        />
+      </div>
       <CommonTable columns={columns} data={values} />
     </Card>
   );
@@ -624,7 +755,7 @@ export function TableDetailsPage(): ReactElement {
               />
             ) : null}
           </div>
-          <ColumnInfo table={payload} />
+          <ColumnInfo tableName={tableName ?? ""} table={payload} />
         </div>
       );
     }
