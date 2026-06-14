@@ -17,6 +17,7 @@ import {
 import { CopyButton } from "../components/ui/CopyButton";
 import { Badge } from "../components/ui/Badge";
 import { Link } from "../components/core/Link";
+import { TextFilter } from "../components/core/TextFilter";
 import { Loading } from "../components/core/Loading";
 import { Card, CardAction, Field } from "../components/ui/Card";
 import { ErrorPage } from "../components/ui/ErrorPage";
@@ -518,7 +519,25 @@ interface ColumnInfoProps {
   table: GetTableResponse;
 }
 
+function columnMatchesSearch(
+  col: GetTableResponse["column_info"][number],
+  query: string,
+): boolean {
+  const needle = query.trim().toLowerCase();
+  if (!needle) {
+    return true;
+  }
+
+  const fields = [col.name, col.description, col.ucd];
+  return fields.some(
+    (value) =>
+      typeof value === "string" && value.toLowerCase().includes(needle),
+  );
+}
+
 function ColumnInfo(props: ColumnInfoProps): ReactElement {
+  const [query, setQuery] = useState("");
+
   const columns: Column[] = [
     { name: "Name", renderCell: renderColumnName },
     { name: "Description" },
@@ -541,26 +560,36 @@ function ColumnInfo(props: ColumnInfoProps): ReactElement {
 
   const values: Record<string, CellPrimitive>[] = [];
 
-  props.table.column_info.forEach((col) => {
-    const colValue: Record<string, CellPrimitive> = {
-      Name: col.name,
-    };
+  props.table.column_info
+    .filter((col) => columnMatchesSearch(col, query))
+    .forEach((col) => {
+      const colValue: Record<string, CellPrimitive> = {
+        Name: col.name,
+      };
 
-    if (col.description) {
-      colValue.Description = col.description;
-    }
-    if (col.unit) {
-      colValue.Unit = col.unit;
-    }
-    if (col.ucd) {
-      colValue.UCD = col.ucd;
-    }
+      if (col.description) {
+        colValue.Description = col.description;
+      }
+      if (col.unit) {
+        colValue.Unit = col.unit;
+      }
+      if (col.ucd) {
+        colValue.UCD = col.ucd;
+      }
 
-    values.push(colValue);
-  });
+      values.push(colValue);
+    });
 
   return (
     <Card title="Column information" variant="block">
+      <div className="mb-4 max-w-md">
+        <TextFilter
+          title="Search columns"
+          value={query}
+          onChange={setQuery}
+          placeholder="Search by name, description, or UCD"
+        />
+      </div>
       <CommonTable columns={columns} data={values} />
     </Card>
   );
