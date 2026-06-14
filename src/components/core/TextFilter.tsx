@@ -1,7 +1,7 @@
 import { ReactElement } from "react";
 
 interface TextFieldProps {
-  title: string;
+  title?: string;
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
@@ -17,9 +17,11 @@ export function TextFilter({
 }: TextFieldProps): ReactElement {
   return (
     <div>
-      <label className="block text-sm font-medium text-subtle mb-1">
-        {title}
-      </label>
+      {title ? (
+        <label className="block text-sm font-medium text-subtle mb-1">
+          {title}
+        </label>
+      ) : null}
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
