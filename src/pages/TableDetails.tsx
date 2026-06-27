@@ -1,11 +1,5 @@
 import classNames from "classnames";
-import {
-  KeyboardEvent,
-  ReactElement,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { ReactElement, useEffect, useMemo, useState } from "react";
 import {
   Bibliography,
   DataType,
@@ -14,7 +8,7 @@ import {
 } from "../clients/admin/types.gen";
 import { getTable, patchTable } from "../clients/admin/sdk.gen";
 import { useNavigate, useParams } from "react-router-dom";
-import { MdEdit } from "react-icons/md";
+import { EditableTextField } from "../components/core/EditableTextField";
 import {
   CellPrimitive,
   Column,
@@ -131,6 +125,25 @@ function renderColumnName(name: CellPrimitive): ReactElement {
   );
 }
 
+type ColumnMetadataField = "description" | "unit" | "ucd";
+
+interface MetadataCellDisplayProps {
+  value: string | null | undefined;
+  renderDisplay?: (value: string) => ReactElement;
+}
+
+function MetadataCellDisplay(props: MetadataCellDisplayProps): ReactElement {
+  if (props.value) {
+    return props.renderDisplay ? (
+      props.renderDisplay(props.value)
+    ) : (
+      <span>{props.value}</span>
+    );
+  }
+
+  return <span className="text-muted">—</span>;
+}
+
 interface TableMetaProps {
   tableName: string;
   table: GetTableResponse;
@@ -141,14 +154,6 @@ interface TableMetaProps {
 function TableMeta(props: TableMetaProps): ReactElement {
   const navigate = useNavigate();
   const canEdit = isLoggedIn();
-  const [editingName, setEditingName] = useState(false);
-  const [editingDescription, setEditingDescription] = useState(false);
-  const showNameEdit = canEdit && !editingDescription;
-  const showSlugEdit = canEdit && !editingName;
-  const [draftName, setDraftName] = useState(props.tableName);
-  const [draftDescription, setDraftDescription] = useState(
-    props.table.description,
-  );
   const [savingField, setSavingField] = useState<
     "name" | "description" | "datatype" | null
   >(null);
@@ -177,34 +182,14 @@ function TableMeta(props: TableMetaProps): ReactElement {
       onSuccess();
     } catch (err) {
       setPatchError(`${err}`);
+      throw err;
     } finally {
       setSavingField(null);
     }
   }
 
-  useEffect(() => {
-    if (!editingName) {
-      setDraftName(props.tableName);
-    }
-  }, [props.tableName, editingName]);
-
-  useEffect(() => {
-    if (!editingDescription) {
-      setDraftDescription(props.table.description);
-    }
-  }, [props.table.description, editingDescription]);
-
-  async function commitName(): Promise<void> {
-    const trimmed = draftName.trim();
+  async function commitSlug(trimmed: string): Promise<void> {
     if (!trimmed) {
-      setDraftName(props.tableName);
-      setEditingName(false);
-      setPatchError(null);
-      return;
-    }
-    if (trimmed === props.tableName) {
-      setEditingName(false);
-      setPatchError(null);
       return;
     }
     await runTablePatch(
@@ -213,59 +198,19 @@ function TableMeta(props: TableMetaProps): ReactElement {
         table_name: props.tableName,
         new_table_name: trimmed,
       },
-      () => {
-        setEditingName(false);
-        navigate(`/table/${encodeURIComponent(trimmed)}`);
-      },
+      () => navigate(`/table/${encodeURIComponent(trimmed)}`),
     );
   }
 
-  async function commitDescription(): Promise<void> {
-    const trimmed = draftDescription.trim();
-    if (trimmed === props.table.description) {
-      setEditingDescription(false);
-      setPatchError(null);
-      return;
-    }
+  async function commitDescription(trimmed: string): Promise<void> {
     await runTablePatch(
       "description",
       {
         table_name: props.tableName,
         description: trimmed,
       },
-      () => {
-        setEditingDescription(false);
-        props.onAfterPatch();
-      },
+      () => props.onAfterPatch(),
     );
-  }
-
-  function handleNameKeyDown(event: KeyboardEvent<HTMLInputElement>): void {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      void commitName();
-    }
-    if (event.key === "Escape") {
-      event.preventDefault();
-      setDraftName(props.tableName);
-      setEditingName(false);
-      setPatchError(null);
-    }
-  }
-
-  function handleDescriptionKeyDown(
-    event: KeyboardEvent<HTMLInputElement>,
-  ): void {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      void commitDescription();
-    }
-    if (event.key === "Escape") {
-      event.preventDefault();
-      setDraftDescription(props.table.description);
-      setEditingDescription(false);
-      setPatchError(null);
-    }
   }
 
   async function commitDatatype(next: DataType): Promise<void> {
@@ -303,66 +248,30 @@ function TableMeta(props: TableMetaProps): ReactElement {
   return (
     <Card title="Overview" variant="fields" className={props.className}>
       <Field label="Table name">
-        <div className="flex items-center gap-2 min-w-0">
-          {editingDescription ? (
-            <input
-              type="text"
-              value={draftDescription}
-              onChange={(event) => setDraftDescription(event.target.value)}
-              onKeyDown={handleDescriptionKeyDown}
-              disabled={savingField === "description"}
-              className="bg-transparent border border-border rounded px-2 py-0.5 flex-1 min-w-0 text-primary"
-              autoFocus
-            />
-          ) : (
-            <span className="min-w-0">{props.table.description}</span>
-          )}
-          {showNameEdit && (
-            <button
-              type="button"
-              aria-label="Edit table name"
-              className="shrink-0 p-1 rounded text-muted hover:text-primary cursor-pointer"
-              onClick={() => {
-                setPatchError(null);
-                setEditingDescription(true);
-              }}
-            >
-              <MdEdit className="w-4 h-4" />
-            </button>
-          )}
-        </div>
+        {canEdit ? (
+          <EditableTextField
+            value={props.table.description}
+            editLabel="Edit table name"
+            saving={savingField === "description"}
+            onCommit={commitDescription}
+          />
+        ) : (
+          <span className="min-w-0">{props.table.description}</span>
+        )}
       </Field>
       <Field label="Slug">
-        <div className="flex items-center gap-2 min-w-0">
-          {editingName ? (
-            <input
-              type="text"
-              value={draftName}
-              onChange={(event) => setDraftName(event.target.value)}
-              onKeyDown={handleNameKeyDown}
-              disabled={savingField === "name"}
-              className="font-mono bg-transparent border border-border rounded px-2 py-0.5 flex-1 min-w-0"
-              autoFocus
-            />
-          ) : (
-            <span className="font-mono min-w-0 break-all">
-              {props.tableName}
-            </span>
-          )}
-          {showSlugEdit && (
-            <button
-              type="button"
-              aria-label="Edit table slug"
-              className="shrink-0 p-1 rounded text-muted hover:text-primary cursor-pointer"
-              onClick={() => {
-                setPatchError(null);
-                setEditingName(true);
-              }}
-            >
-              <MdEdit className="w-4 h-4" />
-            </button>
-          )}
-        </div>
+        {canEdit ? (
+          <EditableTextField
+            value={props.tableName}
+            editLabel="Edit table slug"
+            saving={savingField === "name"}
+            inputClassName="font-mono"
+            displayClassName="font-mono min-w-0 break-all"
+            onCommit={commitSlug}
+          />
+        ) : (
+          <span className="font-mono min-w-0 break-all">{props.tableName}</span>
+        )}
       </Field>
       <Field label="Table ID">{props.table.id}</Field>
       <Field label="Source paper">
@@ -545,6 +454,7 @@ function CatalogProgressCard({
 interface ColumnInfoProps {
   tableName: string;
   table: GetTableResponse;
+  onAfterPatch: () => void;
 }
 
 const COLUMN_SELECT_KEY = "";
@@ -567,10 +477,16 @@ function columnMatchesSearch(
 
 function ColumnInfo(props: ColumnInfoProps): ReactElement {
   const navigate = useNavigate();
+  const canEdit = isLoggedIn();
   const [query, setQuery] = useState("");
   const [selectedColumns, setSelectedColumns] = useState<Set<string>>(
     () => new Set(),
   );
+  const [saving, setSaving] = useState<{
+    columnName: string;
+    field: ColumnMetadataField;
+  } | null>(null);
+  const [patchError, setPatchError] = useState<string | null>(null);
 
   useEffect(() => {
     setSelectedColumns(new Set());
@@ -593,6 +509,68 @@ function ColumnInfo(props: ColumnInfoProps): ReactElement {
       }
       return next;
     });
+  }
+
+  async function commitColumnMetadata(
+    columnName: string,
+    field: ColumnMetadataField,
+    trimmed: string,
+  ): Promise<void> {
+    setPatchError(null);
+    setSaving({ columnName, field });
+    try {
+      const response = await patchTable({
+        client: adminClient,
+        body: {
+          table_name: props.tableName,
+          columns: {
+            [columnName]: {
+              [field]: trimmed === "" ? null : trimmed,
+            },
+          },
+        },
+      });
+      if (response.error) {
+        throw new Error(JSON.stringify(response.error));
+      }
+      props.onAfterPatch();
+    } catch (err) {
+      setPatchError(`${err}`);
+      throw err;
+    } finally {
+      setSaving(null);
+    }
+  }
+
+  function renderMetadataCell(
+    columnName: string,
+    field: ColumnMetadataField,
+    value: string | null | undefined,
+    renderDisplay?: (displayValue: string) => ReactElement,
+  ): ReactElement {
+    if (!canEdit) {
+      return (
+        <MetadataCellDisplay value={value} renderDisplay={renderDisplay} />
+      );
+    }
+
+    const isSaving =
+      saving?.columnName === columnName && saving.field === field;
+
+    return (
+      <EditableTextField
+        value={value ?? ""}
+        editLabel={`Edit ${field} for column ${columnName}`}
+        saving={isSaving}
+        renderDisplay={(displayValue) => (
+          <MetadataCellDisplay
+            value={displayValue || null}
+            renderDisplay={renderDisplay}
+          />
+        )}
+        onCommit={(trimmed) => commitColumnMetadata(columnName, field, trimmed)}
+      />
+    );
   }
 
   const selectedColumnInfo = useMemo(
@@ -641,7 +619,6 @@ function ColumnInfo(props: ColumnInfoProps): ReactElement {
       { name: "Unit" },
       {
         name: "UCD",
-        renderCell: renderUCD,
         hint: (
           <p>
             Unified Content Descriptor. Describes astronomical quantities in a
@@ -665,22 +642,19 @@ function ColumnInfo(props: ColumnInfoProps): ReactElement {
   props.table.column_info
     .filter((col) => columnMatchesSearch(col, query))
     .forEach((col) => {
-      const colValue: Record<string, CellPrimitive> = {
+      values.push({
         [COLUMN_SELECT_KEY]: col.name,
         Name: col.name,
-      };
-
-      if (col.description) {
-        colValue.Description = col.description;
-      }
-      if (col.unit) {
-        colValue.Unit = col.unit;
-      }
-      if (col.ucd) {
-        colValue.UCD = col.ucd;
-      }
-
-      values.push(colValue);
+        Description: renderMetadataCell(
+          col.name,
+          "description",
+          col.description,
+        ),
+        Unit: renderMetadataCell(col.name, "unit", col.unit),
+        UCD: renderMetadataCell(col.name, "ucd", col.ucd, (ucd) =>
+          renderUCD(ucd),
+        ),
+      });
     });
 
   return (
@@ -692,6 +666,9 @@ function ColumnInfo(props: ColumnInfoProps): ReactElement {
           placeholder="Search column by name, description, or UCD"
         />
       </div>
+      {patchError ? (
+        <p className="mb-4 text-sm text-danger">{patchError}</p>
+      ) : null}
       <CommonTable columns={columns} data={values} />
     </Card>
   );
@@ -755,7 +732,11 @@ export function TableDetailsPage(): ReactElement {
               />
             ) : null}
           </div>
-          <ColumnInfo tableName={tableName ?? ""} table={payload} />
+          <ColumnInfo
+            tableName={tableName ?? ""}
+            table={payload}
+            onAfterPatch={() => setRefreshKey((key) => key + 1)}
+          />
         </div>
       );
     }
