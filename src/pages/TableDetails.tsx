@@ -696,6 +696,12 @@ export function TableDetailsPage(): ReactElement {
   const { tableName } = useParams<{ tableName: string }>();
   const [refreshKey, setRefreshKey] = useState(0);
 
+  useEffect(() => {
+    document.title = tableName
+      ? `${tableName} | HyperLEDA`
+      : "Table | HyperLEDA";
+  }, [tableName]);
+
   const {
     data: payload,
     loading,
