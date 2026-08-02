@@ -23,11 +23,7 @@ import { backendClient } from "../clients/config";
 import { useDataFetching } from "../hooks/useDataFetching";
 import { Loading } from "../components/core/Loading";
 import { ErrorPage } from "../components/ui/ErrorPage";
-import {
-  CommonTable,
-  Column,
-  CellPrimitive,
-} from "../components/ui/CommonTable";
+import { CommonTable, Column } from "../components/ui/CommonTable";
 import { TextFilter } from "../components/core/TextFilter";
 import { Accordion } from "../components/core/Accordion";
 import { Text } from "../components/core/Text";
@@ -36,11 +32,11 @@ import classNames from "classnames";
 import { CatalogViewTabs } from "../components/catalog/CatalogViewTabs";
 import { CatalogSqlPanel } from "../components/catalog/CatalogSqlPanel";
 import {
-  cellValue,
   DEFAULT_SQL_EXAMPLE,
   defaultSelectForTable,
   formatApiError,
   parseSqlPermalink,
+  syncPayloadToTable,
 } from "../lib/tap";
 
 async function fetchTablesList(): Promise<ListTapTablesResponse> {
@@ -250,15 +246,7 @@ function TableDetail({
     hint: columnMetadataHint(c),
   }));
 
-  const rows: Record<string, CellPrimitive>[] = (syncTable?.data ?? []).map(
-    (row) => {
-      const out: Record<string, CellPrimitive> = {};
-      for (let i = 0; i < syncColumns.length; i++) {
-        out[syncColumns[i].name] = cellValue(row[i]);
-      }
-      return out;
-    },
-  );
+  const rows = syncPayload ? syncPayloadToTable(syncPayload).rows : [];
 
   return (
     <div>

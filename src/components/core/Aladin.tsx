@@ -87,10 +87,17 @@ function drawLabelWithBackground(
   ctx.fillText(text, x + LABEL_PADDING_X, y);
 }
 
+type AladinSourceData = {
+  name?: string;
+  id?: string | number;
+  popupTitle?: string;
+  popupDesc?: string;
+};
+
 type AladinCanvasSource = {
   x: number;
   y: number;
-  data?: { name?: string };
+  data?: AladinSourceData;
 };
 
 function drawSourceWithLabel(
@@ -111,6 +118,7 @@ interface AdditionalSource {
   ra: number;
   dec: number;
   label: string;
+  id?: string | number;
   description?: string;
 }
 
@@ -121,6 +129,7 @@ interface AladinViewerProps {
   survey?: string;
   className?: string;
   additionalSources?: AdditionalSource[];
+  onSourceClick?: (id: string | number) => void;
 }
 
 export function AladinViewer({
@@ -130,10 +139,16 @@ export function AladinViewer({
   survey = DEFAULT_ALADIN_SURVEY,
   className = "w-full h-96",
   additionalSources,
+  onSourceClick,
 }: AladinViewerProps) {
   const aladinDivRef = useRef<HTMLDivElement>(null);
+  const onSourceClickRef = useRef(onSourceClick);
   const [selectedSurvey, setSelectedSurvey] = useState(survey);
   const additionalSourcesKey = JSON.stringify(additionalSources ?? []);
+
+  useEffect(() => {
+    onSourceClickRef.current = onSourceClick;
+  }, [onSourceClick]);
 
   useEffect(() => {
     setSelectedSurvey(survey);
@@ -157,6 +172,14 @@ export function AladinViewer({
 
       aladin.gotoRaDec(ra, dec);
 
+      aladin.on("objectClicked", (object) => {
+        const id = object?.data?.id;
+        if (id === undefined) {
+          return;
+        }
+        onSourceClickRef.current?.(id);
+      });
+
       if (additionalSources && additionalSources.length > 0) {
         const nameCatalog = window.A.catalog({
           shape: drawSourceWithLabel,
@@ -172,18 +195,20 @@ export function AladinViewer({
         aladin.addCatalog(descrCatalog);
 
         additionalSources.forEach((source) => {
+          const data: AladinSourceData = {
+            name: source.label,
+            id: source.id,
+          };
           if (source.description) {
             descrCatalog.addSources([
               window.A.marker(source.ra, source.dec, {
-                name: source.label,
+                ...data,
                 popupTitle: source.label,
                 popupDesc: source.description,
               }),
             ]);
           }
-          nameCatalog.addSources(
-            window.A.source(source.ra, source.dec, { name: source.label }),
-          );
+          nameCatalog.addSources(window.A.source(source.ra, source.dec, data));
         });
       }
     } catch (error) {
@@ -217,7 +242,8 @@ interface AladinCatalog {
 interface AladinSource {
   ra: number;
   dec: number;
-  properties?: { name?: string; popupTitle?: string; popupDesc?: string };
+  data?: AladinSourceData;
+  properties?: AladinSourceData;
 }
 
 declare global {
@@ -238,6 +264,10 @@ declare global {
         gotoObject: (target: string) => void;
         gotoRaDec: (ra: number, dec: number) => void;
         addCatalog: (catalog: AladinCatalog) => void;
+        on: (
+          event: "objectClicked",
+          callback: (object: AladinSource | null) => void,
+        ) => void;
       };
       catalog: (options?: {
         displayLabel?: boolean;
@@ -253,12 +283,12 @@ declare global {
       source: (
         ra: number,
         dec: number,
-        properties?: { name?: string },
+        properties?: AladinSourceData,
       ) => AladinSource;
       marker: (
         ra: number,
         dec: number,
-        properties?: { name?: string; popupTitle?: string; popupDesc?: string },
+        properties?: AladinSourceData,
       ) => AladinSource;
     };
   }

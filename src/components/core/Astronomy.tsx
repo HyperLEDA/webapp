@@ -1,4 +1,9 @@
 import React, { ReactElement, ReactNode } from "react";
+import {
+  decomposeDec,
+  decomposeRa,
+  pad2,
+} from "../../lib/astronomy/sexagesimal";
 
 interface QuantityProps {
   value: string | number;
@@ -53,40 +58,12 @@ interface AstronomicalCoordinateProps {
   className?: string;
 }
 
-function pad2(value: number): string {
-  return String(value).padStart(2, "0");
-}
-
 function formatSexagesimalSeconds(seconds: number, decimals: number): string {
   const fixed = seconds.toFixed(decimals);
   const [integerPart, fractionalPart] = fixed.split(".");
   return fractionalPart === undefined
     ? pad2(Number(integerPart))
     : `${pad2(Number(integerPart))}.${fractionalPart}`;
-}
-
-function decomposeRa(degrees: number): { h: number; m: number; s: number } {
-  const totalSeconds = degrees * 240;
-  return {
-    h: Math.floor(totalSeconds / 3600),
-    m: Math.floor((totalSeconds % 3600) / 60),
-    s: totalSeconds % 60,
-  };
-}
-
-function decomposeDec(degrees: number): {
-  sign: string;
-  d: number;
-  m: number;
-  s: number;
-} {
-  const sign = degrees < 0 ? "-" : "+";
-  const absDec = Math.abs(degrees);
-  const d = Math.floor(absDec);
-  const minutesFloat = (absDec - d) * 60;
-  const m = Math.floor(minutesFloat);
-  const s = (minutesFloat - m) * 60;
-  return { sign, d, m, s };
 }
 
 export type EquatorialCopyFormat =
