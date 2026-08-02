@@ -4,7 +4,12 @@ import type {
   ValidationError,
 } from "../clients/backend/types.gen";
 import { backendClient } from "../clients/config";
-import type { CellPrimitive, Column } from "../components/ui/CommonTable";
+
+export type TapCellValue = string | number;
+
+export interface TapTableColumn {
+  name: string;
+}
 
 export const DEFAULT_SQL_EXAMPLE =
   "SELECT * FROM layer2.designations WHERE pgc = 67872";
@@ -31,7 +36,7 @@ export async function executeSqlQuery(sql: string): Promise<TapSyncResponse> {
   return response.data.data;
 }
 
-export function cellValue(value: unknown): CellPrimitive {
+export function cellValue(value: unknown): TapCellValue {
   if (value === null || value === undefined) {
     return "—";
   }
@@ -42,14 +47,14 @@ export function cellValue(value: unknown): CellPrimitive {
 }
 
 export function syncPayloadToTable(payload: TapSyncResponse): {
-  columns: Column[];
-  rows: Record<string, CellPrimitive>[];
+  columns: TapTableColumn[];
+  rows: Record<string, TapCellValue>[];
 } {
   const syncTable = payload.resource.table;
   const syncColumns = syncTable.columns;
-  const columns: Column[] = syncColumns.map((c) => ({ name: c.name }));
+  const columns: TapTableColumn[] = syncColumns.map((c) => ({ name: c.name }));
   const rows = (syncTable.data ?? []).map((row) => {
-    const out: Record<string, CellPrimitive> = {};
+    const out: Record<string, TapCellValue> = {};
     for (let i = 0; i < syncColumns.length; i++) {
       out[syncColumns[i].name] = cellValue(row[i]);
     }
