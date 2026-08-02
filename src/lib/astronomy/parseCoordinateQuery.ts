@@ -1,4 +1,7 @@
-const ARCMINUTE_RADIUS_DEG = 1 / 60;
+import { decomposeDec, decomposeRa, pad2 } from "./sexagesimal";
+
+export const COORDINATE_SEARCH_RADIUS_ARCMIN = 1;
+const ARCMINUTE_RADIUS_DEG = COORDINATE_SEARCH_RADIUS_ARCMIN / 60;
 
 export type CoordinateSystem = "j2000" | "b1950" | "galactic" | "supergalactic";
 
@@ -80,10 +83,6 @@ function axisLabels(system: CoordinateSystem): {
 
 function isEquatorial(system: CoordinateSystem): boolean {
   return system === "j2000" || system === "b1950";
-}
-
-function pad2(value: number): string {
-  return String(value).padStart(2, "0");
 }
 
 function integerDigitCount(token: string): number {
@@ -207,20 +206,13 @@ function packedDegreesToDegrees(
 }
 
 function formatRaDisplay(degrees: number): string {
-  const totalSeconds = (((degrees % 360) + 360) % 360) * 240;
-  const h = Math.floor(totalSeconds / 3600);
-  const m = Math.floor((totalSeconds % 3600) / 60);
-  const s = totalSeconds % 60;
+  const normalized = ((degrees % 360) + 360) % 360;
+  const { h, m, s } = decomposeRa(normalized);
   return `${pad2(h)}h ${pad2(m)}m ${s.toFixed(2).padStart(5, "0")}s`;
 }
 
 function formatDecDisplay(degrees: number): string {
-  const sign = degrees < 0 ? "-" : "+";
-  const abs = Math.abs(degrees);
-  const d = Math.floor(abs);
-  const minutesFloat = (abs - d) * 60;
-  const m = Math.floor(minutesFloat);
-  const s = (minutesFloat - m) * 60;
+  const { sign, d, m, s } = decomposeDec(degrees);
   return `${sign}${d}° ${pad2(m)}′ ${s.toFixed(1).padStart(4, "0")}″`;
 }
 
@@ -464,5 +456,5 @@ export function formatCoordinateInspectHint(
 
   const first = inspected.firstAxis.display ?? "—";
   const second = inspected.secondAxis.display ?? "—";
-  return `${inspected.systemLabel} · ${inspected.firstAxis.label} ${first} · ${inspected.secondAxis.label} ${second}`;
+  return `${inspected.systemLabel} · ${inspected.firstAxis.label} ${first} · ${inspected.secondAxis.label} ${second} · radius ${COORDINATE_SEARCH_RADIUS_ARCMIN}′`;
 }

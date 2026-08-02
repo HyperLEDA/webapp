@@ -20,19 +20,34 @@ function searchHandler(navigate: NavigateFunction) {
   };
 }
 
-function searchSuggestion(query: string): string | null {
+type SearchSuggestion = {
+  primary: string;
+  secondary?: string;
+};
+
+function searchSuggestion(query: string): SearchSuggestion | null {
   const trimmed = query.trim();
   if (!trimmed) {
     return null;
   }
 
-  const coordinateHint = formatCoordinateInspectHint(
-    inspectCoordinateQuery(trimmed),
-  );
-  if (coordinateHint) {
-    return `Will search around coordinates: ${coordinateHint}`;
+  const inspected = inspectCoordinateQuery(trimmed);
+  const coordinateHint = formatCoordinateInspectHint(inspected);
+
+  if (inspected.status === "valid" && coordinateHint) {
+    return {
+      primary: `Will search around coordinates: ${coordinateHint}`,
+    };
   }
-  return `Will search name: ${trimmed}`;
+
+  if (inspected.status === "partial" && coordinateHint) {
+    return {
+      primary: `Will search name: ${trimmed}`,
+      secondary: `If typed fully, will search around coordinates: ${coordinateHint}`,
+    };
+  }
+
+  return { primary: `Will search name: ${trimmed}` };
 }
 
 export function SearchBar({
@@ -95,7 +110,10 @@ export function SearchBar({
             />
             {suggestion ? (
               <div className="absolute left-0 right-0 top-full z-10 mt-0.5 w-full text-left text-sm text-muted bg-surface-2 border border-border rounded px-2 py-2 shadow-sm pointer-events-none">
-                {suggestion}
+                <div>{suggestion.primary}</div>
+                {suggestion.secondary ? (
+                  <div className="mt-1">{suggestion.secondary}</div>
+                ) : null}
               </div>
             ) : null}
           </div>
