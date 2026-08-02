@@ -464,9 +464,5 @@ export function formatCoordinateInspectHint(
 
   const first = inspected.firstAxis.display ?? "—";
   const second = inspected.secondAxis.display ?? "—";
-  const base = `${inspected.systemLabel} · ${inspected.firstAxis.label} ${first} · ${inspected.secondAxis.label} ${second}`;
-  if (inspected.status === "valid") {
-    return `${base} · 1′ search`;
-  }
-  return base;
+  return `${inspected.systemLabel} · ${inspected.firstAxis.label} ${first} · ${inspected.secondAxis.label} ${second}`;
 }
