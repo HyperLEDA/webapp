@@ -42,6 +42,7 @@ type SkySource = {
   ra: number;
   dec: number;
   label: string;
+  id: number;
 };
 
 function objectsToSkySources(objects: PgcObject[]): SkySource[] {
@@ -56,6 +57,7 @@ function objectsToSkySources(objects: PgcObject[]): SkySource[] {
         ra: equatorial.ra,
         dec: equatorial.dec,
         label: object.catalogs.designation?.name || `PGC ${object.pgc}`,
+        id: object.pgc,
       },
     ];
   });
@@ -153,6 +155,9 @@ function SearchResults({
             fov={skyView.fov}
             className="w-full h-72"
             additionalSources={skySources}
+            onSourceClick={(id) =>
+              window.open(`/object/${id}`, "_blank", "noopener,noreferrer")
+            }
           />
         ) : null}
         <CommonTable
