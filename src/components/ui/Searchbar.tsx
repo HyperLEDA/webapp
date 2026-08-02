@@ -2,6 +2,10 @@ import { ReactElement, useState } from "react";
 import { Link, NavigateFunction, useNavigate } from "react-router-dom";
 import classNames from "classnames";
 import { Button } from "../core/Button";
+import {
+  formatCoordinateInspectHint,
+  inspectCoordinateQuery,
+} from "../../lib/astronomy/parseCoordinateQuery";
 
 interface SearchBarProps {
   initialValue?: string;
@@ -25,6 +29,9 @@ export function SearchBar({
   const [searchQuery, setSearchQuery] = useState<string>(initialValue);
   const navigate = useNavigate();
   const onSearchHandler = onSearch ?? searchHandler(navigate);
+  const coordinateHint = formatCoordinateInspectHint(
+    inspectCoordinateQuery(searchQuery),
+  );
 
   function handleSubmit() {
     if (searchQuery.trim()) {
@@ -51,26 +58,33 @@ export function SearchBar({
         />
       </Link>
       <div
-        className={classNames("flex items-center w-full", {
+        className={classNames("w-full", {
           "ml-2": logoSize === "small",
           "max-w-4xl mx-auto": logoSize === "large",
         })}
       >
-        <input
-          type="text"
-          placeholder="Search for an object..."
-          className="border border-border rounded px-2 py-1 flex-grow h-10 bg-surface-2 text-primary placeholder:text-muted"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              handleSubmit();
-            }
-          }}
-        />
-        <Button onClick={handleSubmit} className="ml-2 h-10">
-          Search
-        </Button>
+        <div className="flex items-center w-full">
+          <input
+            type="text"
+            placeholder="Search for an object..."
+            className="border border-border rounded px-2 py-1 flex-grow h-10 bg-surface-2 text-primary placeholder:text-muted"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleSubmit();
+              }
+            }}
+          />
+          <Button onClick={handleSubmit} className="ml-2 h-10">
+            Search
+          </Button>
+        </div>
+        {coordinateHint ? (
+          <div className="mt-1 text-left text-sm text-muted px-1">
+            {coordinateHint}
+          </div>
+        ) : null}
       </div>
     </header>
   );

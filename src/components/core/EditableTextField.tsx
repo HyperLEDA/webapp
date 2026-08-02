@@ -89,14 +89,14 @@ export function EditableTextField({
   }
 
   return (
-    <div className="flex items-center gap-2 min-w-0">
+    <div className="group/editable flex items-center gap-2 min-w-0">
       <div className="min-w-0 flex-1">
         {(renderDisplay ?? defaultRender)(value)}
       </div>
       <button
         type="button"
         aria-label={editLabel}
-        className="shrink-0 p-1 rounded text-muted hover:text-primary cursor-pointer"
+        className="shrink-0 p-1 rounded text-muted hover:text-primary cursor-pointer opacity-0 group-hover/editable:opacity-100 focus:opacity-100 transition-opacity"
         onClick={(event) => {
           event.stopPropagation();
           startEdit();

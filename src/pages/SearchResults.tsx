@@ -15,6 +15,7 @@ import { Link } from "../components/core/Link";
 import { Declination, RightAscension } from "../components/core/Astronomy";
 import { Pagination } from "../components/ui/Pagination";
 import { backendClient } from "../clients/config";
+import { parseCoordinateQuery } from "../lib/astronomy/parseCoordinateQuery";
 
 function searchHandler(navigate: NavigateFunction) {
   return function f(query: string) {
@@ -125,10 +126,11 @@ async function fetcher(
     throw new Error("Empty query");
   }
 
+  const coordinateQuery = parseCoordinateQuery(query);
   const response = await querySimple({
     client: backendClient,
     query: {
-      name: query,
+      ...(coordinateQuery ? coordinateQuery.toQueryParams() : { name: query }),
       page: page,
       page_size: pageSize,
     },
