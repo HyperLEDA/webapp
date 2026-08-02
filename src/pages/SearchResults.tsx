@@ -10,12 +10,16 @@ import { Loading } from "../components/core/Loading";
 import { ErrorPage, ErrorPageHomeButton } from "../components/ui/ErrorPage";
 import { useDataFetching } from "../hooks/useDataFetching";
 import { querySimple } from "../clients/backend/sdk.gen";
-import { QuerySimpleResponse } from "../clients/backend/types.gen";
+import { PgcObject, QuerySimpleResponse } from "../clients/backend/types.gen";
 import { Link } from "../components/core/Link";
 import { Declination, RightAscension } from "../components/core/Astronomy";
+import { AladinViewer } from "../components/core/Aladin";
 import { Pagination } from "../components/ui/Pagination";
 import { backendClient } from "../clients/config";
 import { parseCoordinateQuery } from "../lib/astronomy/parseCoordinateQuery";
+
+const MIN_ALADIN_FOV_DEG = 0.05;
+const ALADIN_FOV_PADDING = 1.4;
 
 function searchHandler(navigate: NavigateFunction) {
   return function f(query: string) {
@@ -32,6 +36,59 @@ function pageChangeHandler(
   navigate(
     `/query?q=${encodeURIComponent(query)}&page=${newPage}&pagesize=${pageSize}`,
   );
+}
+
+type SkySource = {
+  ra: number;
+  dec: number;
+  label: string;
+};
+
+function objectsToSkySources(objects: PgcObject[]): SkySource[] {
+  return objects.flatMap((object) => {
+    const equatorial = object.catalogs.coordinates?.equatorial;
+    if (equatorial?.ra === undefined || equatorial?.dec === undefined) {
+      return [];
+    }
+
+    return [
+      {
+        ra: equatorial.ra,
+        dec: equatorial.dec,
+        label: object.catalogs.designation?.name || `PGC ${object.pgc}`,
+      },
+    ];
+  });
+}
+
+function skyViewForSources(sources: SkySource[]): {
+  ra: number;
+  dec: number;
+  fov: number;
+} | null {
+  if (sources.length === 0) {
+    return null;
+  }
+
+  const ra =
+    sources.reduce((sum, source) => sum + source.ra, 0) / sources.length;
+  const dec =
+    sources.reduce((sum, source) => sum + source.dec, 0) / sources.length;
+
+  if (sources.length === 1) {
+    return { ra, dec, fov: MIN_ALADIN_FOV_DEG };
+  }
+
+  const raSpan =
+    Math.max(...sources.map((source) => source.ra)) -
+    Math.min(...sources.map((source) => source.ra));
+  const decSpan =
+    Math.max(...sources.map((source) => source.dec)) -
+    Math.min(...sources.map((source) => source.dec));
+  const fov =
+    Math.max(raSpan, decSpan, MIN_ALADIN_FOV_DEG) * ALADIN_FOV_PADDING;
+
+  return { ra, dec, fov };
 }
 
 interface SearchResultsProps {
@@ -84,8 +141,20 @@ function SearchResults({
   }
 
   if (results.objects.length > 0) {
+    const skySources = objectsToSkySources(results.objects);
+    const skyView = skyViewForSources(skySources);
+
     return (
-      <>
+      <div className="space-y-6">
+        {skyView ? (
+          <AladinViewer
+            ra={skyView.ra}
+            dec={skyView.dec}
+            fov={skyView.fov}
+            className="w-full h-72"
+            additionalSources={skySources}
+          />
+        ) : null}
         <CommonTable
           columns={columns}
           data={results.objects.map((object) => ({
@@ -102,7 +171,7 @@ function SearchResults({
           records={results.objects}
           handlePageChange={handlePageChange}
         />
-      </>
+      </div>
     );
   }
 
