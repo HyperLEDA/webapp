@@ -1,7 +1,8 @@
-import { ReactElement, useState } from "react";
+import { ReactElement, ReactNode, useState } from "react";
 import { Link, NavigateFunction, useNavigate } from "react-router-dom";
 import classNames from "classnames";
 import { Button } from "../core/Button";
+import { SuggestibleInput } from "../core/SuggestibleInput";
 import {
   formatCoordinateInspectHint,
   inspectCoordinateQuery,
@@ -60,12 +61,40 @@ export function SearchBar({
   const [focused, setFocused] = useState(false);
   const navigate = useNavigate();
   const onSearchHandler = onSearch ?? searchHandler(navigate);
-  const suggestion = focused ? searchSuggestion(searchQuery) : null;
 
   function handleSubmit() {
     if (searchQuery.trim()) {
       onSearchHandler(searchQuery);
     }
+  }
+
+  function getSuggestions(value: string): ReactNode[] {
+    if (!focused) {
+      return [];
+    }
+    const suggestion = searchSuggestion(value);
+    if (!suggestion) {
+      return [];
+    }
+    const nodes: ReactNode[] = [
+      <div
+        key="primary"
+        className="px-2 py-2 text-left text-sm text-muted pointer-events-none"
+      >
+        {suggestion.primary}
+      </div>,
+    ];
+    if (suggestion.secondary) {
+      nodes.push(
+        <div
+          key="secondary"
+          className="px-2 py-2 text-left text-sm text-muted pointer-events-none"
+        >
+          {suggestion.secondary}
+        </div>,
+      );
+    }
+    return nodes;
   }
 
   return (
@@ -93,13 +122,13 @@ export function SearchBar({
         })}
       >
         <div className="flex items-start w-full">
-          <div className="relative flex-grow min-w-0">
-            <input
-              type="text"
-              placeholder="Search for an object..."
-              className="border border-border rounded px-2 py-1 w-full h-10 bg-surface-2 text-primary placeholder:text-muted"
+          <div className="flex-grow min-w-0">
+            <SuggestibleInput
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={setSearchQuery}
+              getSuggestions={getSuggestions}
+              placeholder="Search for an object..."
+              className="h-10 px-2 py-1"
               onFocus={() => setFocused(true)}
               onBlur={() => setFocused(false)}
               onKeyDown={(e) => {
@@ -108,14 +137,6 @@ export function SearchBar({
                 }
               }}
             />
-            {suggestion ? (
-              <div className="absolute left-0 right-0 top-full z-10 mt-0.5 w-full text-left text-sm text-muted bg-surface-2 border border-border rounded px-2 py-2 shadow-sm pointer-events-none">
-                <div>{suggestion.primary}</div>
-                {suggestion.secondary ? (
-                  <div className="mt-1">{suggestion.secondary}</div>
-                ) : null}
-              </div>
-            ) : null}
           </div>
           <Button onClick={handleSubmit} className="ml-2 h-10 shrink-0">
             Search

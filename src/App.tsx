@@ -11,6 +11,8 @@ import { Layout } from "./components/ui/Layout";
 import { SearchBar } from "./components/ui/Searchbar";
 import { LoginPage } from "./pages/Login";
 import { TableDetailsPage } from "./pages/TableDetails";
+import { AdminPage } from "./pages/Admin";
+import { AdminMergePgcPage } from "./pages/AdminMergePgc";
 
 function App() {
   return (
@@ -45,6 +47,8 @@ function App() {
             element={<DataCatalogPage />}
           />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/admin" element={<AdminPage />} />
+          <Route path="/admin/merge-pgc" element={<AdminMergePgcPage />} />
           <Route path="/crossmatch" element={<CrossmatchResultsPage />} />
           <Route
             path="/records/:recordId/crossmatch"

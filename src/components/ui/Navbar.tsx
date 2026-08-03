@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   MdAccountTree,
+  MdAdminPanelSettings,
   MdInfo,
   MdLogin,
   MdLogout,
@@ -32,6 +33,13 @@ const navItems = [
     end: false,
   },
 ];
+
+const adminNavItem = {
+  to: "/admin",
+  icon: <MdAdminPanelSettings size={20} />,
+  label: "Admin",
+  end: false,
+};
 
 const configuredProductionWeb = "https://leda.sao.ru";
 
@@ -106,6 +114,19 @@ export function Navbar() {
             </NavLink>
           </AppTooltip>
         ))}
+        {isLoggedIn() ? (
+          <AppTooltip content={adminNavItem.label} placement="right">
+            <NavLink
+              to={adminNavItem.to}
+              end={adminNavItem.end}
+              className={({ isActive }) =>
+                sidebarRailControlClassName(isActive)
+              }
+            >
+              {adminNavItem.icon}
+            </NavLink>
+          </AppTooltip>
+        ) : null}
 
         <div className="mt-auto flex flex-col gap-2 items-center">
           {showOpenProductionButton ? (
