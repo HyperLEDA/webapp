@@ -13,6 +13,7 @@ import {
 } from "../components/core/Astronomy";
 import { Button } from "../components/core/Button";
 import { Link } from "../components/core/Link";
+import { SuggestibleInput } from "../components/core/SuggestibleInput";
 
 const MIN_ALADIN_FOV_DEG = 0.05;
 const ALADIN_FOV_PADDING = 1.4;
@@ -206,7 +207,7 @@ function PgcPicker({
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [suggestions, setSuggestions] = useState<PgcSelection[]>([]);
+  const [nameResults, setNameResults] = useState<PgcSelection[]>([]);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const requestIdRef = useRef(0);
 
@@ -223,14 +224,14 @@ function PgcPicker({
   function selectResult(result: PgcSelection): void {
     onSelect(result);
     setQuery("");
-    setSuggestions([]);
+    setNameResults([]);
     setError(null);
   }
 
   async function runSearch(raw: string): Promise<void> {
     const trimmed = raw.trim();
     if (!trimmed) {
-      setSuggestions([]);
+      setNameResults([]);
       setError(null);
       setLoading(false);
       return;
@@ -242,7 +243,7 @@ function PgcPicker({
 
     try {
       if (isPgcNumberInput(trimmed)) {
-        setSuggestions([]);
+        setNameResults([]);
         const pgc = Number.parseInt(trimmed, 10);
         if (pgc <= 0) {
           throw new Error("Enter a valid PGC number");
@@ -265,7 +266,7 @@ function PgcPicker({
           .filter((object) => Object.keys(object.catalogs).length > 0)
           .slice(0, NAME_SUGGESTION_LIMIT)
           .map((object) => ({ object, schema }));
-        setSuggestions(next);
+        setNameResults(next);
         if (next.length === 0) {
           setError(`No objects found for "${trimmed}"`);
         }
@@ -274,7 +275,7 @@ function PgcPicker({
       if (requestId !== requestIdRef.current) {
         return;
       }
-      setSuggestions([]);
+      setNameResults([]);
       setError(err instanceof Error ? err.message : String(err));
     } finally {
       if (requestId === requestIdRef.current) {
@@ -296,7 +297,7 @@ function PgcPicker({
   function handleQueryChange(value: string): void {
     setQuery(value);
     setError(null);
-    setSuggestions([]);
+    setNameResults([]);
     scheduleSearch(value);
   }
 
@@ -309,74 +310,72 @@ function PgcPicker({
     onSelect(null);
     setError(null);
     setQuery("");
-    setSuggestions([]);
+    setNameResults([]);
     setLoading(false);
+  }
+
+  function getSuggestions(value: string): ReactNode[] {
+    if (!value.trim()) {
+      return [];
+    }
+    if (loading) {
+      return [
+        <div
+          key="loading"
+          className="flex items-center justify-center px-3 py-4"
+        >
+          <div
+            className="w-5 h-5 border-2 border-border border-t-accent rounded-full animate-spin"
+            aria-label="Loading"
+          />
+        </div>,
+      ];
+    }
+    if (isPgcNumberInput(value)) {
+      return [];
+    }
+    return nameResults.map((suggestion) => (
+      <button
+        key={suggestion.object.pgc}
+        type="button"
+        disabled={disabled}
+        className="w-full text-left px-3 py-2 text-sm cursor-pointer hover:bg-surface-2 focus:bg-surface-2 focus:outline-none"
+        onMouseDown={(event) => event.preventDefault()}
+        onClick={() => selectResult(suggestion)}
+      >
+        <span className="font-medium">{objectLabel(suggestion.object)}</span>
+        <span className="text-muted ml-2">PGC {suggestion.object.pgc}</span>
+      </button>
+    ));
   }
 
   return (
     <div className="flex flex-col gap-3 min-w-0 flex-1">
       <h2 className="text-lg font-semibold">{label}</h2>
-      <div className="relative flex flex-col gap-1">
-        <input
-          type="text"
-          placeholder="PGC number or name"
-          value={query}
-          disabled={disabled}
-          onChange={(event) => handleQueryChange(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              event.preventDefault();
-              if (debounceRef.current) {
-                clearTimeout(debounceRef.current);
-                debounceRef.current = null;
-              }
-              if (suggestions.length > 0) {
-                selectResult(suggestions[0]);
-                return;
-              }
-              void runSearch(query);
+      <SuggestibleInput
+        value={query}
+        onChange={handleQueryChange}
+        getSuggestions={getSuggestions}
+        placeholder="PGC number or name"
+        disabled={disabled}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            if (debounceRef.current) {
+              clearTimeout(debounceRef.current);
+              debounceRef.current = null;
             }
-            if (event.key === "Escape") {
-              setSuggestions([]);
+            if (nameResults.length > 0) {
+              selectResult(nameResults[0]);
+              return;
             }
-          }}
-          className="bg-surface-2 border border-border rounded px-3 py-2 text-sm text-primary placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent w-full"
-        />
-        {loading || suggestions.length > 0 ? (
-          <ul
-            className="absolute top-full left-0 right-0 z-10 mt-1 max-h-60 overflow-auto rounded border border-border bg-surface shadow-sm"
-            role="listbox"
-          >
-            {loading ? (
-              <li className="flex items-center justify-center px-3 py-4">
-                <div
-                  className="w-5 h-5 border-2 border-border border-t-accent rounded-full animate-spin"
-                  aria-label="Loading"
-                />
-              </li>
-            ) : (
-              suggestions.map((suggestion) => (
-                <li key={suggestion.object.pgc} role="option">
-                  <button
-                    type="button"
-                    disabled={disabled}
-                    className="w-full text-left px-3 py-2 text-sm hover:bg-surface-2 focus:bg-surface-2 focus:outline-none"
-                    onMouseDown={(event) => event.preventDefault()}
-                    onClick={() => selectResult(suggestion)}
-                  >
-                    <span className="font-medium">
-                      {objectLabel(suggestion.object)}
-                    </span>
-                    <span className="text-muted ml-2">
-                      PGC {suggestion.object.pgc}
-                    </span>
-                  </button>
-                </li>
-              ))
-            )}
-          </ul>
-        ) : null}
-      </div>
+            void runSearch(query);
+          }
+          if (event.key === "Escape") {
+            setNameResults([]);
+          }
+        }}
+      />
       {error ? (
         <p className="text-danger text-sm" role="alert">
           {error}
