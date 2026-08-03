@@ -495,7 +495,7 @@ export function AdminMergePgcPage(): ReactElement {
         <h2 className="text-3xl font-bold mb-4">Merge PGC objects</h2>
         <p className="text-sm text-muted">
           Select a target PGC (survives) and a source PGC (records are
-          reassigned, then the source disappears).
+          reassigned, then the source disappears). You probably will want to rerun import to layer 2 after this operation to update references.
         </p>
       </div>
 
