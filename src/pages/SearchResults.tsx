@@ -228,7 +228,7 @@ export function SearchResultsPage(): ReactElement {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const query = searchParams.get("q") || "";
-  const page = parseInt(searchParams.get("page") || "1");
+  const page = parseInt(searchParams.get("page") || "0");
   const pageSize = parseInt(searchParams.get("pagesize") || "25");
 
   useEffect(() => {
