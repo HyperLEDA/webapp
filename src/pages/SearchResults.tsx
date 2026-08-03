@@ -116,6 +116,8 @@ function SearchResults({
       ),
     },
     { name: "Name" },
+    { name: "Type" },
+    { name: "Velocity" },
     {
       name: "RA",
       renderCell: (value: React.ReactElement | string | number) => (
@@ -165,6 +167,11 @@ function SearchResults({
           data={results.objects.map((object) => ({
             PGC: object.pgc,
             Name: object.catalogs.designation?.name || "N/A",
+            Type: object.catalogs.nature?.type_name || "N/A",
+            Velocity:
+              object.catalogs.velocity?.heliocentric?.v !== undefined
+                ? `${object.catalogs.velocity.heliocentric.v.toFixed(0)} km/s`
+                : "N/A",
             RA: object.catalogs.coordinates?.equatorial.ra || 0,
             Dec: object.catalogs.coordinates?.equatorial.dec || 0,
           }))}
