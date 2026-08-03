@@ -3,14 +3,10 @@ import { Navigate } from "react-router-dom";
 import { isLoggedIn } from "../auth/token";
 import { mergePgcs } from "../clients/admin/sdk.gen";
 import { querySimple } from "../clients/backend/sdk.gen";
-import { Catalogs, PgcObject, Schema } from "../clients/backend/types.gen";
+import { PgcObject, Schema } from "../clients/backend/types.gen";
 import { adminClient, backendClient } from "../clients/config";
+import { ObjectSummary } from "../components/catalogs/ObjectSummary";
 import { AladinViewer } from "../components/core/Aladin";
-import {
-  Declination,
-  QuantityWithError,
-  RightAscension,
-} from "../components/core/Astronomy";
 import { Button } from "../components/core/Button";
 import { Link } from "../components/core/Link";
 import { SuggestibleInput } from "../components/core/SuggestibleInput";
@@ -57,27 +53,26 @@ function skyViewForSources(sources: SkySource[]): {
   return { ra, dec, fov };
 }
 
+function objectLabel(object: PgcObject): string {
+  return object.catalogs.designation?.name || `PGC ${object.pgc}`;
+}
+
 function objectToSkySource(object: PgcObject, role: string): SkySource | null {
   const equatorial = object.catalogs.coordinates?.equatorial;
   if (equatorial?.ra === undefined || equatorial?.dec === undefined) {
     return null;
   }
 
-  const name = object.catalogs.designation?.name || `PGC ${object.pgc}`;
   return {
     ra: equatorial.ra,
     dec: equatorial.dec,
-    label: `${name} (${role})`,
+    label: `${objectLabel(object)} (${role})`,
     id: object.pgc,
   };
 }
 
 function isPgcNumberInput(value: string): boolean {
   return /^\d+$/.test(value.trim());
-}
-
-function objectLabel(object: PgcObject): string {
-  return object.catalogs.designation?.name || `PGC ${object.pgc}`;
 }
 
 async function fetchPgc(
@@ -132,58 +127,6 @@ async function fetchByName(
     objects: response.data.data.objects,
     schema: response.data.data.schema,
   };
-}
-
-function ObjectSummary({
-  catalogs,
-  schema,
-  name,
-}: {
-  catalogs: Catalogs;
-  schema: Schema;
-  name: ReactNode;
-}): ReactElement {
-  const equatorial = catalogs.coordinates?.equatorial;
-  const redshift = catalogs.redshift;
-
-  return (
-    <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
-      <dt className="text-muted">Name</dt>
-      <dd>{name}</dd>
-      {equatorial ? (
-        <>
-          <dt className="text-muted">RA</dt>
-          <dd>
-            <QuantityWithError
-              error={equatorial.e_ra}
-              unit={schema.units.coordinates?.equatorial?.ra || "deg"}
-            >
-              <RightAscension value={equatorial.ra} />
-            </QuantityWithError>
-          </dd>
-          <dt className="text-muted">Dec</dt>
-          <dd>
-            <QuantityWithError
-              error={equatorial.e_dec}
-              unit={schema.units.coordinates?.equatorial?.dec || "deg"}
-            >
-              <Declination value={equatorial.dec} />
-            </QuantityWithError>
-          </dd>
-        </>
-      ) : null}
-      {redshift ? (
-        <>
-          <dt className="text-muted">Redshift</dt>
-          <dd>
-            <QuantityWithError error={redshift.e_z} decimalPlaces={5}>
-              {redshift.z.toFixed(5)}
-            </QuantityWithError>
-          </dd>
-        </>
-      ) : null}
-    </dl>
-  );
 }
 
 interface PgcSelection {
@@ -495,7 +438,8 @@ export function AdminMergePgcPage(): ReactElement {
         <h2 className="text-3xl font-bold mb-4">Merge PGC objects</h2>
         <p className="text-sm text-muted">
           Select a target PGC (survives) and a source PGC (records are
-          reassigned, then the source disappears). You probably will want to rerun import to layer 2 after this operation to update references.
+          reassigned, then the source disappears). You probably will want to
+          rerun import to layer 2 after this operation to update references.
         </p>
       </div>
 
