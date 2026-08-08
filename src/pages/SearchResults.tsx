@@ -158,6 +158,7 @@ function objectsToTableData(
       "": hasCoords ? (
         <Button
           type="button"
+          transparent
           aria-label="Locate"
           title="Locate"
           className="mx-auto px-1.5 py-1.5"
