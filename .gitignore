@@ -23,8 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 
-yarn.lock
-
 # code-generated files
 src/clients/backend
 src/clients/admin
