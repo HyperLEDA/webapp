@@ -457,11 +457,11 @@ function tryParseEquatorialCopyFormats(
 
     const complete = Boolean(
       partial[2] &&
-        partial[3] &&
-        partial[4] &&
-        partial[5] &&
-        partial[6] &&
-        partial[7],
+      partial[3] &&
+      partial[4] &&
+      partial[5] &&
+      partial[6] &&
+      partial[7],
     );
 
     return inspectSexagesimalHms(
@@ -514,11 +514,11 @@ function tryParseEquatorialCopyFormats(
     const deg = partial[5] && partial[5].length > 0 ? partial[5] : undefined;
     const complete = Boolean(
       minutes &&
-        seconds &&
-        partial[4] &&
-        deg &&
-        partial[6]?.length === 2 &&
-        partial[7],
+      seconds &&
+      partial[4] &&
+      deg &&
+      partial[6]?.length === 2 &&
+      partial[7],
     );
 
     return inspectSexagesimalHms(
