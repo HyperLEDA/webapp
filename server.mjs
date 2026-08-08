@@ -11,15 +11,48 @@ function log(level, msg, fields = {}) {
   );
 }
 
+function headerValue(headers, name) {
+  const value = headers[name];
+  if (typeof value === "string") {
+    return value;
+  }
+  if (Array.isArray(value) && value.length > 0) {
+    return value[0];
+  }
+  return undefined;
+}
+
+function normalizeIp(ip) {
+  if (!ip) {
+    return undefined;
+  }
+  const trimmed = ip.trim().replace(/^\[|\]$/g, "");
+  if (trimmed.startsWith("::ffff:")) {
+    return trimmed.slice(7);
+  }
+  return trimmed || undefined;
+}
+
 function clientIp(req) {
-  const forwarded = req.headers["x-forwarded-for"];
-  if (typeof forwarded === "string" && forwarded.length > 0) {
-    return forwarded.split(",")[0].trim();
+  const forwardedFor = headerValue(req.headers, "x-forwarded-for");
+  if (forwardedFor) {
+    return normalizeIp(forwardedFor.split(",")[0]);
   }
-  if (Array.isArray(forwarded) && forwarded.length > 0) {
-    return forwarded[0].split(",")[0].trim();
+
+  const realIp = headerValue(req.headers, "x-real-ip");
+  if (realIp) {
+    return normalizeIp(realIp);
   }
-  return req.socket.remoteAddress ?? undefined;
+
+  const forwarded = headerValue(req.headers, "forwarded");
+  if (forwarded) {
+    const match = forwarded.match(/for=(?:"?\[?)([^\]";,]+)/i);
+    if (match) {
+      return normalizeIp(match[1]);
+    }
+  }
+
+  return normalizeIp(req.socket.remoteAddress);
 }
 
 const server = http.createServer(async (req, res) => {
