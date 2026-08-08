@@ -16,8 +16,14 @@ const homePageHint: ReactElement = (
         <Link href="/query?q=J123049.42%2B122328.0">J123049.42+122328.0</Link>
       </li>
       <li>
+        By coordinates (sexagesimal):{" "}
+        <Link href="/query?q=12h%2030m%2049.42s%20%2B12d%2023m%2028.0%22">
+          12h 30m 49.42s +12d 23m 28.0&quot;
+        </Link>
+      </li>
+      <li>
         By coordinates (decimal degrees):{" "}
-        <Link href="/query?q=189.0866%2B25.9875">189.0866+25.9875</Link>
+        <Link href="/query?q=189.0866%20%2B25.9875">189.0866 +25.9875</Link>
       </li>
       <li>
         By coordinates (B1950):{" "}

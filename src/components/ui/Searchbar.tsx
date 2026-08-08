@@ -3,6 +3,7 @@ import { Link, NavigateFunction, useNavigate } from "react-router-dom";
 import classNames from "classnames";
 import { Button } from "../core/Button";
 import { SuggestibleInput } from "../core/SuggestibleInput";
+import { useTheme } from "../../hooks/useTheme";
 import { inspectSearchTypes } from "../../lib/search/searchTypes";
 
 interface SearchBarProps {
@@ -10,6 +11,7 @@ interface SearchBarProps {
   onSearch?: (query: string) => void;
   className?: string;
   logoSize?: "small" | "large";
+  autoFocus?: boolean;
 }
 
 function searchHandler(navigate: NavigateFunction) {
@@ -39,11 +41,14 @@ export function SearchBar({
   logoSize = "small",
   onSearch,
   className,
+  autoFocus,
 }: SearchBarProps): ReactElement {
   const [searchQuery, setSearchQuery] = useState<string>(initialValue);
   const [focused, setFocused] = useState(false);
   const navigate = useNavigate();
+  const { effectiveTheme } = useTheme();
   const onSearchHandler = onSearch ?? searchHandler(navigate);
+  const logoSrc = effectiveTheme === "dark" ? "/logo-dark.png" : "/logo.png";
 
   function handleSubmit() {
     if (searchQuery.trim()) {
@@ -75,7 +80,7 @@ export function SearchBar({
     >
       <Link to="/">
         <img
-          src="/logo.png"
+          src={logoSrc}
           alt="HyperLeda Logo"
           className={classNames({
             "h-32 mx-auto mb-2": logoSize === "large",
@@ -97,6 +102,7 @@ export function SearchBar({
               getSuggestions={getSuggestions}
               placeholder="Search for an object..."
               className="h-10 px-2 py-1"
+              autoFocus={autoFocus}
               onFocus={() => setFocused(true)}
               onBlur={() => setFocused(false)}
               onKeyDown={(e) => {

@@ -315,6 +315,317 @@ function buildQuery(
   };
 }
 
+function equatorialInspect(
+  status: "partial" | "valid",
+  lon: number | null,
+  lat: number | null,
+): CoordinateInspect | null {
+  const query =
+    status === "valid" && lon !== null && lat !== null
+      ? buildQuery("j2000", lon, lat)
+      : null;
+  if (status === "valid" && !query) {
+    return null;
+  }
+
+  return {
+    status,
+    system: "j2000",
+    systemLabel: systemLabel("j2000"),
+    firstAxis: {
+      label: "RA",
+      display: lon !== null ? formatFirstAxis("j2000", lon) : null,
+    },
+    secondAxis: {
+      label: "Dec",
+      display: lat !== null ? formatSecondAxis("j2000", lat) : null,
+    },
+    query,
+  };
+}
+
+function hoursMinutesSecondsToDegrees(
+  hours: number,
+  minutes: number,
+  seconds: number,
+): number | null {
+  if (
+    !Number.isFinite(hours) ||
+    !Number.isFinite(minutes) ||
+    !Number.isFinite(seconds) ||
+    hours >= 24 ||
+    minutes >= 60 ||
+    seconds >= 60
+  ) {
+    return null;
+  }
+  return componentsToDegrees(hours, minutes, seconds) * 15;
+}
+
+function degreesMinutesSecondsToDegrees(
+  sign: "+" | "-",
+  degrees: number,
+  minutes: number,
+  seconds: number,
+): number | null {
+  if (
+    !Number.isFinite(degrees) ||
+    !Number.isFinite(minutes) ||
+    !Number.isFinite(seconds) ||
+    degrees > 90 ||
+    minutes >= 60 ||
+    seconds >= 60
+  ) {
+    return null;
+  }
+  const abs = componentsToDegrees(degrees, minutes, seconds);
+  const value = sign === "-" ? -abs : abs;
+  if (Math.abs(value) > 90) {
+    return null;
+  }
+  return value;
+}
+
+function inspectSexagesimalHms(
+  hours: string,
+  minutes: string | undefined,
+  seconds: string | undefined,
+  sign: string | undefined,
+  deg: string | undefined,
+  arcmin: string | undefined,
+  arcsec: string | undefined,
+  complete: boolean,
+): CoordinateInspect | null {
+  const lon = hoursMinutesSecondsToDegrees(
+    Number(hours),
+    Number(minutes ?? "0"),
+    Number(seconds ?? "0"),
+  );
+  if (lon === null) {
+    return null;
+  }
+
+  const lat =
+    sign && deg !== undefined
+      ? degreesMinutesSecondsToDegrees(
+          sign as "+" | "-",
+          Number(deg),
+          Number(arcmin ?? "0"),
+          Number(arcsec ?? "0"),
+        )
+      : null;
+
+  if (complete && lat !== null) {
+    return equatorialInspect("valid", lon, lat);
+  }
+
+  return equatorialInspect("partial", lon, lat);
+}
+
+function tryParseEquatorialCopyFormats(
+  trimmed: string,
+): CoordinateInspect | null {
+  if (/^\d{1,2}h\b/i.test(trimmed)) {
+    if (/[^0-9hmsd.\s+"+-]/i.test(trimmed)) {
+      return null;
+    }
+
+    const full =
+      /^(\d{1,2})h\s+(\d{1,2})m\s+(\d{1,2}(?:\.\d+)?)s\s+([+-])(\d{1,2})d\s+(\d{1,2})m\s+(\d{1,2}(?:\.\d+)?)"$/i.exec(
+        trimmed,
+      );
+    if (full) {
+      return inspectSexagesimalHms(
+        full[1],
+        full[2],
+        full[3],
+        full[4],
+        full[5],
+        full[6],
+        full[7],
+        true,
+      );
+    }
+
+    const partial =
+      /^(\d{1,2})h(?:\s+(\d{1,2})(?:m(?:\s+(\d{1,2}(?:\.\d+)?)(?:s(?:\s+([+-])(?:(\d{1,2})(?:d(?:\s+(\d{1,2})(?:m(?:\s+(\d{1,2}(?:\.\d+)?)"?)?)?)?)?)?)?)?)?)?)?$/i.exec(
+        trimmed,
+      );
+    if (!partial) {
+      return null;
+    }
+
+    const complete = Boolean(
+      partial[2] &&
+        partial[3] &&
+        partial[4] &&
+        partial[5] &&
+        partial[6] &&
+        partial[7],
+    );
+
+    return inspectSexagesimalHms(
+      partial[1],
+      partial[2],
+      partial[3],
+      partial[4],
+      partial[5],
+      partial[6],
+      partial[7],
+      complete,
+    );
+  }
+
+  if (/^\d{1,2}:/.test(trimmed)) {
+    if (/[^0-9:.\s+-]/.test(trimmed)) {
+      return null;
+    }
+
+    const full =
+      /^(\d{1,2}):(\d{2}):(\d{1,2}(?:\.\d+)?)\s+([+-])(\d{1,2}):(\d{2}):(\d{1,2}(?:\.\d+)?)$/.exec(
+        trimmed,
+      );
+    if (full) {
+      return inspectSexagesimalHms(
+        full[1],
+        full[2],
+        full[3],
+        full[4],
+        full[5],
+        full[6],
+        full[7],
+        true,
+      );
+    }
+
+    const partial =
+      /^(\d{1,2}):(\d{0,2})(?::(\d{0,2}(?:\.\d*)?)?(?:\s+([+-])(?:(\d{0,2})(?::(\d{0,2})(?::(\d{0,2}(?:\.\d*)?)?)?)?)?)?)?$/.exec(
+        trimmed,
+      );
+    if (!partial || partial[2] === "") {
+      return equatorialInspect("partial", null, null);
+    }
+
+    const minutes = partial[2].length === 2 ? partial[2] : undefined;
+    const seconds =
+      partial[3] && partial[3].length > 0 && !partial[3].endsWith(".")
+        ? partial[3]
+        : undefined;
+    const deg = partial[5] && partial[5].length > 0 ? partial[5] : undefined;
+    const complete = Boolean(
+      minutes &&
+        seconds &&
+        partial[4] &&
+        deg &&
+        partial[6]?.length === 2 &&
+        partial[7],
+    );
+
+    return inspectSexagesimalHms(
+      partial[1],
+      minutes,
+      seconds,
+      partial[4],
+      deg,
+      partial[6],
+      partial[7],
+      complete,
+    );
+  }
+
+  const sexagesimalSpaceFull =
+    /^(\d{1,2})\s+(\d{1,2})\s+(\d{1,2}(?:\.\d+)?)\s+([+-])(\d{1,2})\s+(\d{1,2})\s+(\d{1,2}(?:\.\d+)?)$/.exec(
+      trimmed,
+    );
+  if (sexagesimalSpaceFull) {
+    return inspectSexagesimalHms(
+      sexagesimalSpaceFull[1],
+      sexagesimalSpaceFull[2],
+      sexagesimalSpaceFull[3],
+      sexagesimalSpaceFull[4],
+      sexagesimalSpaceFull[5],
+      sexagesimalSpaceFull[6],
+      sexagesimalSpaceFull[7],
+      true,
+    );
+  }
+
+  const sexagesimalSpacePartial =
+    /^(\d{1,2})\s+(\d{1,2})\s+(\d{1,2}(?:\.\d+)?)(?:\s+([+-])(?:\s*(\d{1,2})(?:\s+(\d{1,2})(?:\s+(\d{1,2}(?:\.\d+)?))?)?)?)?$/.exec(
+      trimmed,
+    );
+  if (sexagesimalSpacePartial) {
+    return inspectSexagesimalHms(
+      sexagesimalSpacePartial[1],
+      sexagesimalSpacePartial[2],
+      sexagesimalSpacePartial[3],
+      sexagesimalSpacePartial[4],
+      sexagesimalSpacePartial[5],
+      sexagesimalSpacePartial[6],
+      sexagesimalSpacePartial[7],
+      false,
+    );
+  }
+
+  if (/^\d+(\.\d+)?d\b/i.test(trimmed)) {
+    if (/[^0-9d.\s+-]/i.test(trimmed)) {
+      return null;
+    }
+
+    const full = /^(\d+(?:\.\d+)?)d\s+([+-])(\d+(?:\.\d+)?)d$/i.exec(trimmed);
+    if (full) {
+      const lon = Number(full[1]);
+      const lat = Number(`${full[2]}${full[3]}`);
+      if (Number.isFinite(lon) && Number.isFinite(lat)) {
+        return equatorialInspect("valid", lon, lat);
+      }
+      return null;
+    }
+
+    const partial =
+      /^(\d+(?:\.\d+)?)d(?:\s+([+-])(?:(\d+(?:\.\d+)?)d?)?)?$/i.exec(trimmed);
+    if (!partial) {
+      return null;
+    }
+
+    const lon = Number(partial[1]);
+    if (!Number.isFinite(lon)) {
+      return null;
+    }
+
+    if (partial[2] && partial[3]) {
+      const lat = Number(`${partial[2]}${partial[3]}`);
+      if (Number.isFinite(lat)) {
+        return equatorialInspect("partial", lon, lat);
+      }
+    }
+
+    return equatorialInspect("partial", lon, null);
+  }
+
+  const decimalDegreesSpace = /^(\d+(?:\.\d+)?)\s+([+-])(\d+(?:\.\d+)?)?$/.exec(
+    trimmed,
+  );
+  if (decimalDegreesSpace) {
+    const lon = Number(decimalDegreesSpace[1]);
+    if (!Number.isFinite(lon)) {
+      return null;
+    }
+
+    if (decimalDegreesSpace[3]) {
+      const lat = Number(`${decimalDegreesSpace[2]}${decimalDegreesSpace[3]}`);
+      if (Number.isFinite(lat)) {
+        return equatorialInspect("valid", lon, lat);
+      }
+      return null;
+    }
+
+    return equatorialInspect("partial", lon, null);
+  }
+
+  return null;
+}
+
 type ParsedShape = {
   prefix: Prefix | null;
   firstToken: string;
@@ -377,7 +688,12 @@ function splitInput(trimmed: string): ParsedShape | null {
 }
 
 export function inspectCoordinateQuery(input: string): CoordinateInspect {
-  const trimmed = input.trim();
+  const trimmed = input.trim().replace(/\s+/g, " ");
+  const fromCopyFormats = tryParseEquatorialCopyFormats(trimmed);
+  if (fromCopyFormats) {
+    return fromCopyFormats;
+  }
+
   const shape = splitInput(trimmed);
   if (!shape) {
     return { status: "none" };

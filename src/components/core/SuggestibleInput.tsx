@@ -12,6 +12,7 @@ interface SuggestibleInputProps {
   getSuggestions: (value: string) => ReactNode[];
   placeholder?: string;
   disabled?: boolean;
+  autoFocus?: boolean;
   className?: string;
   onKeyDown?: KeyboardEventHandler<HTMLInputElement>;
   onFocus?: FocusEventHandler<HTMLInputElement>;
@@ -24,6 +25,7 @@ export function SuggestibleInput({
   getSuggestions,
   placeholder,
   disabled,
+  autoFocus,
   className,
   onKeyDown,
   onFocus,
@@ -37,6 +39,7 @@ export function SuggestibleInput({
         type="text"
         value={value}
         disabled={disabled}
+        autoFocus={autoFocus}
         placeholder={placeholder}
         onChange={(event) => onChange(event.target.value)}
         onKeyDown={onKeyDown}
