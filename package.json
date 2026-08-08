@@ -21,7 +21,7 @@
     "@tailwindcss/vite": "^4.3.3",
     "axios": "^1.19.0",
     "classnames": "^2.5.1",
-    "flowbite-react": "^0.12.7",
+    "flowbite-react": "^0.12.17",
     "monaco-editor": "^0.56.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
