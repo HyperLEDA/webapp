@@ -1,6 +1,7 @@
 check:
 	@output=$$(yarn run --silent prettier --check src 2>&1) || { echo "$$output"; exit 1; }
 	@output=$$(yarn run --silent eslint src 2>&1) || { echo "$$output"; exit 1; }
+	@yarn test
 	@yarn build
 
 fix:
