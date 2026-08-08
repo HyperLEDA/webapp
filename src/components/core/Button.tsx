@@ -7,6 +7,8 @@ interface ButtonProps {
   className?: string;
   type?: "button" | "submit" | "reset";
   disabled?: boolean;
+  "aria-label"?: string;
+  title?: string;
 }
 
 export function Button(props: ButtonProps): ReactElement {
@@ -15,6 +17,8 @@ export function Button(props: ButtonProps): ReactElement {
       type={props.type}
       onClick={(event) => props.onClick?.(event)}
       disabled={props.disabled}
+      aria-label={props["aria-label"]}
+      title={props.title}
       className={classNames(
         "px-2 py-2 box-border flex items-center font-semibold border-1 border-surface-2 rounded-lg bg-surface-2 hover:border-accent transition-colors duration-300 active:border-primary cursor-pointer",
         {

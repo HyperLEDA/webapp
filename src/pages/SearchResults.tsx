@@ -1,9 +1,10 @@
-import { ReactElement, useEffect } from "react";
+import { ReactElement, useEffect, useRef, useState } from "react";
 import {
   NavigateFunction,
   useNavigate,
   useSearchParams,
 } from "react-router-dom";
+import { MdMyLocation } from "react-icons/md";
 import { SearchBar } from "../components/ui/Searchbar";
 import { CommonTable, Column } from "../components/ui/CommonTable";
 import { Loading } from "../components/core/Loading";
@@ -14,6 +15,7 @@ import { PgcObject, QuerySimpleResponse } from "../clients/backend/types.gen";
 import { Link } from "../components/core/Link";
 import { Declination, RightAscension } from "../components/core/Astronomy";
 import { AladinViewer } from "../components/core/Aladin";
+import { Button } from "../components/core/Button";
 import { Pagination } from "../components/ui/Pagination";
 import { backendClient } from "../clients/config";
 import {
@@ -48,6 +50,12 @@ type SkySource = {
   id: number;
 };
 
+type SkyView = {
+  ra: number;
+  dec: number;
+  fov: number;
+};
+
 type SearchSection = {
   id: string;
   title: string;
@@ -76,11 +84,7 @@ function objectsToSkySources(objects: PgcObject[]): SkySource[] {
   });
 }
 
-function skyViewForSources(sources: SkySource[]): {
-  ra: number;
-  dec: number;
-  fov: number;
-} | null {
+function skyViewForSources(sources: SkySource[]): SkyView | null {
   if (sources.length === 0) {
     return null;
   }
@@ -108,6 +112,7 @@ function skyViewForSources(sources: SkySource[]): {
 
 function resultTableColumns(): Column[] {
   return [
+    { name: "" },
     {
       name: "PGC",
       renderCell: (value: React.ReactElement | string | number) => (
@@ -140,18 +145,43 @@ function resultTableColumns(): Column[] {
   ];
 }
 
-function objectsToTableData(objects: PgcObject[]) {
-  return objects.map((object) => ({
-    PGC: object.pgc,
-    Name: object.catalogs.designation?.name || "N/A",
-    Type: object.catalogs.nature?.type_name || "N/A",
-    Velocity:
-      object.catalogs.velocity?.heliocentric?.v !== undefined
-        ? `${object.catalogs.velocity.heliocentric.v.toFixed(0)} km/s`
-        : "N/A",
-    RA: object.catalogs.coordinates?.equatorial.ra || 0,
-    Dec: object.catalogs.coordinates?.equatorial.dec || 0,
-  }));
+function objectsToTableData(
+  objects: PgcObject[],
+  onLocate: (ra: number, dec: number) => void,
+) {
+  return objects.map((object) => {
+    const equatorial = object.catalogs.coordinates?.equatorial;
+    const hasCoords =
+      equatorial?.ra !== undefined && equatorial?.dec !== undefined;
+
+    return {
+      "": hasCoords ? (
+        <Button
+          type="button"
+          aria-label="Locate"
+          title="Locate"
+          className="mx-auto px-1.5 py-1.5"
+          onClick={(event) => {
+            event.stopPropagation();
+            onLocate(equatorial.ra, equatorial.dec);
+          }}
+        >
+          <MdMyLocation className="w-4 h-4 text-muted" />
+        </Button>
+      ) : (
+        <div />
+      ),
+      PGC: object.pgc,
+      Name: object.catalogs.designation?.name || "N/A",
+      Type: object.catalogs.nature?.type_name || "N/A",
+      Velocity:
+        object.catalogs.velocity?.heliocentric?.v !== undefined
+          ? `${object.catalogs.velocity.heliocentric.v.toFixed(0)} km/s`
+          : "N/A",
+      RA: equatorial?.ra || 0,
+      Dec: equatorial?.dec || 0,
+    };
+  });
 }
 
 interface SearchResultsProps {
@@ -170,9 +200,28 @@ function SearchResults({
   navigate,
 }: SearchResultsProps): ReactElement {
   const columns = resultTableColumns();
+  const aladinContainerRef = useRef<HTMLDivElement>(null);
+  const [focusedView, setFocusedView] = useState<SkyView | null>(null);
+
+  const allObjects = sections.flatMap((section) => section.results.objects);
+  const skySources = objectsToSkySources(allObjects);
+  const skyView = skyViewForSources(skySources);
+  const activeView = focusedView ?? skyView;
+
+  useEffect(() => {
+    setFocusedView(null);
+  }, [query, page, pageSize]);
 
   function handlePageChange(newPage: number): void {
     pageChangeHandler(navigate, query, pageSize, newPage);
+  }
+
+  function handleLocate(ra: number, dec: number): void {
+    aladinContainerRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+    setFocusedView({ ra, dec, fov: MIN_ALADIN_FOV_DEG });
   }
 
   if (sections.length === 0) {
@@ -187,30 +236,28 @@ function SearchResults({
     );
   }
 
-  const allObjects = sections.flatMap((section) => section.results.objects);
-  const skySources = objectsToSkySources(allObjects);
-  const skyView = skyViewForSources(skySources);
-
   return (
     <div className="space-y-6">
-      {skyView ? (
-        <AladinViewer
-          ra={skyView.ra}
-          dec={skyView.dec}
-          fov={skyView.fov}
-          className="w-full h-72"
-          additionalSources={skySources}
-          onSourceClick={(id) =>
-            window.open(`/object/${id}`, "_blank", "noopener,noreferrer")
-          }
-        />
+      {activeView ? (
+        <div ref={aladinContainerRef}>
+          <AladinViewer
+            ra={activeView.ra}
+            dec={activeView.dec}
+            fov={activeView.fov}
+            className="w-full h-72"
+            additionalSources={skySources}
+            onSourceClick={(id) =>
+              window.open(`/object/${id}`, "_blank", "noopener,noreferrer")
+            }
+          />
+        </div>
       ) : null}
       {sections.map((section) => (
         <section key={section.id} className="space-y-3">
           <h2 className="text-xl font-semibold">{section.title}</h2>
           <CommonTable
             columns={columns}
-            data={objectsToTableData(section.results.objects)}
+            data={objectsToTableData(section.results.objects, handleLocate)}
             className="w-full"
           />
           <Pagination

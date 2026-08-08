@@ -132,6 +132,17 @@ interface AladinViewerProps {
   onSourceClick?: (id: string | number) => void;
 }
 
+type AladinInstance = {
+  gotoObject: (target: string) => void;
+  gotoRaDec: (ra: number, dec: number) => void;
+  setFov: (fov: number) => void;
+  addCatalog: (catalog: AladinCatalog) => void;
+  on: (
+    event: "objectClicked",
+    callback: (object: AladinSource | null) => void,
+  ) => void;
+};
+
 export function AladinViewer({
   ra,
   dec,
@@ -142,9 +153,13 @@ export function AladinViewer({
   onSourceClick,
 }: AladinViewerProps) {
   const aladinDivRef = useRef<HTMLDivElement>(null);
+  const aladinRef = useRef<AladinInstance | null>(null);
+  const viewRef = useRef({ ra, dec, fov });
   const onSourceClickRef = useRef(onSourceClick);
   const [selectedSurvey, setSelectedSurvey] = useState(survey);
   const additionalSourcesKey = JSON.stringify(additionalSources ?? []);
+
+  viewRef.current = { ra, dec, fov };
 
   useEffect(() => {
     onSourceClickRef.current = onSourceClick;
@@ -155,14 +170,21 @@ export function AladinViewer({
   }, [survey]);
 
   useEffect(() => {
-    if (!aladinDivRef.current || !window.A) return;
+    if (!aladinDivRef.current || !window.A) {
+      return undefined;
+    }
 
     try {
       aladinDivRef.current.replaceChildren();
 
+      const {
+        ra: initialRa,
+        dec: initialDec,
+        fov: initialFov,
+      } = viewRef.current;
       const aladin = window.A.aladin(aladinDivRef.current, {
         survey: selectedSurvey,
-        fov,
+        fov: initialFov,
         showReticle: false,
         showZoomControl: true,
         showFullscreenControl: false,
@@ -170,7 +192,8 @@ export function AladinViewer({
         showCooGridControl: false,
       });
 
-      aladin.gotoRaDec(ra, dec);
+      aladin.gotoRaDec(initialRa, initialDec);
+      aladinRef.current = aladin;
 
       aladin.on("objectClicked", (object) => {
         const id = object?.data?.id;
@@ -213,8 +236,21 @@ export function AladinViewer({
       }
     } catch (error) {
       console.error("Error initializing Aladin:", error);
+      aladinRef.current = null;
     }
-  }, [ra, dec, fov, selectedSurvey, additionalSourcesKey]);
+
+    return () => {
+      aladinRef.current = null;
+    };
+  }, [selectedSurvey, additionalSourcesKey]);
+
+  useEffect(() => {
+    const aladin = aladinRef.current;
+    if (!aladin) return;
+
+    aladin.setFov(fov);
+    aladin.gotoRaDec(ra, dec);
+  }, [ra, dec, fov]);
 
   return (
     <div className="space-y-2">
@@ -260,15 +296,7 @@ declare global {
           showLayersControl?: boolean;
           showCooGridControl?: boolean;
         },
-      ) => {
-        gotoObject: (target: string) => void;
-        gotoRaDec: (ra: number, dec: number) => void;
-        addCatalog: (catalog: AladinCatalog) => void;
-        on: (
-          event: "objectClicked",
-          callback: (object: AladinSource | null) => void,
-        ) => void;
-      };
+      ) => AladinInstance;
       catalog: (options?: {
         displayLabel?: boolean;
         sourceSize?: number;
