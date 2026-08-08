@@ -3,10 +3,7 @@ import { Link, NavigateFunction, useNavigate } from "react-router-dom";
 import classNames from "classnames";
 import { Button } from "../core/Button";
 import { SuggestibleInput } from "../core/SuggestibleInput";
-import {
-  formatCoordinateInspectHint,
-  inspectCoordinateQuery,
-} from "../../lib/astronomy/parseCoordinateQuery";
+import { inspectSearchTypes } from "../../lib/search/searchTypes";
 
 interface SearchBarProps {
   initialValue?: string;
@@ -21,34 +18,20 @@ function searchHandler(navigate: NavigateFunction) {
   };
 }
 
-type SearchSuggestion = {
-  primary: string;
-  secondary?: string;
-};
-
-function searchSuggestion(query: string): SearchSuggestion | null {
+function searchSuggestionLines(query: string): string[] {
   const trimmed = query.trim();
   if (!trimmed) {
-    return null;
+    return [];
   }
 
-  const inspected = inspectCoordinateQuery(trimmed);
-  const coordinateHint = formatCoordinateInspectHint(inspected);
-
-  if (inspected.status === "valid" && coordinateHint) {
-    return {
-      primary: `Will search around coordinates: ${coordinateHint}`,
-    };
+  const { eligible, partial } = inspectSearchTypes(trimmed);
+  const lines = eligible.map((item) => item.suggestion);
+  for (const item of partial) {
+    lines.push(
+      `If typed fully, will also search ${item.type.title}: ${item.hint}`,
+    );
   }
-
-  if (inspected.status === "partial" && coordinateHint) {
-    return {
-      primary: `Will search name: ${trimmed}`,
-      secondary: `If typed fully, will search around coordinates: ${coordinateHint}`,
-    };
-  }
-
-  return { primary: `Will search name: ${trimmed}` };
+  return lines;
 }
 
 export function SearchBar({
@@ -72,29 +55,14 @@ export function SearchBar({
     if (!focused) {
       return [];
     }
-    const suggestion = searchSuggestion(value);
-    if (!suggestion) {
-      return [];
-    }
-    const nodes: ReactNode[] = [
+    return searchSuggestionLines(value).map((line, index) => (
       <div
-        key="primary"
+        key={`${index}-${line}`}
         className="px-2 py-2 text-left text-sm text-muted pointer-events-none"
       >
-        {suggestion.primary}
-      </div>,
-    ];
-    if (suggestion.secondary) {
-      nodes.push(
-        <div
-          key="secondary"
-          className="px-2 py-2 text-left text-sm text-muted pointer-events-none"
-        >
-          {suggestion.secondary}
-        </div>,
-      );
-    }
-    return nodes;
+        {line}
+      </div>
+    ));
   }
 
   return (

@@ -58,9 +58,7 @@ export function CatalogCard({
       type="button"
       className="!p-1.5 cursor-pointer"
       onClick={toggleOriginalData}
-      aria-label={
-        originalDataOpen ? "Hide original data" : "View original data"
-      }
+      hoverText={originalDataOpen ? "Hide original data" : "View original data"}
       aria-expanded={originalDataOpen}
     >
       <MdKeyboardArrowDown
@@ -98,7 +96,7 @@ export function CatalogCard({
                     onClick={() =>
                       navigate(originalDataCatalogLink(originalDataSql))
                     }
-                    aria-label="Open in data catalog"
+                    hoverText="Open in data catalog"
                   >
                     <MdCode className="size-5 text-muted" aria-hidden />
                   </Button>
