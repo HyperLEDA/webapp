@@ -1,4 +1,4 @@
-import { ReactElement, useEffect, useRef, useState } from "react";
+import { ReactElement, useEffect, useRef } from "react";
 import {
   NavigateFunction,
   useNavigate,
@@ -14,7 +14,7 @@ import { querySimple } from "../clients/backend/sdk.gen";
 import { PgcObject, QuerySimpleResponse } from "../clients/backend/types.gen";
 import { Link } from "../components/core/Link";
 import { Declination, RightAscension } from "../components/core/Astronomy";
-import { AladinViewer } from "../components/core/Aladin";
+import { AladinViewer, AladinViewerHandle } from "../components/core/Aladin";
 import { Button } from "../components/core/Button";
 import { Pagination } from "../components/ui/Pagination";
 import { backendClient } from "../clients/config";
@@ -189,28 +189,18 @@ function SearchResults({
   navigate,
 }: SearchResultsProps): ReactElement {
   const columns = resultTableColumns();
-  const aladinContainerRef = useRef<HTMLDivElement>(null);
-  const [focusedView, setFocusedView] = useState<SkyView | null>(null);
+  const aladinRef = useRef<AladinViewerHandle>(null);
 
   const allObjects = sections.flatMap((section) => section.results.objects);
   const skySources = objectsToSkySources(allObjects);
   const skyView = skyViewForSources(skySources);
-  const activeView = focusedView ?? skyView;
-
-  useEffect(() => {
-    setFocusedView(null);
-  }, [query, page, pageSize]);
 
   function handlePageChange(newPage: number): void {
     pageChangeHandler(navigate, query, pageSize, newPage);
   }
 
   function handleLocate(ra: number, dec: number): void {
-    aladinContainerRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-    setFocusedView({ ra, dec, fov: MIN_ALADIN_FOV_DEG });
+    aladinRef.current?.locate(ra, dec, MIN_ALADIN_FOV_DEG);
   }
 
   if (sections.length === 0) {
@@ -227,19 +217,18 @@ function SearchResults({
 
   return (
     <div className="space-y-6">
-      {activeView ? (
-        <div ref={aladinContainerRef}>
-          <AladinViewer
-            ra={activeView.ra}
-            dec={activeView.dec}
-            fov={activeView.fov}
-            className="w-full h-72"
-            additionalSources={skySources}
-            onSourceClick={(id) =>
-              window.open(`/object/${id}`, "_blank", "noopener,noreferrer")
-            }
-          />
-        </div>
+      {skyView ? (
+        <AladinViewer
+          ref={aladinRef}
+          ra={skyView.ra}
+          dec={skyView.dec}
+          fov={skyView.fov}
+          className="w-full h-72"
+          additionalSources={skySources}
+          onSourceClick={(id) =>
+            window.open(`/object/${id}`, "_blank", "noopener,noreferrer")
+          }
+        />
       ) : null}
       {sections.map((section) => (
         <section key={section.id} className="space-y-3">

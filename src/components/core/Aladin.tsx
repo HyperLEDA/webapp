@@ -1,5 +1,11 @@
 import classNames from "classnames";
-import { useEffect, useRef, useState } from "react";
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
 
 const ALADIN_SURVEYS = [
   {
@@ -132,6 +138,10 @@ interface AladinViewerProps {
   onSourceClick?: (id: string | number) => void;
 }
 
+export type AladinViewerHandle = {
+  locate: (ra: number, dec: number, fov?: number) => void;
+};
+
 type AladinInstance = {
   gotoObject: (target: string) => void;
   gotoRaDec: (ra: number, dec: number) => void;
@@ -143,133 +153,154 @@ type AladinInstance = {
   ) => void;
 };
 
-export function AladinViewer({
-  ra,
-  dec,
-  fov = 0.5,
-  survey = DEFAULT_ALADIN_SURVEY,
-  className = "w-full h-96",
-  additionalSources,
-  onSourceClick,
-}: AladinViewerProps) {
-  const aladinDivRef = useRef<HTMLDivElement>(null);
-  const aladinRef = useRef<AladinInstance | null>(null);
-  const viewRef = useRef({ ra, dec, fov });
-  const onSourceClickRef = useRef(onSourceClick);
-  const [selectedSurvey, setSelectedSurvey] = useState(survey);
-  const additionalSourcesKey = JSON.stringify(additionalSources ?? []);
+export const AladinViewer = forwardRef<AladinViewerHandle, AladinViewerProps>(
+  function AladinViewer(
+    {
+      ra,
+      dec,
+      fov = 0.5,
+      survey = DEFAULT_ALADIN_SURVEY,
+      className = "w-full h-96",
+      additionalSources,
+      onSourceClick,
+    },
+    ref,
+  ) {
+    const containerRef = useRef<HTMLDivElement>(null);
+    const aladinDivRef = useRef<HTMLDivElement>(null);
+    const aladinRef = useRef<AladinInstance | null>(null);
+    const viewRef = useRef({ ra, dec, fov });
+    const onSourceClickRef = useRef(onSourceClick);
+    const [selectedSurvey, setSelectedSurvey] = useState(survey);
+    const additionalSourcesKey = JSON.stringify(additionalSources ?? []);
 
-  viewRef.current = { ra, dec, fov };
+    viewRef.current = { ra, dec, fov };
 
-  useEffect(() => {
-    onSourceClickRef.current = onSourceClick;
-  }, [onSourceClick]);
-
-  useEffect(() => {
-    setSelectedSurvey(survey);
-  }, [survey]);
-
-  useEffect(() => {
-    if (!aladinDivRef.current || !window.A) {
-      return undefined;
-    }
-
-    try {
-      aladinDivRef.current.replaceChildren();
-
-      const {
-        ra: initialRa,
-        dec: initialDec,
-        fov: initialFov,
-      } = viewRef.current;
-      const aladin = window.A.aladin(aladinDivRef.current, {
-        survey: selectedSurvey,
-        fov: initialFov,
-        showReticle: false,
-        showZoomControl: true,
-        showFullscreenControl: false,
-        showLayersControl: true,
-        showCooGridControl: false,
-      });
-
-      aladin.gotoRaDec(initialRa, initialDec);
-      aladinRef.current = aladin;
-
-      aladin.on("objectClicked", (object) => {
-        const id = object?.data?.id;
-        if (id === undefined) {
-          return;
-        }
-        onSourceClickRef.current?.(id);
-      });
-
-      if (additionalSources && additionalSources.length > 0) {
-        const nameCatalog = window.A.catalog({
-          shape: drawSourceWithLabel,
-          color: "black",
-          displayLabel: false,
-          sourceSize: SOURCE_SIZE,
+    useImperativeHandle(ref, () => ({
+      locate(targetRa: number, targetDec: number, targetFov = 0.5) {
+        containerRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
         });
-        const descrCatalog = window.A.catalog({
-          color: "black",
-          shape: "cross",
-        });
-        aladin.addCatalog(nameCatalog);
-        aladin.addCatalog(descrCatalog);
+        const aladin = aladinRef.current;
+        if (!aladin) return;
+        aladin.setFov(targetFov);
+        aladin.gotoRaDec(targetRa, targetDec);
+      },
+    }));
 
-        additionalSources.forEach((source) => {
-          const data: AladinSourceData = {
-            name: source.label,
-            id: source.id,
-          };
-          if (source.description) {
-            descrCatalog.addSources([
-              window.A.marker(source.ra, source.dec, {
-                ...data,
-                popupTitle: source.label,
-                popupDesc: source.description,
-              }),
-            ]);
-          }
-          nameCatalog.addSources(window.A.source(source.ra, source.dec, data));
-        });
+    useEffect(() => {
+      onSourceClickRef.current = onSourceClick;
+    }, [onSourceClick]);
+
+    useEffect(() => {
+      setSelectedSurvey(survey);
+    }, [survey]);
+
+    useEffect(() => {
+      if (!aladinDivRef.current || !window.A) {
+        return undefined;
       }
-    } catch (error) {
-      console.error("Error initializing Aladin:", error);
-      aladinRef.current = null;
-    }
 
-    return () => {
-      aladinRef.current = null;
-    };
-  }, [selectedSurvey, additionalSourcesKey]);
+      try {
+        aladinDivRef.current.replaceChildren();
 
-  useEffect(() => {
-    const aladin = aladinRef.current;
-    if (!aladin) return;
+        const {
+          ra: initialRa,
+          dec: initialDec,
+          fov: initialFov,
+        } = viewRef.current;
+        const aladin = window.A.aladin(aladinDivRef.current, {
+          survey: selectedSurvey,
+          fov: initialFov,
+          showReticle: false,
+          showZoomControl: true,
+          showFullscreenControl: false,
+          showLayersControl: true,
+          showCooGridControl: false,
+        });
 
-    aladin.setFov(fov);
-    aladin.gotoRaDec(ra, dec);
-  }, [ra, dec, fov]);
+        aladin.gotoRaDec(initialRa, initialDec);
+        aladinRef.current = aladin;
 
-  return (
-    <div className="space-y-2">
-      <div ref={aladinDivRef} className={classNames("border", className)} />
-      <select
-        value={selectedSurvey}
-        onChange={(event) => setSelectedSurvey(event.target.value)}
-        className="bg-surface-2 border border-border rounded px-3 py-2 text-primary text-sm w-full"
-        aria-label="Image survey"
-      >
-        {ALADIN_SURVEYS.map((option) => (
-          <option key={option.survey} value={option.survey}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </div>
-  );
-}
+        aladin.on("objectClicked", (object) => {
+          const id = object?.data?.id;
+          if (id === undefined) {
+            return;
+          }
+          onSourceClickRef.current?.(id);
+        });
+
+        if (additionalSources && additionalSources.length > 0) {
+          const nameCatalog = window.A.catalog({
+            shape: drawSourceWithLabel,
+            color: "black",
+            displayLabel: false,
+            sourceSize: SOURCE_SIZE,
+          });
+          const descrCatalog = window.A.catalog({
+            color: "black",
+            shape: "cross",
+          });
+          aladin.addCatalog(nameCatalog);
+          aladin.addCatalog(descrCatalog);
+
+          additionalSources.forEach((source) => {
+            const data: AladinSourceData = {
+              name: source.label,
+              id: source.id,
+            };
+            if (source.description) {
+              descrCatalog.addSources([
+                window.A.marker(source.ra, source.dec, {
+                  ...data,
+                  popupTitle: source.label,
+                  popupDesc: source.description,
+                }),
+              ]);
+            }
+            nameCatalog.addSources(
+              window.A.source(source.ra, source.dec, data),
+            );
+          });
+        }
+      } catch (error) {
+        console.error("Error initializing Aladin:", error);
+        aladinRef.current = null;
+      }
+
+      return () => {
+        aladinRef.current = null;
+      };
+    }, [selectedSurvey, additionalSourcesKey]);
+
+    useEffect(() => {
+      const aladin = aladinRef.current;
+      if (!aladin) return;
+
+      aladin.setFov(fov);
+      aladin.gotoRaDec(ra, dec);
+    }, [ra, dec, fov]);
+
+    return (
+      <div ref={containerRef} className="space-y-2">
+        <div ref={aladinDivRef} className={classNames("border", className)} />
+        <select
+          value={selectedSurvey}
+          onChange={(event) => setSelectedSurvey(event.target.value)}
+          className="bg-surface-2 border border-border rounded px-3 py-2 text-primary text-sm w-full"
+          aria-label="Image survey"
+        >
+          {ALADIN_SURVEYS.map((option) => (
+            <option key={option.survey} value={option.survey}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </div>
+    );
+  },
+);
 
 interface AladinCatalog {
   addSources: (sources: AladinSource | AladinSource[]) => void;
