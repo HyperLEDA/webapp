@@ -17,7 +17,7 @@ const homePageHint: ReactElement = (
       </li>
       <li>
         By coordinates (decimal degrees):{" "}
-        <Link href="/query?q=187.7059%2B12.3911">187.7059+12.3911</Link>
+        <Link href="/query?q=189.0866%2B25.9875">189.0866+25.9875</Link>
       </li>
       <li>
         By coordinates (B1950):{" "}
@@ -25,11 +25,11 @@ const homePageHint: ReactElement = (
       </li>
       <li>
         By coordinates (galactic):{" "}
-        <Link href="/query?q=G283.777%2B74.491">G283.777+74.491</Link>
+        <Link href="/query?q=G208.711%2B44.539">G208.711+44.539</Link>
       </li>
       <li>
         By coordinates (supergalactic):{" "}
-        <Link href="/query?q=S102.89-2.35">S102.89-2.35</Link>
+        <Link href="/query?q=S95.61%2B6.12">S95.61+6.12</Link>
       </li>
     </ul>
   </div>
