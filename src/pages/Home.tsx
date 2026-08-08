@@ -6,6 +6,9 @@ const homePageHint: ReactElement = (
     <div>Examples:</div>
     <ul>
       <li>
+        By PGC number and name: <Link href="/query?q=123">123</Link>
+      </li>
+      <li>
         By name (string match): <Link href="/query?q=IC%20144">IC 144</Link>
       </li>
       <li>
@@ -18,7 +21,7 @@ const homePageHint: ReactElement = (
       </li>
       <li>
         By coordinates (B1950):{" "}
-        <Link href="/query?q=B123049.4%2B122328">B123049.4+122328</Link>
+        <Link href="/query?q=B132746.30%2B472711.0">B132746.30+472711.0</Link>
       </li>
       <li>
         By coordinates (galactic):{" "}

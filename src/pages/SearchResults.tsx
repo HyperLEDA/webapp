@@ -16,7 +16,10 @@ import { Declination, RightAscension } from "../components/core/Astronomy";
 import { AladinViewer } from "../components/core/Aladin";
 import { Pagination } from "../components/ui/Pagination";
 import { backendClient } from "../clients/config";
-import { parseCoordinateQuery } from "../lib/astronomy/parseCoordinateQuery";
+import {
+  resolveEligibleSearchTypes,
+  SearchType,
+} from "../lib/search/searchTypes";
 
 const MIN_ALADIN_FOV_DEG = 0.05;
 const ALADIN_FOV_PADDING = 1.4;
@@ -43,6 +46,16 @@ type SkySource = {
   dec: number;
   label: string;
   id: number;
+};
+
+type SearchSection = {
+  id: string;
+  title: string;
+  results: QuerySimpleResponse;
+};
+
+type MultiSearchResults = {
+  sections: SearchSection[];
 };
 
 function objectsToSkySources(objects: PgcObject[]): SkySource[] {
@@ -93,22 +106,8 @@ function skyViewForSources(sources: SkySource[]): {
   return { ra, dec, fov };
 }
 
-interface SearchResultsProps {
-  results: QuerySimpleResponse;
-  query: string;
-  page: number;
-  pageSize: number;
-  navigate: NavigateFunction;
-}
-
-function SearchResults({
-  results,
-  query,
-  page,
-  pageSize,
-  navigate,
-}: SearchResultsProps): ReactElement {
-  const columns: Column[] = [
+function resultTableColumns(): Column[] {
+  return [
     {
       name: "PGC",
       renderCell: (value: React.ReactElement | string | number) => (
@@ -139,96 +138,152 @@ function SearchResults({
       ),
     },
   ];
+}
+
+function objectsToTableData(objects: PgcObject[]) {
+  return objects.map((object) => ({
+    PGC: object.pgc,
+    Name: object.catalogs.designation?.name || "N/A",
+    Type: object.catalogs.nature?.type_name || "N/A",
+    Velocity:
+      object.catalogs.velocity?.heliocentric?.v !== undefined
+        ? `${object.catalogs.velocity.heliocentric.v.toFixed(0)} km/s`
+        : "N/A",
+    RA: object.catalogs.coordinates?.equatorial.ra || 0,
+    Dec: object.catalogs.coordinates?.equatorial.dec || 0,
+  }));
+}
+
+interface SearchResultsProps {
+  sections: SearchSection[];
+  query: string;
+  page: number;
+  pageSize: number;
+  navigate: NavigateFunction;
+}
+
+function SearchResults({
+  sections,
+  query,
+  page,
+  pageSize,
+  navigate,
+}: SearchResultsProps): ReactElement {
+  const columns = resultTableColumns();
 
   function handlePageChange(newPage: number): void {
     pageChangeHandler(navigate, query, pageSize, newPage);
   }
 
-  if (results.objects.length > 0) {
-    const skySources = objectsToSkySources(results.objects);
-    const skyView = skyViewForSources(skySources);
-
+  if (sections.length === 0) {
     return (
-      <div className="space-y-6">
-        {skyView ? (
-          <AladinViewer
-            ra={skyView.ra}
-            dec={skyView.dec}
-            fov={skyView.fov}
-            className="w-full h-72"
-            additionalSources={skySources}
-            onSourceClick={(id) =>
-              window.open(`/object/${id}`, "_blank", "noopener,noreferrer")
-            }
-          />
-        ) : null}
-        <CommonTable
-          columns={columns}
-          data={results.objects.map((object) => ({
-            PGC: object.pgc,
-            Name: object.catalogs.designation?.name || "N/A",
-            Type: object.catalogs.nature?.type_name || "N/A",
-            Velocity:
-              object.catalogs.velocity?.heliocentric?.v !== undefined
-                ? `${object.catalogs.velocity.heliocentric.v.toFixed(0)} km/s`
-                : "N/A",
-            RA: object.catalogs.coordinates?.equatorial.ra || 0,
-            Dec: object.catalogs.coordinates?.equatorial.dec || 0,
-          }))}
-          className="w-full"
-        />
-        <Pagination
-          page={page}
-          pageSize={pageSize}
-          records={results.objects}
-          handlePageChange={handlePageChange}
-        />
-      </div>
+      <ErrorPage
+        title="No Results Found"
+        message={`No results found for "${query}"`}
+        className="p-4"
+      >
+        <ErrorPageHomeButton onClick={() => navigate("/")} />
+      </ErrorPage>
     );
   }
 
+  const allObjects = sections.flatMap((section) => section.results.objects);
+  const skySources = objectsToSkySources(allObjects);
+  const skyView = skyViewForSources(skySources);
+
   return (
-    <ErrorPage
-      title="No Results Found"
-      message={`No results found for "${query}"`}
-      className="p-4"
-    >
-      <ErrorPageHomeButton onClick={() => navigate("/")} />
-    </ErrorPage>
+    <div className="space-y-6">
+      {skyView ? (
+        <AladinViewer
+          ra={skyView.ra}
+          dec={skyView.dec}
+          fov={skyView.fov}
+          className="w-full h-72"
+          additionalSources={skySources}
+          onSourceClick={(id) =>
+            window.open(`/object/${id}`, "_blank", "noopener,noreferrer")
+          }
+        />
+      ) : null}
+      {sections.map((section) => (
+        <section key={section.id} className="space-y-3">
+          <h2 className="text-xl font-semibold">{section.title}</h2>
+          <CommonTable
+            columns={columns}
+            data={objectsToTableData(section.results.objects)}
+            className="w-full"
+          />
+          <Pagination
+            page={page}
+            pageSize={pageSize}
+            records={section.results.objects}
+            handlePageChange={handlePageChange}
+          />
+        </section>
+      ))}
+    </div>
   );
+}
+
+async function fetchSearchType(
+  type: SearchType,
+  query: string,
+  page: number,
+  pageSize: number,
+): Promise<SearchSection | null> {
+  const response = await querySimple({
+    client: backendClient,
+    query: {
+      ...type.toQueryParams(query.trim()),
+      page,
+      page_size: pageSize,
+    },
+  });
+
+  if (response.error || !response.data) {
+    const err = response.error;
+    throw new Error(
+      `Error during ${type.title} query: ${typeof err === "object" ? JSON.stringify(err) : err}`,
+    );
+  }
+
+  const results = response.data.data;
+  if (results.objects.length === 0) {
+    return null;
+  }
+
+  return {
+    id: type.id,
+    title: type.title,
+    results,
+  };
 }
 
 async function fetcher(
   query: string,
   page: number,
   pageSize: number,
-): Promise<QuerySimpleResponse> {
+): Promise<MultiSearchResults> {
   if (!query.trim()) {
     throw new Error("Empty query");
   }
 
-  const coordinateQuery = parseCoordinateQuery(query);
-  const response = await querySimple({
-    client: backendClient,
-    query: {
-      ...(coordinateQuery ? coordinateQuery.toQueryParams() : { name: query }),
-      page: page,
-      page_size: pageSize,
-    },
-  });
+  const eligibleTypes = resolveEligibleSearchTypes(query);
+  if (eligibleTypes.length === 0) {
+    throw new Error(`No search types matched query ${query}`);
+  }
 
-  if (response.data?.data.objects.length === 0) {
+  const sections = (
+    await Promise.all(
+      eligibleTypes.map((type) => fetchSearchType(type, query, page, pageSize)),
+    )
+  ).filter((section): section is SearchSection => section !== null);
+
+  if (sections.length === 0) {
     throw new Error(`No objects found for query ${query}`);
   }
 
-  if (response.error || !response.data) {
-    const err = response.error;
-    throw new Error(
-      `Error during query: ${typeof err === "object" ? JSON.stringify(err) : err}`,
-    );
-  }
-
-  return response.data.data;
+  return { sections };
 }
 
 export function SearchResultsPage(): ReactElement {
@@ -257,7 +312,7 @@ export function SearchResultsPage(): ReactElement {
     if (results) {
       return (
         <SearchResults
-          results={results}
+          sections={results.sections}
           query={query}
           page={page}
           pageSize={pageSize}
