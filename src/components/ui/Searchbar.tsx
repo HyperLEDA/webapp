@@ -10,6 +10,7 @@ interface SearchBarProps {
   onSearch?: (query: string) => void;
   className?: string;
   logoSize?: "small" | "large";
+  autoFocus?: boolean;
 }
 
 function searchHandler(navigate: NavigateFunction) {
@@ -39,6 +40,7 @@ export function SearchBar({
   logoSize = "small",
   onSearch,
   className,
+  autoFocus,
 }: SearchBarProps): ReactElement {
   const [searchQuery, setSearchQuery] = useState<string>(initialValue);
   const [focused, setFocused] = useState(false);
@@ -97,6 +99,7 @@ export function SearchBar({
               getSuggestions={getSuggestions}
               placeholder="Search for an object..."
               className="h-10 px-2 py-1"
+              autoFocus={autoFocus}
               onFocus={() => setFocused(true)}
               onBlur={() => setFocused(false)}
               onKeyDown={(e) => {

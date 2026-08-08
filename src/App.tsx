@@ -23,7 +23,7 @@ function App() {
             path="/"
             element={
               <>
-                <SearchBar logoSize="large" />
+                <SearchBar logoSize="large" autoFocus />
                 <HomePage />
               </>
             }
