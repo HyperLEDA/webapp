@@ -124,23 +124,13 @@ function resultTableColumns(): Column[] {
     { name: "Velocity" },
     {
       name: "RA",
-      renderCell: (value: React.ReactElement | string | number) => (
-        <RightAscension
-          value={
-            typeof value === "number" ? value : parseFloat(value as string)
-          }
-        />
-      ),
+      renderCell: (value: React.ReactElement | string | number) =>
+        typeof value === "number" ? <RightAscension value={value} /> : value,
     },
     {
       name: "Dec",
-      renderCell: (value: React.ReactElement | string | number) => (
-        <Declination
-          value={
-            typeof value === "number" ? value : parseFloat(value as string)
-          }
-        />
-      ),
+      renderCell: (value: React.ReactElement | string | number) =>
+        typeof value === "number" ? <Declination value={value} /> : value,
     },
   ];
 }
@@ -177,8 +167,8 @@ function objectsToTableData(
         object.catalogs.velocity?.heliocentric?.v !== undefined
           ? `${object.catalogs.velocity.heliocentric.v.toFixed(0)} km/s`
           : "N/A",
-      RA: equatorial?.ra || 0,
-      Dec: equatorial?.dec || 0,
+      RA: hasCoords ? equatorial.ra : "N/A",
+      Dec: hasCoords ? equatorial.dec : "N/A",
     };
   });
 }

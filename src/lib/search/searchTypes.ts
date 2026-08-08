@@ -17,7 +17,7 @@ export type SearchTypePartial = {
 export type SearchType = {
   id: string;
   title: string;
-  match: (query: string) => string | null;
+  suggest: (query: string) => string | null;
   partialInspect?: (query: string) => SearchTypePartial | null;
   toQueryParams: (query: string) => SearchQueryParams;
 };
@@ -33,7 +33,7 @@ function regexSearchType(opts: {
   return {
     id: opts.id,
     title: opts.title,
-    match: (query: string) => {
+    suggest: (query: string) => {
       if (!opts.patterns.some((pattern) => pattern.test(query))) {
         return null;
       }
@@ -63,7 +63,7 @@ const designationSearchType = regexSearchType({
 const coordinatesSearchType: SearchType = {
   id: "coordinates",
   title: "Coordinates",
-  match: (query) => {
+  suggest: (query) => {
     const inspected = inspectCoordinateQuery(query);
     if (inspected.status !== "valid") {
       return null;
@@ -105,7 +105,7 @@ export function resolveEligibleSearchTypes(query: string): SearchType[] {
   if (!trimmed) {
     return [];
   }
-  return SEARCH_TYPES.filter((type) => type.match(trimmed) !== null);
+  return SEARCH_TYPES.filter((type) => type.suggest(trimmed) !== null);
 }
 
 export function inspectSearchTypes(query: string): {
@@ -121,7 +121,7 @@ export function inspectSearchTypes(query: string): {
   const partial: { type: SearchType; hint: string }[] = [];
 
   for (const type of SEARCH_TYPES) {
-    const suggestion = type.match(trimmed);
+    const suggestion = type.suggest(trimmed);
     if (suggestion !== null) {
       eligible.push({ type, suggestion });
       continue;
