@@ -31,8 +31,23 @@ function readStoredTheme(): ThemePreference {
   return "system";
 }
 
+function applyFavicon(effectiveTheme: EffectiveTheme): void {
+  const href = effectiveTheme === "dark" ? "/logo-dark.png" : "/logo.png";
+  let link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
+  if (!link) {
+    link = document.createElement("link");
+    link.rel = "icon";
+    link.type = "image/png";
+    document.head.appendChild(link);
+  }
+  if (!link.href.endsWith(href)) {
+    link.href = href;
+  }
+}
+
 function applyEffectiveTheme(effectiveTheme: EffectiveTheme): void {
   document.documentElement.classList.toggle("dark", effectiveTheme === "dark");
+  applyFavicon(effectiveTheme);
 }
 
 const themeCycle: ThemePreference[] = ["system", "light", "dark"];
