@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "openapi-ts": "openapi-ts",
     "prettier": "prettier",
-    "test": "vitest run",
+    "test": "output=$(vitest run 2>&1) || { printf '%s\\n' \"$output\"; exit 1; }",
     "test:watch": "vitest"
   },
   "dependencies": {
