@@ -3,6 +3,7 @@ import { Link, NavigateFunction, useNavigate } from "react-router-dom";
 import classNames from "classnames";
 import { Button } from "../core/Button";
 import { SuggestibleInput } from "../core/SuggestibleInput";
+import { useTheme } from "../../hooks/useTheme";
 import { inspectSearchTypes } from "../../lib/search/searchTypes";
 
 interface SearchBarProps {
@@ -45,7 +46,9 @@ export function SearchBar({
   const [searchQuery, setSearchQuery] = useState<string>(initialValue);
   const [focused, setFocused] = useState(false);
   const navigate = useNavigate();
+  const { effectiveTheme } = useTheme();
   const onSearchHandler = onSearch ?? searchHandler(navigate);
+  const logoSrc = effectiveTheme === "dark" ? "/logo-dark.png" : "/logo.png";
 
   function handleSubmit() {
     if (searchQuery.trim()) {
@@ -77,7 +80,7 @@ export function SearchBar({
     >
       <Link to="/">
         <img
-          src="/logo.png"
+          src={logoSrc}
           alt="HyperLeda Logo"
           className={classNames({
             "h-32 mx-auto mb-2": logoSize === "large",
