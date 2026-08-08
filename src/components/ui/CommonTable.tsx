@@ -5,10 +5,20 @@ import { Loading } from "../core/Loading";
 
 export type CellPrimitive = ReactElement | string | number;
 
+export type ColumnWidth = "auto" | "fit";
+
 export interface Column {
   name: string;
   renderCell?: (value: CellPrimitive) => ReactNode;
   hint?: ReactElement;
+  width?: ColumnWidth;
+}
+
+function columnWidthClassName(width: ColumnWidth = "auto"): string | undefined {
+  if (width === "fit") {
+    return "w-px whitespace-nowrap text-center";
+  }
+  return undefined;
 }
 
 interface CommonTableProps {
@@ -82,6 +92,7 @@ export function CommonTable({
                     className={classNames(
                       "border border-border px-2 py-1 text-center font-semibold text-primary",
                       columnHeaderClassName,
+                      columnWidthClassName(column.width),
                     )}
                   >
                     {column.hint ? (
@@ -114,6 +125,7 @@ export function CommonTable({
                         className={classNames(
                           "border border-border px-2 py-1",
                           cellClassName,
+                          columnWidthClassName(column.width),
                         )}
                       >
                         {renderCell(cellValue, column)}

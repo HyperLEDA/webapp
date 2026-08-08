@@ -112,7 +112,7 @@ function skyViewForSources(sources: SkySource[]): SkyView | null {
 
 function resultTableColumns(): Column[] {
   return [
-    { name: "" },
+    { name: "", width: "fit" },
     {
       name: "PGC",
       renderCell: (value: React.ReactElement | string | number) => (
@@ -159,9 +159,7 @@ function objectsToTableData(
         <Button
           type="button"
           transparent
-          aria-label="Locate"
-          title="Locate"
-          className="mx-auto px-1.5 py-1.5"
+          hoverText="Locate"
           onClick={(event) => {
             event.stopPropagation();
             onLocate(equatorial.ra, equatorial.dec);

@@ -90,7 +90,7 @@ export function CardActionsMenu({
         type="button"
         className="!p-1.5 cursor-pointer"
         onClick={() => setOpen((value) => !value)}
-        aria-label="Actions"
+        hoverText="Actions"
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={menuId}
