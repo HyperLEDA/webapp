@@ -1,5 +1,5 @@
 import { BrowserRouter, Outlet, Route, Routes } from "react-router-dom";
-import { Layout } from "@hyperleda/ui";
+import { Layout as SharedLayout } from "@hyperleda/ui";
 import { HomePage } from "./pages/Home";
 import { SearchResultsPage } from "./pages/SearchResults";
 import { ObjectDetailsPage } from "./pages/ObjectDetails";
@@ -15,11 +15,11 @@ import { TableDetailsPage } from "./pages/TableDetails";
 import { AdminPage } from "./pages/Admin";
 import { AdminMergePgcPage } from "./pages/AdminMergePgc";
 
-function AppLayout() {
+function Layout() {
   return (
-    <Layout navbar={<Navbar />}>
+    <SharedLayout navbar={<Navbar />}>
       <Outlet />
-    </Layout>
+    </SharedLayout>
   );
 }
 
@@ -27,7 +27,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route element={<AppLayout />}>
+        <Route element={<Layout />}>
           <Route
             path="/"
             element={
