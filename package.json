@@ -1,7 +1,7 @@
 {
   "name": "hyperleda-webapp",
   "private": true,
-  "workspaces": ["apps/*"],
+  "workspaces": ["apps/*", "packages/*"],
   "scripts": {
     "dev:web": "yarn workspace @hyperleda/web dev",
     "dev:admin": "yarn workspace @hyperleda/admin dev",
@@ -9,6 +9,7 @@
     "build:admin": "yarn workspace @hyperleda/admin build",
     "lint:web": "yarn workspace @hyperleda/web lint",
     "lint:admin": "yarn workspace @hyperleda/admin lint",
+    "lint:ui": "yarn workspace @hyperleda/ui lint",
     "test:web": "yarn workspace @hyperleda/web test",
     "test:admin": "yarn workspace @hyperleda/admin test",
     "start": "node server.mjs"

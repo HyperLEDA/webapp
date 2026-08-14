@@ -10,12 +10,16 @@ import {
   MdSearch,
   MdTableChart,
 } from "react-icons/md";
+import {
+  Navbar as SharedNavbar,
+  NavRailButton,
+  navRailControlClassName,
+} from "@hyperleda/ui";
 import { clearAuthToken, isLoggedIn } from "../../auth/token";
 import { logout } from "../../clients/admin/sdk.gen";
 import { adminClient } from "../../clients/config";
 import { Link } from "../core/Link";
 import { AppTooltip } from "./AppTooltip";
-import { SidebarRailButton, sidebarRailControlClassName } from "./SidebarRail";
 import { ThemeSwitcher } from "./ThemeSwitcher";
 
 const navItems = [
@@ -100,15 +104,60 @@ export function Navbar() {
 
   return (
     <>
-      <nav className="fixed left-0 top-0 h-screen w-12 flex flex-col items-center pt-4 pb-4 gap-2 bg-surface-2 z-20">
+      <SharedNavbar
+        tone="web"
+        footer={
+          <>
+            {showOpenProductionButton ? (
+              <AppTooltip
+                content="Open this page on production"
+                placement="right"
+              >
+                <NavRailButton
+                  onClick={() =>
+                    openCurrentPathOnOrigin(configuredProductionWeb)
+                  }
+                >
+                  <MdOpenInNew size={20} />
+                </NavRailButton>
+              </AppTooltip>
+            ) : null}
+            {isLoggedIn() ? (
+              <AppTooltip content="Logout" placement="right">
+                <NavRailButton onClick={handleLogout} disabled={loggingOut}>
+                  <MdLogout size={20} />
+                </NavRailButton>
+              </AppTooltip>
+            ) : (
+              <AppTooltip content="Login" placement="right">
+                <NavLink
+                  to="/login"
+                  end
+                  className={({ isActive }) =>
+                    navRailControlClassName(isActive)
+                  }
+                >
+                  <MdLogin size={20} />
+                </NavLink>
+              </AppTooltip>
+            )}
+            <ThemeSwitcher />
+            <NavRailButton
+              ref={infoButtonRef}
+              active={footerOpen}
+              onClick={() => setFooterOpen(!footerOpen)}
+            >
+              <MdInfo size={20} />
+            </NavRailButton>
+          </>
+        }
+      >
         {navItems.map((item) => (
           <AppTooltip key={item.to} content={item.label} placement="right">
             <NavLink
               to={item.to}
               end={item.end ?? true}
-              className={({ isActive }) =>
-                sidebarRailControlClassName(isActive)
-              }
+              className={({ isActive }) => navRailControlClassName(isActive)}
             >
               {item.icon}
             </NavLink>
@@ -119,57 +168,13 @@ export function Navbar() {
             <NavLink
               to={adminNavItem.to}
               end={adminNavItem.end}
-              className={({ isActive }) =>
-                sidebarRailControlClassName(isActive)
-              }
+              className={({ isActive }) => navRailControlClassName(isActive)}
             >
               {adminNavItem.icon}
             </NavLink>
           </AppTooltip>
         ) : null}
-
-        <div className="mt-auto flex flex-col gap-2 items-center">
-          {showOpenProductionButton ? (
-            <AppTooltip
-              content="Open this page on production"
-              placement="right"
-            >
-              <SidebarRailButton
-                onClick={() => openCurrentPathOnOrigin(configuredProductionWeb)}
-              >
-                <MdOpenInNew size={20} />
-              </SidebarRailButton>
-            </AppTooltip>
-          ) : null}
-          {isLoggedIn() ? (
-            <AppTooltip content="Logout" placement="right">
-              <SidebarRailButton onClick={handleLogout} disabled={loggingOut}>
-                <MdLogout size={20} />
-              </SidebarRailButton>
-            </AppTooltip>
-          ) : (
-            <AppTooltip content="Login" placement="right">
-              <NavLink
-                to="/login"
-                end
-                className={({ isActive }) =>
-                  sidebarRailControlClassName(isActive)
-                }
-              >
-                <MdLogin size={20} />
-              </NavLink>
-            </AppTooltip>
-          )}
-          <ThemeSwitcher />
-          <SidebarRailButton
-            ref={infoButtonRef}
-            active={footerOpen}
-            onClick={() => setFooterOpen(!footerOpen)}
-          >
-            <MdInfo size={20} />
-          </SidebarRailButton>
-        </div>
-      </nav>
+      </SharedNavbar>
 
       <div
         ref={infoPanelRef}

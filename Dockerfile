@@ -5,6 +5,7 @@ WORKDIR /app
 COPY package.json yarn.lock ./
 COPY apps/web/package.json ./apps/web/
 COPY apps/admin/package.json ./apps/admin/
+COPY packages/ui/package.json ./packages/ui/
 RUN yarn install --frozen-lockfile
 COPY . .
 RUN yarn workspace @hyperleda/${APP} build
@@ -17,6 +18,7 @@ WORKDIR /app
 COPY package.json yarn.lock ./
 COPY apps/web/package.json ./apps/web/
 COPY apps/admin/package.json ./apps/admin/
+COPY packages/ui/package.json ./packages/ui/
 RUN yarn install --frozen-lockfile --production
 COPY --from=builder /app/apps/${APP}/dist ./dist
 COPY server.mjs .

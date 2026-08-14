@@ -1,16 +1,16 @@
-import { ReactElement } from "react";
+import type { ReactElement } from "react";
 import { MdDarkMode, MdLightMode, MdSettingsBrightness } from "react-icons/md";
+import { NavRailButton } from "./NavRailButton";
 import {
-  NavRailButton,
   nextThemePreference,
   themePreferenceLabel,
   useTheme,
-} from "@hyperleda/ui";
-import { AppTooltip } from "./AppTooltip";
+} from "./useTheme";
 
 export function ThemeSwitcher(): ReactElement {
   const { theme, cycleTheme } = useTheme();
   const nextTheme = nextThemePreference(theme);
+  const label = `Theme: ${themePreferenceLabel(theme)} (click to switch to ${themePreferenceLabel(nextTheme)})`;
 
   const icon =
     theme === "system" ? (
@@ -22,13 +22,8 @@ export function ThemeSwitcher(): ReactElement {
     );
 
   return (
-    <AppTooltip
-      placement="right"
-      content={`Theme: ${themePreferenceLabel(theme)} (click to switch to ${themePreferenceLabel(nextTheme)})`}
-    >
-      <NavRailButton onClick={cycleTheme} aria-label="Toggle theme">
-        {icon}
-      </NavRailButton>
-    </AppTooltip>
+    <NavRailButton onClick={cycleTheme} aria-label="Toggle theme" title={label}>
+      {icon}
+    </NavRailButton>
   );
 }
