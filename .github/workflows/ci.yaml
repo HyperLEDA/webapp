@@ -25,6 +25,9 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        app: [web, admin]
     steps:
       - uses: actions/checkout@v6
 
@@ -46,28 +49,37 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
+          build-args: |
+            APP=${{ matrix.app }}
           load: ${{ github.ref_name == github.event.repository.default_branch }}
           push: false
-          tags: local/app:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          tags: local/${{ matrix.app }}:latest
+          cache-from: type=gha,scope=${{ matrix.app }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.app }}
 
       - name: Save image
         if: github.ref_name == github.event.repository.default_branch
-        run: docker save local/app:latest -o image.tar
+        run: docker save local/${{ matrix.app }}:latest -o image-${{ matrix.app }}.tar
 
       - name: Upload image
         if: github.ref_name == github.event.repository.default_branch
         uses: actions/upload-artifact@v4
         with:
-          name: docker-image
-          path: image.tar
+          name: docker-image-${{ matrix.app }}
+          path: image-${{ matrix.app }}.tar
           retention-days: 1
 
   release:
     runs-on: ubuntu-latest
     needs: [tests, build]
     if: github.ref_name == github.event.repository.default_branch
+    strategy:
+      matrix:
+        include:
+          - app: web
+            image: ghcr.io/hyperleda/hyperleda-webapp
+          - app: admin
+            image: ghcr.io/hyperleda/hyperleda-admin
     permissions:
       contents: read
       packages: write
@@ -75,7 +87,7 @@ jobs:
       - name: Download image
         uses: actions/download-artifact@v4
         with:
-          name: docker-image
+          name: docker-image-${{ matrix.app }}
 
       - name: Set up Docker runtime
         uses: docker/setup-buildx-action@v3
@@ -88,17 +100,14 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Load image
-        run: docker load -i image.tar
-
-      - name: Set image name
-        run: echo "IMAGE_NAME=ghcr.io/hyperleda/hyperleda-webapp" >> "$GITHUB_ENV"
+        run: docker load -i image-${{ matrix.app }}.tar
 
       - name: Set short SHA
         run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> "$GITHUB_ENV"
 
       - name: Push image
         run: |
-          docker tag local/app:latest ${{ env.IMAGE_NAME }}:${{ env.SHORT_SHA }}
-          docker tag local/app:latest ${{ env.IMAGE_NAME }}:latest
-          docker push ${{ env.IMAGE_NAME }}:${{ env.SHORT_SHA }}
-          docker push ${{ env.IMAGE_NAME }}:latest
+          docker tag local/${{ matrix.app }}:latest ${{ matrix.image }}:${{ env.SHORT_SHA }}
+          docker tag local/${{ matrix.app }}:latest ${{ matrix.image }}:latest
+          docker push ${{ matrix.image }}:${{ env.SHORT_SHA }}
+          docker push ${{ matrix.image }}:latest

@@ -14,7 +14,6 @@ dist-ssr
 
 # Editor directories and files
 .vscode/*
-!.vscode/extensions.json
 .idea
 .DS_Store
 *.suo
@@ -24,6 +23,6 @@ dist-ssr
 *.sw?
 
 # code-generated files
-src/clients/backend
-src/clients/admin
+apps/web/src/clients/backend
+apps/web/src/clients/admin
 

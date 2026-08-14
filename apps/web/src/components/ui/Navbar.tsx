@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   MdAccountTree,
   MdAdminPanelSettings,
@@ -10,13 +10,11 @@ import {
   MdSearch,
   MdTableChart,
 } from "react-icons/md";
+import { NavRail, NavButton, NavItem, ThemeSwitcher } from "@hyperleda/ui";
 import { clearAuthToken, isLoggedIn } from "../../auth/token";
 import { logout } from "../../clients/admin/sdk.gen";
 import { adminClient } from "../../clients/config";
 import { Link } from "../core/Link";
-import { AppTooltip } from "./AppTooltip";
-import { SidebarRailButton, sidebarRailControlClassName } from "./SidebarRail";
-import { ThemeSwitcher } from "./ThemeSwitcher";
 
 const navItems = [
   { to: "/", icon: <MdSearch size={20} />, label: "Object search", end: true },
@@ -100,76 +98,62 @@ export function Navbar() {
 
   return (
     <>
-      <nav className="fixed left-0 top-0 h-screen w-12 flex flex-col items-center pt-4 pb-4 gap-2 bg-surface-2 z-20">
-        {navItems.map((item) => (
-          <AppTooltip key={item.to} content={item.label} placement="right">
-            <NavLink
-              to={item.to}
-              end={item.end ?? true}
-              className={({ isActive }) =>
-                sidebarRailControlClassName(isActive)
-              }
-            >
-              {item.icon}
-            </NavLink>
-          </AppTooltip>
-        ))}
-        {isLoggedIn() ? (
-          <AppTooltip content={adminNavItem.label} placement="right">
-            <NavLink
-              to={adminNavItem.to}
-              end={adminNavItem.end}
-              className={({ isActive }) =>
-                sidebarRailControlClassName(isActive)
-              }
-            >
-              {adminNavItem.icon}
-            </NavLink>
-          </AppTooltip>
-        ) : null}
-
-        <div className="mt-auto flex flex-col gap-2 items-center">
-          {showOpenProductionButton ? (
-            <AppTooltip
-              content="Open this page on production"
-              placement="right"
-            >
-              <SidebarRailButton
+      <NavRail
+        footer={
+          <>
+            {showOpenProductionButton ? (
+              <NavButton
+                label="Open this page on production"
                 onClick={() => openCurrentPathOnOrigin(configuredProductionWeb)}
               >
                 <MdOpenInNew size={20} />
-              </SidebarRailButton>
-            </AppTooltip>
-          ) : null}
-          {isLoggedIn() ? (
-            <AppTooltip content="Logout" placement="right">
-              <SidebarRailButton onClick={handleLogout} disabled={loggingOut}>
-                <MdLogout size={20} />
-              </SidebarRailButton>
-            </AppTooltip>
-          ) : (
-            <AppTooltip content="Login" placement="right">
-              <NavLink
-                to="/login"
-                end
-                className={({ isActive }) =>
-                  sidebarRailControlClassName(isActive)
-                }
+              </NavButton>
+            ) : null}
+            {isLoggedIn() ? (
+              <NavButton
+                label="Logout"
+                onClick={handleLogout}
+                disabled={loggingOut}
               >
+                <MdLogout size={20} />
+              </NavButton>
+            ) : (
+              <NavItem to="/login" end label="Login">
                 <MdLogin size={20} />
-              </NavLink>
-            </AppTooltip>
-          )}
-          <ThemeSwitcher />
-          <SidebarRailButton
-            ref={infoButtonRef}
-            active={footerOpen}
-            onClick={() => setFooterOpen(!footerOpen)}
+              </NavItem>
+            )}
+            <ThemeSwitcher />
+            <NavButton
+              ref={infoButtonRef}
+              label="Information"
+              active={footerOpen}
+              onClick={() => setFooterOpen(!footerOpen)}
+            >
+              <MdInfo size={20} />
+            </NavButton>
+          </>
+        }
+      >
+        {navItems.map((item) => (
+          <NavItem
+            key={item.to}
+            to={item.to}
+            end={item.end ?? true}
+            label={item.label}
           >
-            <MdInfo size={20} />
-          </SidebarRailButton>
-        </div>
-      </nav>
+            {item.icon}
+          </NavItem>
+        ))}
+        {isLoggedIn() ? (
+          <NavItem
+            to={adminNavItem.to}
+            end={adminNavItem.end}
+            label={adminNavItem.label}
+          >
+            {adminNavItem.icon}
+          </NavItem>
+        ) : null}
+      </NavRail>
 
       <div
         ref={infoPanelRef}

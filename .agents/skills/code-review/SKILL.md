@@ -46,7 +46,7 @@ The comment used for a function, variable, or expression contradicts the content
 
 ### misleading-name
 
-The name of a function, method, variable, parameter, or class contradicts what it actually does. Examples of contradictions: a get*\* or fetch*_ function that mutates state, an is\__/has\_\* name that does not return a boolean, a singular name bound to a collection, a boolean flag whose name implies the opposite polarity of the behavior it controls, or a verb that names a different operation than the one performed. Only flag when the mismatch is visible in the body of the token in the diff or in the code the diff calls. Do not flag names that are merely vague, short, or abbreviated.
+The name of a function, method, variable, parameter, or class contradicts what it actually does. Examples of contradictions: a get_* or fetch_* function that mutates state, an is__/has__ name that does not return a boolean, a singular name bound to a collection, a boolean flag whose name implies the opposite polarity of the behavior it controls, or a verb that names a different operation than the one performed. Only flag when the mismatch is visible in the body of the token in the diff or in the code the diff calls. Do not flag names that are merely vague, short, or abbreviated.
 
 ### typos
 
@@ -99,3 +99,27 @@ A resource that requires deterministic release — database connection or cursor
 ### call-in-loop
 
 A database query, HTTP request, or other heavy I/O call is issued once per item inside a loop where the project already provides a batched or bulk equivalent. Only flag when the batched helper exists, cited by file and line, and the loop bound is data-dependent rather than a small fixed number.
+
+### possible-sql-injection
+
+SQL is built by interpolating or concatenating untrusted values into the query string with request parameters, user input, or other external data without using parameterized placeholders and bound arguments. Only flag when the interpolated value is not a constant or a trusted identifier whitelist, and when a parameterized API for that database driver or ORM exists in the project or standard library.
+
+### sensitive-data-logged
+
+A log call, print, or error report includes a secret or personally identifying value: password, API key, token, session cookie, authorization header, private key, etc. Only flag when the logged expression is clearly that sensitive value or a structure that embeds it (for example logging an entire headers dict that contains Authorization). Do not flag redacted, hashed, or truncated forms, nor logging of non-secret identifiers such as user ids or request ids.
+
+### hardcoded-secret
+
+A secret is committed as a string literal (API key, password, token, private key, connection string with credentials). Only flag when the value looks like a real credential, not a placeholder/test fixture.
+
+### ssrf
+
+An HTTP client fetches a URL taken from user/external input with no allowlist or host restriction.
+
+### command-injection
+
+subprocess/os.system/os.popen runs a shell with concatenated or formatted user/external input (shell=True, or a single string command). Only flag when the injected value is not a constant/whitelist.
+
+### pointless-wrapper
+
+A new or changed function or method only forwards to another callable with the same arguments and return value, adding no conversion, validation, defaulting, error handling, or other logic. Only flag when call sites could invoke the inner callable directly, the wrapper does not implement an interface, protocol, or abstract method, and it is not a public re-export of a private or third-party symbol.

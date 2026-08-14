@@ -1,0 +1,35 @@
+{
+  "name": "@hyperleda/ui",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./src/styles.css": "./src/styles.css"
+  },
+  "scripts": {
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "classnames": "^2.5.1",
+    "flowbite-react": "^0.12.17"
+  },
+  "peerDependencies": {
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-icons": "^5.7.0",
+    "react-router-dom": "^7.18.2"
+  },
+  "devDependencies": {
+    "@hyperleda/eslint-config": "*",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "eslint": "^10.8.1",
+    "globals": "^17.9.0",
+    "jiti": "^2.7.0",
+    "react-icons": "^5.7.0",
+    "react-router-dom": "^7.18.2",
+    "typescript": "^6.0.3"
+  }
+}

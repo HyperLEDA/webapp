@@ -1,16 +1,16 @@
-import { ReactElement } from "react";
+import type { ReactElement } from "react";
 import { MdDarkMode, MdLightMode, MdSettingsBrightness } from "react-icons/md";
+import { NavButton } from "./NavRail";
 import {
   nextThemePreference,
   themePreferenceLabel,
   useTheme,
-} from "../../hooks/useTheme";
-import { AppTooltip } from "./AppTooltip";
-import { SidebarRailButton } from "./SidebarRail";
+} from "./useTheme";
 
 export function ThemeSwitcher(): ReactElement {
   const { theme, cycleTheme } = useTheme();
   const nextTheme = nextThemePreference(theme);
+  const label = `Theme: ${themePreferenceLabel(theme)} (click to switch to ${themePreferenceLabel(nextTheme)})`;
 
   const icon =
     theme === "system" ? (
@@ -22,13 +22,8 @@ export function ThemeSwitcher(): ReactElement {
     );
 
   return (
-    <AppTooltip
-      placement="right"
-      content={`Theme: ${themePreferenceLabel(theme)} (click to switch to ${themePreferenceLabel(nextTheme)})`}
-    >
-      <SidebarRailButton onClick={cycleTheme} aria-label="Toggle theme">
-        {icon}
-      </SidebarRailButton>
-    </AppTooltip>
+    <NavButton onClick={cycleTheme} aria-label="Toggle theme" label={label}>
+      {icon}
+    </NavButton>
   );
 }

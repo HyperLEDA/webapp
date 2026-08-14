@@ -32,14 +32,11 @@ function readStoredTheme(): ThemePreference {
 }
 
 function applyFavicon(effectiveTheme: EffectiveTheme): void {
-  const href = effectiveTheme === "dark" ? "/logo-dark.png" : "/logo.png";
-  let link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
+  const link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
   if (!link) {
-    link = document.createElement("link");
-    link.rel = "icon";
-    link.type = "image/png";
-    document.head.appendChild(link);
+    return;
   }
+  const href = effectiveTheme === "dark" ? "/logo-dark.png" : "/logo.png";
   if (!link.href.endsWith(href)) {
     link.href = href;
   }

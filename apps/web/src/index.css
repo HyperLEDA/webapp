@@ -1,0 +1,23 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+@source "../../../packages/ui/src";
+@import "@hyperleda/ui/src/styles.css";
+
+@keyframes card-anchor-highlight {
+  0%,
+  100% {
+    background-color: var(--token-surface);
+  }
+  20%,
+  60% {
+    background-color: color-mix(
+      in srgb,
+      var(--token-accent) 18%,
+      var(--token-surface)
+    );
+  }
+}
+
+.card-anchor-highlight {
+  animation: card-anchor-highlight 2s ease-out;
+}
