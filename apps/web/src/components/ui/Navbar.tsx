@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   MdAccountTree,
   MdAdminPanelSettings,
@@ -10,17 +10,11 @@ import {
   MdSearch,
   MdTableChart,
 } from "react-icons/md";
-import {
-  Navbar as SharedNavbar,
-  NavRailButton,
-  navRailControlClassName,
-} from "@hyperleda/ui";
+import { NavRail, NavButton, NavItem, ThemeSwitcher } from "@hyperleda/ui";
 import { clearAuthToken, isLoggedIn } from "../../auth/token";
 import { logout } from "../../clients/admin/sdk.gen";
 import { adminClient } from "../../clients/config";
 import { Link } from "../core/Link";
-import { AppTooltip } from "./AppTooltip";
-import { ThemeSwitcher } from "./ThemeSwitcher";
 
 const navItems = [
   { to: "/", icon: <MdSearch size={20} />, label: "Object search", end: true },
@@ -104,77 +98,63 @@ export function Navbar() {
 
   return (
     <>
-      <SharedNavbar
+      <NavRail
         tone="web"
         footer={
           <>
             {showOpenProductionButton ? (
-              <AppTooltip
-                content="Open this page on production"
-                placement="right"
+              <NavButton
+                label="Open this page on production"
+                onClick={() => openCurrentPathOnOrigin(configuredProductionWeb)}
               >
-                <NavRailButton
-                  onClick={() =>
-                    openCurrentPathOnOrigin(configuredProductionWeb)
-                  }
-                >
-                  <MdOpenInNew size={20} />
-                </NavRailButton>
-              </AppTooltip>
+                <MdOpenInNew size={20} />
+              </NavButton>
             ) : null}
             {isLoggedIn() ? (
-              <AppTooltip content="Logout" placement="right">
-                <NavRailButton onClick={handleLogout} disabled={loggingOut}>
-                  <MdLogout size={20} />
-                </NavRailButton>
-              </AppTooltip>
+              <NavButton
+                label="Logout"
+                onClick={handleLogout}
+                disabled={loggingOut}
+              >
+                <MdLogout size={20} />
+              </NavButton>
             ) : (
-              <AppTooltip content="Login" placement="right">
-                <NavLink
-                  to="/login"
-                  end
-                  className={({ isActive }) =>
-                    navRailControlClassName(isActive)
-                  }
-                >
-                  <MdLogin size={20} />
-                </NavLink>
-              </AppTooltip>
+              <NavItem to="/login" end label="Login">
+                <MdLogin size={20} />
+              </NavItem>
             )}
             <ThemeSwitcher />
-            <NavRailButton
+            <NavButton
               ref={infoButtonRef}
+              label="Information"
               active={footerOpen}
               onClick={() => setFooterOpen(!footerOpen)}
             >
               <MdInfo size={20} />
-            </NavRailButton>
+            </NavButton>
           </>
         }
       >
         {navItems.map((item) => (
-          <AppTooltip key={item.to} content={item.label} placement="right">
-            <NavLink
-              to={item.to}
-              end={item.end ?? true}
-              className={({ isActive }) => navRailControlClassName(isActive)}
-            >
-              {item.icon}
-            </NavLink>
-          </AppTooltip>
+          <NavItem
+            key={item.to}
+            to={item.to}
+            end={item.end ?? true}
+            label={item.label}
+          >
+            {item.icon}
+          </NavItem>
         ))}
         {isLoggedIn() ? (
-          <AppTooltip content={adminNavItem.label} placement="right">
-            <NavLink
-              to={adminNavItem.to}
-              end={adminNavItem.end}
-              className={({ isActive }) => navRailControlClassName(isActive)}
-            >
-              {adminNavItem.icon}
-            </NavLink>
-          </AppTooltip>
+          <NavItem
+            to={adminNavItem.to}
+            end={adminNavItem.end}
+            label={adminNavItem.label}
+          >
+            {adminNavItem.icon}
+          </NavItem>
         ) : null}
-      </SharedNavbar>
+      </NavRail>
 
       <div
         ref={infoPanelRef}

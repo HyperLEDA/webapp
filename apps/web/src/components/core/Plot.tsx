@@ -2,8 +2,8 @@ import { ReactElement, useEffect, useMemo, useRef, useState } from "react";
 import { MdInfo } from "react-icons/md";
 import uPlot from "uplot";
 import "uplot/dist/uPlot.min.css";
+import { AppTooltip } from "@hyperleda/ui";
 import { useTheme } from "../../hooks/useTheme";
-import { AppTooltip } from "../ui/AppTooltip";
 
 export interface PlotSeries {
   x: number[];

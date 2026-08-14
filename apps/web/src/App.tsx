@@ -1,4 +1,5 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Outlet, Route, Routes } from "react-router-dom";
+import { Layout } from "@hyperleda/ui";
 import { HomePage } from "./pages/Home";
 import { SearchResultsPage } from "./pages/SearchResults";
 import { ObjectDetailsPage } from "./pages/ObjectDetails";
@@ -7,18 +8,26 @@ import { CrossmatchResultsPage } from "./pages/CrossmatchResults";
 import { RecordCrossmatchDetailsPage } from "./pages/RecordCrossmatchDetails";
 import { TablesPage } from "./pages/Tables";
 import { DataCatalogPage } from "./pages/DataCatalog";
-import { Layout } from "./components/ui/Layout";
+import { Navbar } from "./components/ui/Navbar";
 import { SearchBar } from "./components/ui/Searchbar";
 import { LoginPage } from "./pages/Login";
 import { TableDetailsPage } from "./pages/TableDetails";
 import { AdminPage } from "./pages/Admin";
 import { AdminMergePgcPage } from "./pages/AdminMergePgc";
 
+function AppLayout() {
+  return (
+    <Layout navbar={<Navbar />}>
+      <Outlet />
+    </Layout>
+  );
+}
+
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route element={<Layout />}>
+        <Route element={<AppLayout />}>
           <Route
             path="/"
             element={

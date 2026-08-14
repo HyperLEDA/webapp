@@ -1,17 +1,6 @@
-import {
-  BrowserRouter,
-  NavLink,
-  Outlet,
-  Route,
-  Routes,
-} from "react-router-dom";
+import { BrowserRouter, Outlet, Route, Routes } from "react-router-dom";
 import { MdAdminPanelSettings } from "react-icons/md";
-import {
-  Layout,
-  Navbar,
-  navRailControlClassName,
-  ThemeSwitcher,
-} from "@hyperleda/ui";
+import { Layout, NavRail, NavItem, ThemeSwitcher } from "@hyperleda/ui";
 
 function HomePage() {
   return (
@@ -26,16 +15,11 @@ function AdminLayout() {
   return (
     <Layout
       navbar={
-        <Navbar tone="admin" footer={<ThemeSwitcher />}>
-          <NavLink
-            to="/"
-            end
-            className={({ isActive }) => navRailControlClassName(isActive)}
-            title="Admin"
-          >
+        <NavRail tone="admin" footer={<ThemeSwitcher />}>
+          <NavItem to="/" end label="Admin">
             <MdAdminPanelSettings size={20} />
-          </NavLink>
-        </Navbar>
+          </NavItem>
+        </NavRail>
       }
     >
       <Outlet />

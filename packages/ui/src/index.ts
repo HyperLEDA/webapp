@@ -1,7 +1,6 @@
 export { Layout } from "./Layout";
-export { Navbar, type NavbarTone } from "./Navbar";
-export { NavRailButton } from "./NavRailButton";
-export { navRailControlClassName } from "./navRail";
+export { NavRail, NavButton, NavItem, type NavRailTone } from "./NavRail";
+export { AppTooltip } from "./AppTooltip";
 export { ThemeSwitcher } from "./ThemeSwitcher";
 export {
   ThemeProvider,

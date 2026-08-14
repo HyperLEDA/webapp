@@ -1,6 +1,6 @@
 import type { ReactElement } from "react";
 import { MdDarkMode, MdLightMode, MdSettingsBrightness } from "react-icons/md";
-import { NavRailButton } from "./NavRailButton";
+import { NavButton } from "./NavRail";
 import {
   nextThemePreference,
   themePreferenceLabel,
@@ -22,8 +22,8 @@ export function ThemeSwitcher(): ReactElement {
     );
 
   return (
-    <NavRailButton onClick={cycleTheme} aria-label="Toggle theme" title={label}>
+    <NavButton onClick={cycleTheme} aria-label="Toggle theme" label={label}>
       {icon}
-    </NavRailButton>
+    </NavButton>
   );
 }
