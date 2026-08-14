@@ -15,7 +15,7 @@ function AdminLayout() {
   return (
     <Layout
       navbar={
-        <NavRail tone="admin" footer={<ThemeSwitcher />}>
+        <NavRail footer={<ThemeSwitcher />}>
           <NavItem to="/" end label="Admin">
             <MdAdminPanelSettings size={20} />
           </NavItem>

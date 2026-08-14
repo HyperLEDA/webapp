@@ -66,11 +66,3 @@ h1 {
   font-size: 3.2em;
   line-height: 1.1;
 }
-
-.navbar-tone-admin {
-  background-color: color-mix(
-    in srgb,
-    var(--token-accent) 18%,
-    var(--token-surface-2)
-  );
-}

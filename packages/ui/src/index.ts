@@ -1,5 +1,5 @@
 export { Layout } from "./Layout";
-export { NavRail, NavButton, NavItem, type NavRailTone } from "./NavRail";
+export { NavRail, NavButton, NavItem } from "./NavRail";
 export { AppTooltip } from "./AppTooltip";
 export { ThemeSwitcher } from "./ThemeSwitcher";
 export {

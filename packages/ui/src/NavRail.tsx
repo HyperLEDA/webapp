@@ -7,13 +7,6 @@ import {
 import { NavLink, type NavLinkProps } from "react-router-dom";
 import { AppTooltip } from "./AppTooltip";
 
-export type NavRailTone = "web" | "admin";
-
-const toneClassName: Record<NavRailTone, string> = {
-  web: "bg-surface-2",
-  admin: "navbar-tone-admin",
-};
-
 function navRailControlClassName(active: boolean): string {
   return `w-9 h-9 flex items-center justify-center rounded-lg transition-colors duration-300 cursor-pointer ${
     active
@@ -23,18 +16,14 @@ function navRailControlClassName(active: boolean): string {
 }
 
 export function NavRail({
-  tone,
   children,
   footer,
 }: {
-  tone: NavRailTone;
   children?: ReactNode;
   footer?: ReactNode;
 }): ReactElement {
   return (
-    <nav
-      className={`fixed left-0 top-0 h-screen w-12 flex flex-col items-center pt-4 pb-4 gap-2 z-20 ${toneClassName[tone]}`}
-    >
+    <nav className="fixed left-0 top-0 h-screen w-12 flex flex-col items-center pt-4 pb-4 gap-2 z-20 bg-surface-2">
       {children}
       {footer ? (
         <div className="mt-auto flex flex-col gap-2 items-center">{footer}</div>

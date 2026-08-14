@@ -99,7 +99,6 @@ export function Navbar() {
   return (
     <>
       <NavRail
-        tone="web"
         footer={
           <>
             {showOpenProductionButton ? (
