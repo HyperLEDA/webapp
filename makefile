@@ -1,12 +1,12 @@
 check:
-	@output=$$(yarn run --silent prettier --check src 2>&1) || { echo "$$output"; exit 1; }
-	@output=$$(yarn run --silent eslint src 2>&1) || { echo "$$output"; exit 1; }
+	@output=$$(yarn run --silent prettier --check apps/web/src 2>&1) || { echo "$$output"; exit 1; }
+	@output=$$(yarn run --silent eslint apps/web/src 2>&1) || { echo "$$output"; exit 1; }
 	@yarn test
 	@yarn build
 
 fix:
-	@output=$$(yarn run --silent prettier --write src 2>&1) || { echo "$$output"; exit 1; }
-	@output=$$(yarn run --silent eslint --fix src 2>&1) || { echo "$$output"; exit 1; }
+	@output=$$(yarn run --silent prettier --write apps/web/src 2>&1) || { echo "$$output"; exit 1; }
+	@output=$$(yarn run --silent eslint --fix apps/web/src 2>&1) || { echo "$$output"; exit 1; }
 
 
 GIT_VERSION = `git rev-parse --short HEAD`
@@ -15,8 +15,8 @@ run:
 	yarn dev
 
 gen:
-	yarn run openapi-ts -i http://leda.sao.ru/api/openapi.json -o ./src/clients/backend
-	yarn run openapi-ts -i http://leda.sao.ru/admin/api/openapi.json -o ./src/clients/admin
+	yarn run openapi-ts -i http://leda.sao.ru/api/openapi.json -o ./apps/web/src/clients/backend
+	yarn run openapi-ts -i http://leda.sao.ru/admin/api/openapi.json -o ./apps/web/src/clients/admin
 
 image-build:
 	docker build . -t ghcr.io/hyperleda/hyperleda-webapp:$(GIT_VERSION)

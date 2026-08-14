@@ -24,6 +24,6 @@ dist-ssr
 *.sw?
 
 # code-generated files
-src/clients/backend
-src/clients/admin
+apps/web/src/clients/backend
+apps/web/src/clients/admin
 
