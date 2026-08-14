@@ -1,30 +1,26 @@
 check:
-	@output=$$(yarn run --silent prettier --check apps/web/src 2>&1) || { echo "$$output"; exit 1; }
-	@output=$$(yarn run --silent eslint apps/web/src 2>&1) || { echo "$$output"; exit 1; }
-	@yarn test
-	@yarn build
+	@output=$$(yarn run --silent prettier --check apps/web/src apps/admin/src 2>&1) || { echo "$$output"; exit 1; }
+	@output=$$(yarn workspace @hyperleda/web eslint src 2>&1) || { echo "$$output"; exit 1; }
+	@output=$$(yarn workspace @hyperleda/admin eslint src 2>&1) || { echo "$$output"; exit 1; }
+	@yarn test:web
+	@yarn test:admin
+	@yarn build:web
+	@yarn build:admin
 
 fix:
-	@output=$$(yarn run --silent prettier --write apps/web/src 2>&1) || { echo "$$output"; exit 1; }
-	@output=$$(yarn run --silent eslint --fix apps/web/src 2>&1) || { echo "$$output"; exit 1; }
+	@output=$$(yarn run --silent prettier --write apps/web/src apps/admin/src 2>&1) || { echo "$$output"; exit 1; }
+	@output=$$(yarn workspace @hyperleda/web eslint --fix src 2>&1) || { echo "$$output"; exit 1; }
+	@output=$$(yarn workspace @hyperleda/admin eslint --fix src 2>&1) || { echo "$$output"; exit 1; }
 
+run-web:
+	yarn dev:web
 
-GIT_VERSION = `git rev-parse --short HEAD`
-
-run:
-	yarn dev
+run-admin:
+	yarn dev:admin
 
 gen:
 	yarn run openapi-ts -i http://leda.sao.ru/api/openapi.json -o ./apps/web/src/clients/backend
 	yarn run openapi-ts -i http://leda.sao.ru/admin/api/openapi.json -o ./apps/web/src/clients/admin
-
-image-build:
-	docker build . -t ghcr.io/hyperleda/hyperleda-webapp:$(GIT_VERSION)
-	docker tag ghcr.io/hyperleda/hyperleda-webapp:$(GIT_VERSION) ghcr.io/hyperleda/hyperleda-webapp:latest
-
-image-push:
-	docker push ghcr.io/hyperleda/hyperleda-webapp:$(GIT_VERSION)
-	docker push ghcr.io/hyperleda/hyperleda-webapp:latest
 
 new-branch:
 	@read -p "Branch name: " branch_name && \

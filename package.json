@@ -3,12 +3,14 @@
   "private": true,
   "workspaces": ["apps/*"],
   "scripts": {
-    "dev": "yarn workspace @hyperleda/web dev",
-    "build": "yarn workspace @hyperleda/web build",
-    "lint": "yarn workspace @hyperleda/web lint",
-    "preview": "yarn workspace @hyperleda/web preview",
-    "start": "node server.mjs",
-    "test": "yarn workspace @hyperleda/web test",
-    "test:watch": "yarn workspace @hyperleda/web test:watch"
+    "dev:web": "yarn workspace @hyperleda/web dev",
+    "dev:admin": "yarn workspace @hyperleda/admin dev",
+    "build:web": "yarn workspace @hyperleda/web build",
+    "build:admin": "yarn workspace @hyperleda/admin build",
+    "lint:web": "yarn workspace @hyperleda/web lint",
+    "lint:admin": "yarn workspace @hyperleda/admin lint",
+    "test:web": "yarn workspace @hyperleda/web test",
+    "test:admin": "yarn workspace @hyperleda/admin test",
+    "start": "node server.mjs"
   }
 }

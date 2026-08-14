@@ -4,7 +4,6 @@ import eslintConfigPrettier from "eslint-config-prettier/flat";
 
 export default tseslint.config(eslintConfigPrettier, {
   extends: [eslint.configs.recommended, tseslint.configs.recommended],
-  ignores: ["src/clients/**"], // code-generated
   languageOptions: {
     parserOptions: {
       tsconfigRootDir: import.meta.dirname,
@@ -25,10 +24,9 @@ export default tseslint.config(eslintConfigPrettier, {
     "no-useless-assignment": "error",
     "require-atomic-updates": "error",
 
-    // opinionated suggestion enforcements to make TypeScript a sane language
     "arrow-body-style": "error",
     "block-scoped-var": "error",
-    camelcase: ["error", { properties: "never" }], // code-generated client structures might not always adhere to camelcase
+    camelcase: ["error", { properties: "never" }],
     "consistent-return": "error",
     "default-case": "error",
     "default-case-last": "error",
