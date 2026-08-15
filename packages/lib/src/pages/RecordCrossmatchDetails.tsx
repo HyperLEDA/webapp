@@ -15,7 +15,7 @@ import { Schema as BackendSchema } from "../clients/backend";
 import { adminClient } from "../clients";
 import { isLoggedIn } from "../auth";
 import { getResource } from "../resources";
-import { publicObjectUrl } from "../origins";
+import { publicObjectUrl, adminTableUrl } from "../origins";
 import {
   Accordion,
   AladinViewer,
@@ -521,7 +521,13 @@ function RecordCrossmatchDetails({
               </CopyButton>
             </p>
             <p>
-              Table: <Link href={`/table/${tableName}`}>{tableName}</Link>
+              Table:{" "}
+              <Link
+                href={adminTableUrl(tableName).href}
+                external={adminTableUrl(tableName).external}
+              >
+                {tableName}
+              </Link>
             </p>
             <p>
               {candidates.length === 1

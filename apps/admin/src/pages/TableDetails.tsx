@@ -7,10 +7,10 @@ import {
   TableProgress,
   getTable,
   patchTable,
-} from "../clients/admin";
+} from "@hyperleda/lib/clients/admin";
 import { useNavigate, useParams } from "react-router-dom";
-import { adminClient } from "../clients";
-import { isLoggedIn } from "../auth";
+import { adminClient } from "@hyperleda/lib/clients";
+import { isLoggedIn } from "@hyperleda/lib/auth";
 import {
   Badge,
   Card,
@@ -26,9 +26,9 @@ import {
   Link,
   Loading,
   TextFilter,
-} from "../ui";
-import { useDataFetching } from "../hooks";
-import { originalDataCatalogLink } from "../astronomy/links";
+} from "@hyperleda/lib/ui";
+import { useDataFetching } from "@hyperleda/lib/hooks";
+import { originalDataCatalogLink } from "@hyperleda/lib/astronomy";
 
 const DATA_TYPES: DataType[] = [
   "regular",

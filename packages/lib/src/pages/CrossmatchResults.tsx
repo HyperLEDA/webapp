@@ -9,7 +9,7 @@ import type {
 } from "../clients/admin";
 import { adminClient } from "../clients";
 import { getResource } from "../resources";
-import { publicObjectUrl } from "../origins";
+import { publicObjectUrl, adminTableUrl } from "../origins";
 import {
   Badge,
   Button,
@@ -58,6 +58,8 @@ function CrossmatchFilters({
     onApplyFilters(localTableName, localTriageStatus, localPageSize);
   }
 
+  const tableLink = adminTableUrl(localTableName.trim());
+
   return (
     <div className="flex gap-4 mb-4">
       <TextFilter
@@ -67,7 +69,7 @@ function CrossmatchFilters({
         placeholder="Enter table name"
         onEnter={applyFilters}
       />
-      <Link href={`/table/${localTableName.trim()}`} />
+      <Link href={tableLink.href} external={tableLink.external} />
       <DropdownFilter
         title="Manual check status"
         options={[

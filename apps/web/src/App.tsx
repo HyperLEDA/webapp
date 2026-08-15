@@ -1,5 +1,7 @@
+import { ReactElement, useEffect } from "react";
 import { BrowserRouter, Outlet, Route, Routes } from "react-router-dom";
-import { Layout as SharedLayout } from "@hyperleda/lib/ui";
+import { Layout as SharedLayout, Loading } from "@hyperleda/lib/ui";
+import { sameEnvAdminOrigin } from "@hyperleda/lib/origins";
 import { HomePage } from "./pages/Home";
 import { SearchResultsPage } from "./pages/SearchResults";
 import { ObjectDetailsPage } from "./pages/ObjectDetails";
@@ -13,9 +15,17 @@ import {
   DataCatalogPage,
   LoginPage,
   RecordCrossmatchDetailsPage,
-  TableDetailsPage,
-  TablesPage,
 } from "@hyperleda/lib/pages";
+
+function RedirectToAdminPage(): ReactElement {
+  useEffect(() => {
+    window.location.replace(
+      `${sameEnvAdminOrigin()}${window.location.pathname}${window.location.search}${window.location.hash}`,
+    );
+  }, []);
+
+  return <Loading />;
+}
 
 function Layout() {
   return (
@@ -49,8 +59,8 @@ function App() {
               </>
             }
           />
-          <Route path="/table/:tableName" element={<TableDetailsPage />} />
-          <Route path="/tables" element={<TablesPage />} />
+          <Route path="/table/:tableName" element={<RedirectToAdminPage />} />
+          <Route path="/tables" element={<RedirectToAdminPage />} />
           <Route path="/data-catalog" element={<DataCatalogPage />} />
           <Route path="/data-catalog/query" element={<DataCatalogPage />} />
           <Route

@@ -20,9 +20,8 @@ import {
   DataCatalogPage,
   LoginPage,
   RecordCrossmatchDetailsPage,
-  TableDetailsPage,
-  TablesPage,
 } from "@hyperleda/lib/pages";
+import { TableDetailsPage, TablesPage } from "./pages";
 import { isLoggedIn, useIsLoggedIn } from "@hyperleda/lib/auth";
 import { sameEnvWebOrigin } from "@hyperleda/lib/origins";
 import {

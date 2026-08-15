@@ -1,14 +1,14 @@
 import { ReactElement, useEffect, useState, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import classNames from "classnames";
-import { getTableList } from "../clients/admin";
+import { getTableList } from "@hyperleda/lib/clients/admin";
 import type {
   GetTableListResponse,
   TableListItem,
   TableProgress,
   ValidationError,
-} from "../clients/admin";
-import { adminClient } from "../clients";
+} from "@hyperleda/lib/clients/admin";
+import { adminClient } from "@hyperleda/lib/clients";
 import {
   Card,
   CardAction,
@@ -19,9 +19,9 @@ import {
   Loading,
   Pagination,
   TextFilter,
-} from "../ui";
-import { useDataFetching } from "../hooks";
-import { getSourceLink } from "../astronomy";
+} from "@hyperleda/lib/ui";
+import { useDataFetching } from "@hyperleda/lib/hooks";
+import { getSourceLink } from "@hyperleda/lib/astronomy";
 
 const SEARCH_DEBOUNCE_MS = 300;
 

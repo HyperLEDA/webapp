@@ -5,7 +5,6 @@ import {
   MdInfo,
   MdOpenInNew,
   MdSearch,
-  MdTableChart,
 } from "react-icons/md";
 import {
   AuthNavControl,
@@ -19,12 +18,6 @@ import { Link } from "@hyperleda/lib/ui";
 
 const navItems = [
   { to: "/", icon: <MdSearch size={20} />, label: "Object search", end: true },
-  {
-    to: "/tables",
-    icon: <MdTableChart size={20} />,
-    label: "Tables",
-    end: true,
-  },
   {
     to: "/data-catalog",
     icon: <MdAccountTree size={20} />,
