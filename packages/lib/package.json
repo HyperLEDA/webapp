@@ -16,7 +16,7 @@
     "./ui/styles.css": "./src/ui/styles.css"
   },
   "scripts": {
-    "lint": "eslint ."
+    "lint": "bunx --no-install eslint ."
   },
   "dependencies": {
     "classnames": "^2.5.1",
