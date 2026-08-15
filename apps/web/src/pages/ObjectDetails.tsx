@@ -1,7 +1,6 @@
 import { ReactElement, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { Loading } from "../components/core/Loading";
-import { ErrorPage } from "../components/ui/ErrorPage";
+import { ErrorPage, Loading } from "@hyperleda/lib/ui";
 import {
   AstrometryCard,
   IdentityCard,
@@ -12,7 +11,7 @@ import {
 } from "../components/catalogs";
 import { querySimple } from "@hyperleda/lib/clients/backend";
 import { PgcObject, Schema } from "@hyperleda/lib/clients/backend";
-import { useDataFetching } from "../hooks/useDataFetching";
+import { useDataFetching } from "@hyperleda/lib/hooks";
 import { backendClient } from "@hyperleda/lib/clients";
 
 interface ObjectDetailsProps {

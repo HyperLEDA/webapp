@@ -6,10 +6,15 @@ import {
 } from "react-router-dom";
 import { MdMyLocation } from "react-icons/md";
 import { SearchBar } from "../components/ui/Searchbar";
-import { CommonTable, Column } from "../components/ui/CommonTable";
-import { Loading } from "../components/core/Loading";
-import { ErrorPage, ErrorPageHomeButton } from "../components/ui/ErrorPage";
-import { useDataFetching } from "../hooks/useDataFetching";
+import {
+  CommonTable,
+  Column,
+  ErrorPage,
+  ErrorPageHomeButton,
+  Loading,
+  Pagination,
+} from "@hyperleda/lib/ui";
+import { useDataFetching } from "@hyperleda/lib/hooks";
 import { querySimple } from "@hyperleda/lib/clients/backend";
 import { PgcObject, QuerySimpleResponse } from "@hyperleda/lib/clients/backend";
 import {
@@ -20,7 +25,6 @@ import {
   type AladinViewerHandle,
 } from "@hyperleda/lib/ui";
 import { Button } from "@hyperleda/lib/ui";
-import { Pagination } from "../components/ui/Pagination";
 import { backendClient } from "@hyperleda/lib/clients";
 import {
   resolveEligibleSearchTypes,

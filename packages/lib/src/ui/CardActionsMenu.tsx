@@ -2,7 +2,7 @@ import { ReactElement, useEffect, useId, useRef, useState } from "react";
 import type { IconType } from "react-icons";
 import { MdMoreVert } from "react-icons/md";
 import classNames from "classnames";
-import { Button } from "@hyperleda/lib/ui";
+import { Button } from "./Button";
 
 type CardActionCommon = {
   title: string;

@@ -1,5 +1,5 @@
 import { ReactElement } from "react";
-import { Link } from "@hyperleda/lib/ui";
+import { Link } from "./Link";
 
 export type BadgeType = "info" | "success" | "warning";
 
@@ -7,6 +7,7 @@ interface BadgeProps {
   children: React.ReactNode;
   className?: string;
   href?: string;
+  external?: boolean;
   type?: BadgeType;
 }
 
@@ -20,13 +21,14 @@ export function Badge({
   children,
   className = "",
   href,
+  external = false,
   type = "info",
 }: BadgeProps): ReactElement {
   const badgeClasses = `inline-block ${typeClasses[type]} rounded px-1.5 py-0.5 text-sm mr-0.5 mb-0.5 ${className}`;
 
   if (href) {
     return (
-      <Link href={href}>
+      <Link href={href} external={external}>
         <span className={badgeClasses}>{children}</span>
       </Link>
     );

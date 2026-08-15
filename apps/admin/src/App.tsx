@@ -1,7 +1,20 @@
 import { useMemo } from "react";
 import { BrowserRouter, Outlet, Route, Routes } from "react-router-dom";
-import { MdAdminPanelSettings, MdOpenInNew, MdPublic } from "react-icons/md";
-import { AdminMergePgcPage, AdminPage, LoginPage } from "@hyperleda/lib/pages";
+import {
+  MdAdminPanelSettings,
+  MdOpenInNew,
+  MdPublic,
+  MdTableChart,
+} from "react-icons/md";
+import {
+  AdminMergePgcPage,
+  AdminPage,
+  CrossmatchResultsPage,
+  LoginPage,
+  RecordCrossmatchDetailsPage,
+  TableDetailsPage,
+  TablesPage,
+} from "@hyperleda/lib/pages";
 import { sameEnvWebOrigin } from "@hyperleda/lib/origins";
 import {
   AuthNavControl,
@@ -64,6 +77,9 @@ function Layout() {
           <NavItem to="/" end label="Admin">
             <MdAdminPanelSettings size={20} />
           </NavItem>
+          <NavItem to="/tables" label="Tables">
+            <MdTableChart size={20} />
+          </NavItem>
         </NavRail>
       }
     >
@@ -80,6 +96,13 @@ function App() {
           <Route path="/" element={<AdminPage />} />
           <Route path="/merge-pgc" element={<AdminMergePgcPage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/tables" element={<TablesPage />} />
+          <Route path="/table/:tableName" element={<TableDetailsPage />} />
+          <Route path="/crossmatch" element={<CrossmatchResultsPage />} />
+          <Route
+            path="/records/:recordId/crossmatch"
+            element={<RecordCrossmatchDetailsPage />}
+          />
         </Route>
       </Routes>
     </BrowserRouter>

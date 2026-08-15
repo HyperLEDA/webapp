@@ -1,7 +1,6 @@
 import { ReactElement } from "react";
 import { Catalogs, NoteEntry } from "@hyperleda/lib/clients/backend";
-import { Link } from "@hyperleda/lib/ui";
-import { Hint } from "../ui/Hint";
+import { Hint, Link } from "@hyperleda/lib/ui";
 import { CatalogCard, Field, getSourceLink } from "./CatalogCard";
 
 function renderNoteSourceHint(note: NoteEntry): string {

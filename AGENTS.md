@@ -15,3 +15,7 @@ make fix
 ```
 
 If the check command fails, make sure to always run the fix command first prior to trying to fix changes yourself.
+
+### File changes
+
+When moving files as part of a refactor of any kind prefer using `git mv` whenver possible instead of removing + adding.

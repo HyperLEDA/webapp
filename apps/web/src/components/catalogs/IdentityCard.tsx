@@ -1,8 +1,7 @@
 import { ReactElement } from "react";
 import { MdOpenInNew } from "react-icons/md";
 import { Catalogs, Schema } from "@hyperleda/lib/clients/backend";
-import { Link, Quantity, QuantityWithError } from "@hyperleda/lib/ui";
-import { Hint } from "../ui/Hint";
+import { Hint, Link, Quantity, QuantityWithError } from "@hyperleda/lib/ui";
 import {
   CatalogCard,
   CatalogCardAction,
