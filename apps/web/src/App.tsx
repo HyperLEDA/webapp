@@ -4,13 +4,13 @@ import { HomePage } from "./pages/Home";
 import { SearchResultsPage } from "./pages/SearchResults";
 import { ObjectDetailsPage } from "./pages/ObjectDetails";
 import { NotFoundPage } from "./pages/NotFound";
-import { DataCatalogPage } from "./pages/DataCatalog";
 import { Navbar } from "./components/ui/Navbar";
 import { SearchBar } from "./components/ui/Searchbar";
 import {
   AdminMergePgcPage,
   AdminPage,
   CrossmatchResultsPage,
+  DataCatalogPage,
   LoginPage,
   RecordCrossmatchDetailsPage,
   TableDetailsPage,

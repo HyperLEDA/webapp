@@ -1,7 +1,7 @@
 import React, { ReactElement, ReactNode, useEffect, useState } from "react";
 import type { TapSyncResponse } from "@hyperleda/lib/clients/backend";
-import { executeSqlQuery, syncPayloadToTable } from "../../lib/tap";
-import { Markdown } from "../ui/Markdown";
+import { executeSqlQuery, syncPayloadToTable } from "../../tap";
+import { Markdown } from "../../ui/Markdown";
 import {
   CellPrimitive,
   Column,

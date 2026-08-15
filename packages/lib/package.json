@@ -20,8 +20,11 @@
     "./ui/styles.css": "./src/ui/styles.css"
   },
   "dependencies": {
+    "@monaco-editor/react": "^4.7.0",
     "classnames": "^2.5.1",
-    "flowbite-react": "^0.12.17"
+    "flowbite-react": "^0.12.17",
+    "monaco-editor": "^0.56.0",
+    "react-markdown": "^10.1.0"
   },
   "peerDependencies": {
     "react": "^19.2.8",

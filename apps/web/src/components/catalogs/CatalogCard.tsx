@@ -7,7 +7,7 @@ import {
   getSourceLink,
   originalDataCatalogLink,
 } from "@hyperleda/lib/astronomy";
-import { SqlQueryEmbed } from "../catalog/SqlQueryEmbed";
+import { SqlQueryEmbed } from "@hyperleda/lib/pages";
 
 export type { CardAction as CatalogCardAction };
 export { Field, getSourceLink };

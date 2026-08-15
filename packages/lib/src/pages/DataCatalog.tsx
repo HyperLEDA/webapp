@@ -32,15 +32,15 @@ import {
 import { useDataFetching } from "@hyperleda/lib/hooks";
 import { Button } from "@hyperleda/lib/ui";
 import classNames from "classnames";
-import { CatalogViewTabs } from "../components/catalog/CatalogViewTabs";
-import { CatalogSqlPanel } from "../components/catalog/CatalogSqlPanel";
+import { CatalogViewTabs } from "./catalog/CatalogViewTabs";
+import { CatalogSqlPanel } from "./catalog/CatalogSqlPanel";
 import {
   DEFAULT_SQL_EXAMPLE,
   defaultSelectForTable,
   formatApiError,
   parseSqlPermalink,
   syncPayloadToTable,
-} from "../lib/tap";
+} from "../tap";
 
 async function fetchTablesList(): Promise<ListTapTablesResponse> {
   const response = await tapTables({

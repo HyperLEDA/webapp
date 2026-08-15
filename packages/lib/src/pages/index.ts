@@ -5,3 +5,5 @@ export { TablesPage } from "./Tables";
 export { TableDetailsPage } from "./TableDetails";
 export { CrossmatchResultsPage } from "./CrossmatchResults";
 export { RecordCrossmatchDetailsPage } from "./RecordCrossmatchDetails";
+export { DataCatalogPage } from "./DataCatalog";
+export { SqlQueryEmbed } from "./catalog/SqlQueryEmbed";
