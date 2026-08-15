@@ -1,5 +1,5 @@
 check:
-	@output=$$(yarn run --silent prettier --check apps/web/src apps/admin/src packages/lib/src 2>&1) || { echo "$$output"; exit 1; }
+	@output=$$(yarn exec prettier --check apps/web/src apps/admin/src packages/lib/src 2>&1) || { echo "$$output"; exit 1; }
 	@output=$$(yarn workspace @hyperleda/web eslint src 2>&1) || { echo "$$output"; exit 1; }
 	@output=$$(yarn workspace @hyperleda/admin eslint src 2>&1) || { echo "$$output"; exit 1; }
 	@output=$$(yarn workspace @hyperleda/lib eslint src 2>&1) || { echo "$$output"; exit 1; }
@@ -9,7 +9,7 @@ check:
 	@yarn build:admin
 
 fix:
-	@output=$$(yarn run --silent prettier --write apps/web/src apps/admin/src packages/lib/src 2>&1) || { echo "$$output"; exit 1; }
+	@output=$$(yarn exec prettier --write apps/web/src apps/admin/src packages/lib/src 2>&1) || { echo "$$output"; exit 1; }
 	@output=$$(yarn workspace @hyperleda/web eslint --fix src 2>&1) || { echo "$$output"; exit 1; }
 	@output=$$(yarn workspace @hyperleda/admin eslint --fix src 2>&1) || { echo "$$output"; exit 1; }
 	@output=$$(yarn workspace @hyperleda/lib eslint --fix src 2>&1) || { echo "$$output"; exit 1; }
@@ -21,8 +21,8 @@ run-admin:
 	yarn dev:admin
 
 gen:
-	yarn run openapi-ts -i http://leda.sao.ru/api/openapi.json -o ./packages/lib/src/clients/backend
-	yarn run openapi-ts -i http://leda.sao.ru/admin/api/openapi.json -o ./packages/lib/src/clients/admin
+	yarn workspace @hyperleda/lib gen:backend
+	yarn workspace @hyperleda/lib gen:admin
 
 new-branch:
 	@read -p "Branch name: " branch_name && \

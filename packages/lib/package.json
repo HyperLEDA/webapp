@@ -16,7 +16,9 @@
     "./ui/styles.css": "./src/ui/styles.css"
   },
   "scripts": {
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "gen:backend": "openapi-ts -i http://leda.sao.ru/api/openapi.json -o ./src/clients/backend",
+    "gen:admin": "openapi-ts -i http://leda.sao.ru/admin/api/openapi.json -o ./src/clients/admin"
   },
   "dependencies": {
     "@hey-api/openapi-ts": "^0.99.0",
