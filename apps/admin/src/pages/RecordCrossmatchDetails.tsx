@@ -14,23 +14,25 @@ import {
 import { Schema as BackendSchema } from "@hyperleda/lib/clients/backend";
 import { adminClient } from "../clients";
 import { isLoggedIn } from "../auth";
-import { getResource } from "@hyperleda/lib/resources";
-import { publicObjectUrl, adminTableUrl } from "@hyperleda/lib/origins";
+import { getResource } from "../resources";
+import { publicObjectUrl, adminTableUrl } from "../origins";
 import {
-  Accordion,
   AladinViewer,
-  Badge,
-  BadgeType,
   Button,
   CellPrimitive,
   Column,
   CommonTable,
-  CopyButton,
   ErrorPage,
   Link,
   Loading,
-  ObjectSummary,
 } from "@hyperleda/lib/ui";
+import {
+  Accordion,
+  Badge,
+  type BadgeType,
+  CopyButton,
+  ObjectSummary,
+} from "../components/ui";
 import { useDataFetching } from "@hyperleda/lib/hooks";
 
 function convertAdminSchemaToBackendSchema(

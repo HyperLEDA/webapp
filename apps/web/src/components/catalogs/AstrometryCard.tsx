@@ -5,7 +5,7 @@ import {
   buildNedPositionSearchUrl,
   EQUATORIAL_COPY_FORMATS,
   formatEquatorialForCopy,
-} from "@hyperleda/lib/astronomy";
+} from "../../lib/astronomy/equatorial";
 import {
   Declination,
   EquatorialDecimalDegrees,

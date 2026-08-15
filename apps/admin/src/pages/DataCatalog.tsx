@@ -21,14 +21,13 @@ import type {
 } from "@hyperleda/lib/clients/backend";
 import { backendClient } from "@hyperleda/lib/clients";
 import {
-  Accordion,
   CommonTable,
   Column,
   ErrorPage,
   Loading,
   Text,
-  TextFilter,
 } from "@hyperleda/lib/ui";
+import { Accordion, TextFilter } from "../components/ui";
 import { useDataFetching } from "@hyperleda/lib/hooks";
 import { Button } from "@hyperleda/lib/ui";
 import classNames from "classnames";

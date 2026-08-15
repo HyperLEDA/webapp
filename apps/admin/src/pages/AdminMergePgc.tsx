@@ -4,14 +4,14 @@ import { querySimple } from "@hyperleda/lib/clients/backend";
 import { PgcObject, Schema } from "@hyperleda/lib/clients/backend";
 import { adminClient } from "../clients";
 import { backendClient } from "@hyperleda/lib/clients";
-import { publicObjectUrl } from "@hyperleda/lib/origins";
+import { publicObjectUrl } from "../origins";
 import {
   AladinViewer,
   Button,
   Link,
-  ObjectSummary,
   SuggestibleInput,
 } from "@hyperleda/lib/ui";
+import { ObjectSummary } from "../components/ui";
 
 const MIN_ALADIN_FOV_DEG = 0.05;
 const ALADIN_FOV_PADDING = 1.4;

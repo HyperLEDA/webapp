@@ -8,21 +8,19 @@ import type {
   ValidationError,
 } from "../clients/admin";
 import { adminClient } from "../clients";
-import { getResource } from "@hyperleda/lib/resources";
-import { publicObjectUrl, adminTableUrl } from "@hyperleda/lib/origins";
+import { getResource } from "../resources";
+import { publicObjectUrl, adminTableUrl } from "../origins";
 import {
-  Badge,
   Button,
   CellPrimitive,
   Column,
   CommonTable,
-  DropdownFilter,
   ErrorPage,
   Link,
   Loading,
   Pagination,
-  TextFilter,
 } from "@hyperleda/lib/ui";
+import { Badge, DropdownFilter, TextFilter } from "../components/ui";
 import { useDataFetching } from "@hyperleda/lib/hooks";
 
 interface CrossmatchFiltersProps {
