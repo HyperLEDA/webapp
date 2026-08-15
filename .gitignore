@@ -26,3 +26,4 @@ dist-ssr
 packages/lib/src/clients/backend
 packages/lib/src/clients/admin
 .yarn
+.pnp.*
