@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import React, { ReactElement, ReactNode } from "react";
-import { useAnchoredElement } from "../../hooks/useAnchoredElement";
+import { useAnchoredElement } from "../hooks/useAnchoredElement";
 import { CardActionsMenu, CardAction } from "./CardActionsMenu";
 import { CardAnchorLink } from "./CardAnchorLink";
 

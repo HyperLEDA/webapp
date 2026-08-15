@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { ErrorPage } from "../components/ui/ErrorPage";
+import { ErrorPage } from "@hyperleda/lib/ui";
 import { Button } from "@hyperleda/lib/ui";
 import { useEffect } from "react";
 

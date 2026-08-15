@@ -5,27 +5,30 @@ import {
   DataType,
   GetTableResponse,
   TableProgress,
-} from "@hyperleda/lib/clients/admin";
-import { getTable, patchTable } from "@hyperleda/lib/clients/admin";
+  getTable,
+  patchTable,
+} from "../clients/admin";
 import { useNavigate, useParams } from "react-router-dom";
-import { EditableTextField } from "../components/core/EditableTextField";
+import { adminClient } from "../clients";
+import { isLoggedIn } from "../auth";
 import {
+  Badge,
+  Card,
+  CardAction,
   CellPrimitive,
   Column,
   CommonTable,
-} from "../components/ui/CommonTable";
-import { CopyButton } from "../components/ui/CopyButton";
-import { Badge } from "../components/ui/Badge";
-import { Link } from "../components/core/Link";
-import { TextFilter } from "../components/core/TextFilter";
-import { Loading } from "../components/core/Loading";
-import { Card, CardAction, Field } from "../components/ui/Card";
-import { ErrorPage } from "../components/ui/ErrorPage";
-import { Hint } from "../components/ui/Hint";
-import { useDataFetching } from "../hooks/useDataFetching";
-import { adminClient } from "@hyperleda/lib/clients";
-import { isLoggedIn } from "@hyperleda/lib/auth";
-import { originalDataCatalogLink } from "../components/catalogs/catalogActions";
+  CopyButton,
+  EditableTextField,
+  ErrorPage,
+  Field,
+  Hint,
+  Link,
+  Loading,
+  TextFilter,
+} from "../ui";
+import { useDataFetching } from "../hooks";
+import { publicDataCatalogQueryUrl } from "../origins";
 
 const DATA_TYPES: DataType[] = [
   "regular",
@@ -582,15 +585,16 @@ function ColumnInfo(props: ColumnInfoProps): ReactElement {
   const actions: CardAction[] = [
     {
       title: "View table data",
-      onClick: () =>
-        navigate(
-          originalDataCatalogLink(
-            selectAllColumnsFromRawdataTable(
-              props.tableName,
-              selectedColumnInfo,
-            ),
-          ),
-        ),
+      onClick: () => {
+        const link = publicDataCatalogQueryUrl(
+          selectAllColumnsFromRawdataTable(props.tableName, selectedColumnInfo),
+        );
+        if (link.external) {
+          window.open(link.href, "_blank", "noopener,noreferrer");
+          return;
+        }
+        navigate(link.href);
+      },
     },
   ];
 

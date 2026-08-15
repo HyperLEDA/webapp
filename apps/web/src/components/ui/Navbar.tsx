@@ -15,7 +15,7 @@ import {
   ThemeSwitcher,
 } from "@hyperleda/lib/ui";
 import { isLoggedIn } from "@hyperleda/lib/auth";
-import { Link } from "../core/Link";
+import { Link } from "@hyperleda/lib/ui";
 
 const navItems = [
   { to: "/", icon: <MdSearch size={20} />, label: "Object search", end: true },

@@ -2,18 +2,15 @@ import classNames from "classnames";
 import { Children, ReactElement, ReactNode, useState } from "react";
 import { MdCode, MdKeyboardArrowDown } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
-import { AppTooltip } from "@hyperleda/lib/ui";
+import { AppTooltip, Button, Card, CardAction, Field } from "@hyperleda/lib/ui";
+import {
+  getSourceLink,
+  originalDataCatalogLink,
+} from "@hyperleda/lib/astronomy";
 import { SqlQueryEmbed } from "../catalog/SqlQueryEmbed";
-import { Button } from "@hyperleda/lib/ui";
-import { Card, CardAction, Field } from "../ui/Card";
-import { originalDataCatalogLink } from "./catalogActions";
 
 export type { CardAction as CatalogCardAction };
-export { Field };
-
-export function getSourceLink(bibcode: string): string {
-  return `https://ui.adsabs.harvard.edu/abs/${bibcode}/abstract`;
-}
+export { Field, getSourceLink };
 
 export function bibcodeMarkdownSelect(): string {
   return `'[' || bib.code || '](https://ui.adsabs.harvard.edu/abs/' || bib.code || '/abstract)' AS bibcode`;

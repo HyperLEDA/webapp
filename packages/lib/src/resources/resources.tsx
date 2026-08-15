@@ -1,4 +1,4 @@
-import texts from "../assets/texts.json";
+import texts from "./texts.json";
 
 export interface Resource {
   Title: string;

@@ -1,7 +1,21 @@
 import { useMemo } from "react";
 import { BrowserRouter, Outlet, Route, Routes } from "react-router-dom";
-import { MdAdminPanelSettings, MdOpenInNew, MdPublic } from "react-icons/md";
-import { LoginPage } from "@hyperleda/lib/pages";
+import {
+  MdAdminPanelSettings,
+  MdOpenInNew,
+  MdPublic,
+  MdTableChart,
+} from "react-icons/md";
+import {
+  AdminMergePgcPage,
+  AdminPage,
+  CrossmatchResultsPage,
+  LoginPage,
+  RecordCrossmatchDetailsPage,
+  TableDetailsPage,
+  TablesPage,
+} from "@hyperleda/lib/pages";
+import { sameEnvWebOrigin } from "@hyperleda/lib/origins";
 import {
   AuthNavControl,
   Layout as SharedLayout,
@@ -12,32 +26,11 @@ import {
 } from "@hyperleda/lib/ui";
 
 const productionAdmin = "https://admin.leda.sao.ru";
-const localWebOrigin = "http://localhost:5173";
 
 function openCurrentPathOnOrigin(targetInput: string): void {
   const { origin } = new URL(targetInput);
   window.location.assign(
     `${origin}${window.location.pathname}${window.location.search}${window.location.hash}`,
-  );
-}
-
-function sameEnvWebOrigin(): string {
-  const { protocol, hostname } = window.location;
-  if (hostname === "localhost" || hostname === "127.0.0.1") {
-    return localWebOrigin;
-  }
-  if (hostname.startsWith("admin.")) {
-    return `${protocol}//${hostname.slice("admin.".length)}`;
-  }
-  return `${protocol}//${hostname}`;
-}
-
-function HomePage() {
-  return (
-    <>
-      <h1>Admin</h1>
-      <p>Placeholder — tools will live here.</p>
-    </>
   );
 }
 
@@ -67,7 +60,11 @@ function Layout() {
               <NavButton
                 label="Open public interface"
                 onClick={() => {
-                  window.location.assign(sameEnvWebOrigin());
+                  window.open(
+                    sameEnvWebOrigin(),
+                    "_blank",
+                    "noopener,noreferrer",
+                  );
                 }}
               >
                 <MdPublic size={20} />
@@ -79,6 +76,9 @@ function Layout() {
         >
           <NavItem to="/" end label="Admin">
             <MdAdminPanelSettings size={20} />
+          </NavItem>
+          <NavItem to="/tables" label="Tables">
+            <MdTableChart size={20} />
           </NavItem>
         </NavRail>
       }
@@ -93,8 +93,16 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route element={<Layout />}>
-          <Route path="/" element={<HomePage />} />
+          <Route path="/" element={<AdminPage />} />
+          <Route path="/merge-pgc" element={<AdminMergePgcPage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/tables" element={<TablesPage />} />
+          <Route path="/table/:tableName" element={<TableDetailsPage />} />
+          <Route path="/crossmatch" element={<CrossmatchResultsPage />} />
+          <Route
+            path="/records/:recordId/crossmatch"
+            element={<RecordCrossmatchDetailsPage />}
+          />
         </Route>
       </Routes>
     </BrowserRouter>

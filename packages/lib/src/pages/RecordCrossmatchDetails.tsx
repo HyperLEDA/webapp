@@ -1,37 +1,37 @@
 import { ReactElement, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { AladinViewer } from "../components/core/Aladin";
-import { Loading } from "../components/core/Loading";
-import { ErrorPage } from "../components/ui/ErrorPage";
-import {
-  CommonTable,
-  Column,
-  CellPrimitive,
-} from "../components/ui/CommonTable";
+import classNames from "classnames";
+import { MdAdd, MdClose } from "react-icons/md";
 import {
   getRecordCrossmatch,
   setCrossmatchResults,
-} from "@hyperleda/lib/clients/admin";
-import {
   GetRecordCrossmatchResponse,
   RecordCrossmatch,
   PgcCandidate,
   Schema as AdminSchema,
   StatusesPayload,
-} from "@hyperleda/lib/clients/admin";
-import { Schema as BackendSchema } from "@hyperleda/lib/clients/backend";
-import { getResource } from "../resources/resources";
-import { Link } from "../components/core/Link";
-import { CopyButton } from "../components/ui/CopyButton";
-import { Badge, BadgeType } from "../components/ui/Badge";
-import { Accordion } from "../components/core/Accordion";
-import { useDataFetching } from "../hooks/useDataFetching";
-import { adminClient } from "@hyperleda/lib/clients";
-import { Button } from "@hyperleda/lib/ui";
-import { isLoggedIn } from "@hyperleda/lib/auth";
-import { ObjectSummary } from "../components/catalogs/ObjectSummary";
-import classNames from "classnames";
-import { MdAdd, MdClose } from "react-icons/md";
+} from "../clients/admin";
+import { Schema as BackendSchema } from "../clients/backend";
+import { adminClient } from "../clients";
+import { isLoggedIn } from "../auth";
+import { getResource } from "../resources";
+import { publicObjectUrl } from "../origins";
+import {
+  Accordion,
+  AladinViewer,
+  Badge,
+  BadgeType,
+  Button,
+  CellPrimitive,
+  Column,
+  CommonTable,
+  CopyButton,
+  ErrorPage,
+  Link,
+  Loading,
+  ObjectSummary,
+} from "../ui";
+import { useDataFetching } from "../hooks";
 
 function convertAdminSchemaToBackendSchema(
   adminSchema: AdminSchema,
@@ -197,13 +197,14 @@ function ResolutionSelector({
   }
 
   function renderCandidateSummary(candidate: PgcCandidate): ReactElement {
+    const objectLink = publicObjectUrl(candidate.pgc);
     return (
       <ObjectSummary
         catalogs={candidate.catalogs}
         schema={schema}
         layout="columnar"
         name={
-          <Link href={`/object/${candidate.pgc}`} external>
+          <Link href={objectLink.href} external={objectLink.external}>
             {getCandidateLabel(candidate)}
           </Link>
         }

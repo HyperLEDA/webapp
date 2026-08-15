@@ -20,13 +20,16 @@ import type {
   TapTableInfo,
 } from "@hyperleda/lib/clients/backend";
 import { backendClient } from "@hyperleda/lib/clients";
-import { useDataFetching } from "../hooks/useDataFetching";
-import { Loading } from "../components/core/Loading";
-import { ErrorPage } from "../components/ui/ErrorPage";
-import { CommonTable, Column } from "../components/ui/CommonTable";
-import { TextFilter } from "../components/core/TextFilter";
-import { Accordion } from "../components/core/Accordion";
-import { Text } from "../components/core/Text";
+import {
+  Accordion,
+  CommonTable,
+  Column,
+  ErrorPage,
+  Loading,
+  Text,
+  TextFilter,
+} from "@hyperleda/lib/ui";
+import { useDataFetching } from "@hyperleda/lib/hooks";
 import { Button } from "@hyperleda/lib/ui";
 import classNames from "classnames";
 import { CatalogViewTabs } from "../components/catalog/CatalogViewTabs";

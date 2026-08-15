@@ -1,28 +1,29 @@
 import { ReactElement, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import {
-  CommonTable,
-  Column,
-  CellPrimitive,
-} from "../components/ui/CommonTable";
-import { Badge } from "../components/ui/Badge";
-import { DropdownFilter } from "../components/core/DropdownFilter";
-import { TextFilter } from "../components/core/TextFilter";
-import { getRecords } from "@hyperleda/lib/clients/admin";
+import { getRecords } from "../clients/admin";
 import type {
   CrossmatchTriageStatus,
   GetRecordsResponse,
   Record as ApiRecord,
   ValidationError,
-} from "@hyperleda/lib/clients/admin";
-import { getResource } from "../resources/resources";
-import { Button } from "@hyperleda/lib/ui";
-import { Loading } from "../components/core/Loading";
-import { ErrorPage } from "../components/ui/ErrorPage";
-import { Link } from "../components/core/Link";
-import { useDataFetching } from "../hooks/useDataFetching";
-import { Pagination } from "../components/ui/Pagination";
-import { adminClient } from "@hyperleda/lib/clients";
+} from "../clients/admin";
+import { adminClient } from "../clients";
+import { getResource } from "../resources";
+import { publicObjectUrl } from "../origins";
+import {
+  Badge,
+  Button,
+  CellPrimitive,
+  Column,
+  CommonTable,
+  DropdownFilter,
+  ErrorPage,
+  Link,
+  Loading,
+  Pagination,
+  TextFilter,
+} from "../ui";
+import { useDataFetching } from "../hooks";
 
 interface CrossmatchFiltersProps {
   tableName: string | null;
@@ -66,7 +67,7 @@ function CrossmatchFilters({
         placeholder="Enter table name"
         onEnter={applyFilters}
       />
-      <Link href={`/table/${localTableName.trim()}`} external />
+      <Link href={`/table/${localTableName.trim()}`} />
       <DropdownFilter
         title="Manual check status"
         options={[
@@ -130,11 +131,18 @@ function CrossmatchResults({
 
     return (
       <>
-        {pgcNumbers.map((pgc, index) => (
-          <Badge key={`${pgc}-${index}`} href={`/object/${pgc}`}>
-            {pgc}
-          </Badge>
-        ))}
+        {pgcNumbers.map((pgc, index) => {
+          const objectLink = publicObjectUrl(pgc);
+          return (
+            <Badge
+              key={`${pgc}-${index}`}
+              href={objectLink.href}
+              external={objectLink.external}
+            >
+              {pgc}
+            </Badge>
+          );
+        })}
       </>
     );
   }

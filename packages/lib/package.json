@@ -11,7 +11,11 @@
     "./clients/backend/*": "./src/clients/backend/*",
     "./clients/admin": "./src/clients/admin/index.ts",
     "./clients/admin/*": "./src/clients/admin/*",
+    "./hooks": "./src/hooks/index.ts",
     "./pages": "./src/pages/index.ts",
+    "./resources": "./src/resources/index.ts",
+    "./origins": "./src/origins.ts",
+    "./astronomy": "./src/astronomy/index.ts",
     "./ui": "./src/ui/index.ts",
     "./ui/styles.css": "./src/ui/styles.css"
   },

@@ -4,16 +4,18 @@ import { HomePage } from "./pages/Home";
 import { SearchResultsPage } from "./pages/SearchResults";
 import { ObjectDetailsPage } from "./pages/ObjectDetails";
 import { NotFoundPage } from "./pages/NotFound";
-import { CrossmatchResultsPage } from "./pages/CrossmatchResults";
-import { RecordCrossmatchDetailsPage } from "./pages/RecordCrossmatchDetails";
-import { TablesPage } from "./pages/Tables";
 import { DataCatalogPage } from "./pages/DataCatalog";
 import { Navbar } from "./components/ui/Navbar";
 import { SearchBar } from "./components/ui/Searchbar";
-import { LoginPage } from "@hyperleda/lib/pages";
-import { TableDetailsPage } from "./pages/TableDetails";
-import { AdminPage } from "./pages/Admin";
-import { AdminMergePgcPage } from "./pages/AdminMergePgc";
+import {
+  AdminMergePgcPage,
+  AdminPage,
+  CrossmatchResultsPage,
+  LoginPage,
+  RecordCrossmatchDetailsPage,
+  TableDetailsPage,
+  TablesPage,
+} from "@hyperleda/lib/pages";
 
 function Layout() {
   return (

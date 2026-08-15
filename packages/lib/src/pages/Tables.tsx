@@ -1,23 +1,27 @@
 import { ReactElement, useEffect, useState, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import classNames from "classnames";
-import { DropdownFilter } from "../components/core/DropdownFilter";
-import { TextFilter } from "../components/core/TextFilter";
-import { getTableList } from "@hyperleda/lib/clients/admin";
+import { getTableList } from "../clients/admin";
 import type {
   GetTableListResponse,
   TableListItem,
   TableProgress,
   ValidationError,
-} from "@hyperleda/lib/clients/admin";
-import { Loading } from "../components/core/Loading";
-import { ErrorPage } from "../components/ui/ErrorPage";
-import { useDataFetching } from "../hooks/useDataFetching";
-import { Pagination } from "../components/ui/Pagination";
-import { adminClient } from "@hyperleda/lib/clients";
-import { Link } from "../components/core/Link";
-import { getSourceLink } from "../components/catalogs/CatalogCard";
-import { Card, CardAction, Field } from "../components/ui/Card";
+} from "../clients/admin";
+import { adminClient } from "../clients";
+import {
+  Card,
+  CardAction,
+  DropdownFilter,
+  ErrorPage,
+  Field,
+  Link,
+  Loading,
+  Pagination,
+  TextFilter,
+} from "../ui";
+import { useDataFetching } from "../hooks";
+import { getSourceLink } from "../astronomy";
 
 const SEARCH_DEBOUNCE_MS = 300;
 
