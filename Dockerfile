@@ -10,7 +10,7 @@ COPY packages/lib/package.json ./packages/lib/
 COPY packages/eslint-config/package.json ./packages/eslint-config/
 RUN bun install --frozen-lockfile
 COPY . .
-RUN bun run --filter @hyperleda/${APP} build
+RUN bun run --cwd apps/${APP} build
 
 FROM node:22-slim
 ARG APP
