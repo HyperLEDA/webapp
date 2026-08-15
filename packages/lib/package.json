@@ -21,11 +21,8 @@
     "gen:admin": "openapi-ts -i http://leda.sao.ru/admin/api/openapi.json -o ./src/clients/admin"
   },
   "dependencies": {
-    "@hey-api/openapi-ts": "^0.99.0",
     "classnames": "^2.5.1",
-    "flowbite-react": "^0.12.17"
-  },
-  "peerDependencies": {
+    "flowbite-react": "^0.12.17",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-icons": "^5.7.0",
@@ -33,17 +30,13 @@
     "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
+    "@hey-api/openapi-ts": "^0.99.0",
     "@hyperleda/eslint-config": "*",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "eslint": "^10.8.1",
     "globals": "^17.9.0",
     "jiti": "^2.7.0",
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8",
-    "react-icons": "^5.7.0",
-    "react-router-dom": "^7.18.2",
-    "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3"
   }
 }
