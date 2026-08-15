@@ -7,7 +7,7 @@ import {
   NavButton,
   NavItem,
   ThemeSwitcher,
-} from "@hyperleda/ui";
+} from "@hyperleda/lib/ui";
 
 const productionAdmin = "https://admin.leda.sao.ru";
 const localWebOrigin = "http://localhost:5173";

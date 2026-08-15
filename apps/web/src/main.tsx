@@ -1,4 +1,4 @@
-import { ThemeProvider } from "@hyperleda/ui";
+import { ThemeProvider } from "@hyperleda/lib/ui";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";

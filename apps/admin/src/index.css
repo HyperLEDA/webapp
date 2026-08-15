@@ -1,6 +1,6 @@
 @import "tailwindcss";
-@source "../../../packages/ui/src";
-@import "@hyperleda/ui/src/styles.css";
+@source "../../../packages/lib/src";
+@import "@hyperleda/lib/ui/styles.css";
 
 :root {
   --token-accent: #15803d;

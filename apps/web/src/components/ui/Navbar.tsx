@@ -10,7 +10,7 @@ import {
   MdSearch,
   MdTableChart,
 } from "react-icons/md";
-import { NavRail, NavButton, NavItem, ThemeSwitcher } from "@hyperleda/ui";
+import { NavRail, NavButton, NavItem, ThemeSwitcher } from "@hyperleda/lib/ui";
 import { clearAuthToken, isLoggedIn } from "../../auth/token";
 import { logout } from "../../clients/admin/sdk.gen";
 import { adminClient } from "../../clients/config";

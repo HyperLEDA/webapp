@@ -3,6 +3,6 @@
   "references": [
     { "path": "./apps/web" },
     { "path": "./apps/admin" },
-    { "path": "./packages/ui" }
+    { "path": "./packages/lib" }
   ]
 }

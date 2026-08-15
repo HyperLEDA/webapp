@@ -1,5 +1,5 @@
 import { BrowserRouter, Outlet, Route, Routes } from "react-router-dom";
-import { Layout as SharedLayout } from "@hyperleda/ui";
+import { Layout as SharedLayout } from "@hyperleda/lib/ui";
 import { HomePage } from "./pages/Home";
 import { SearchResultsPage } from "./pages/SearchResults";
 import { ObjectDetailsPage } from "./pages/ObjectDetails";

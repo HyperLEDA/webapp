@@ -9,7 +9,7 @@
     "build:admin": "yarn workspace @hyperleda/admin build",
     "lint:web": "yarn workspace @hyperleda/web lint",
     "lint:admin": "yarn workspace @hyperleda/admin lint",
-    "lint:ui": "yarn workspace @hyperleda/ui lint",
+    "lint:lib": "yarn workspace @hyperleda/lib lint",
     "test:web": "yarn workspace @hyperleda/web test",
     "test:admin": "yarn workspace @hyperleda/admin test",
     "start": "node server.mjs"

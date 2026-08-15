@@ -1,18 +1,18 @@
 check:
-	@output=$$(yarn run --silent prettier --check apps/web/src apps/admin/src packages/ui/src 2>&1) || { echo "$$output"; exit 1; }
+	@output=$$(yarn run --silent prettier --check apps/web/src apps/admin/src packages/lib/src 2>&1) || { echo "$$output"; exit 1; }
 	@output=$$(yarn workspace @hyperleda/web eslint src 2>&1) || { echo "$$output"; exit 1; }
 	@output=$$(yarn workspace @hyperleda/admin eslint src 2>&1) || { echo "$$output"; exit 1; }
-	@output=$$(yarn workspace @hyperleda/ui eslint src 2>&1) || { echo "$$output"; exit 1; }
+	@output=$$(yarn workspace @hyperleda/lib eslint src 2>&1) || { echo "$$output"; exit 1; }
 	@yarn test:web
 	@yarn test:admin
 	@yarn build:web
 	@yarn build:admin
 
 fix:
-	@output=$$(yarn run --silent prettier --write apps/web/src apps/admin/src packages/ui/src 2>&1) || { echo "$$output"; exit 1; }
+	@output=$$(yarn run --silent prettier --write apps/web/src apps/admin/src packages/lib/src 2>&1) || { echo "$$output"; exit 1; }
 	@output=$$(yarn workspace @hyperleda/web eslint --fix src 2>&1) || { echo "$$output"; exit 1; }
 	@output=$$(yarn workspace @hyperleda/admin eslint --fix src 2>&1) || { echo "$$output"; exit 1; }
-	@output=$$(yarn workspace @hyperleda/ui eslint --fix src 2>&1) || { echo "$$output"; exit 1; }
+	@output=$$(yarn workspace @hyperleda/lib eslint --fix src 2>&1) || { echo "$$output"; exit 1; }
 
 run-web:
 	yarn dev:web

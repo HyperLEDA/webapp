@@ -1,7 +1,7 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
-@source "../../../packages/ui/src";
-@import "@hyperleda/ui/src/styles.css";
+@source "../../../packages/lib/src";
+@import "@hyperleda/lib/ui/styles.css";
 
 @keyframes card-anchor-highlight {
   0%,
