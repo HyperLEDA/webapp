@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 @source "../../../packages/lib/src";
 @import "@hyperleda/lib/ui/styles.css";
 

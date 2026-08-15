@@ -22,6 +22,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@hyperleda/lib": "*",
+        "@tailwindcss/typography": "^0.5.20",
         "@tailwindcss/vite": "^4.3.3",
         "react": "^19.2.8",
         "react-dom": "^19.2.8",
@@ -43,17 +44,14 @@
       "version": "0.0.0",
       "dependencies": {
         "@hyperleda/lib": "*",
-        "@monaco-editor/react": "^4.7.0",
         "@tailwindcss/typography": "^0.5.20",
         "@tailwindcss/vite": "^4.3.3",
         "axios": "^1.19.0",
         "classnames": "^2.5.1",
         "flowbite-react": "^0.12.17",
-        "monaco-editor": "^0.56.0",
         "react": "^19.2.8",
         "react-dom": "^19.2.8",
         "react-icons": "^5.7.0",
-        "react-markdown": "^10.1.0",
         "react-router-dom": "^7.18.2",
         "tailwindcss": "^4.3.3",
         "uplot": "^1.6.32",
@@ -71,8 +69,11 @@
       "name": "@hyperleda/lib",
       "version": "0.0.0",
       "dependencies": {
+        "@monaco-editor/react": "^4.7.0",
         "classnames": "^2.5.1",
         "flowbite-react": "^0.12.17",
+        "monaco-editor": "^0.56.0",
+        "react-markdown": "^10.1.0",
       },
       "devDependencies": {
         "@types/react": "^19.2.18",

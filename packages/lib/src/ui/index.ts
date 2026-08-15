@@ -41,3 +41,4 @@ export { DropdownFilter } from "./DropdownFilter";
 export { EditableTextField } from "./EditableTextField";
 export { Accordion } from "./Accordion";
 export { Text, type TextStyle, type TextSize, type TextType } from "./Text";
+export { Markdown } from "./Markdown";

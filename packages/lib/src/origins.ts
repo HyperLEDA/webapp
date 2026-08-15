@@ -36,20 +36,3 @@ export function publicObjectUrl(pgc: number): {
     external: false,
   };
 }
-
-export function publicDataCatalogQueryUrl(sql: string): {
-  href: string;
-  external: boolean;
-} {
-  const path = `/data-catalog/query?q=${encodeURIComponent(sql)}`;
-  if (isAdminInterface()) {
-    return {
-      href: `${sameEnvWebOrigin()}${path}`,
-      external: true,
-    };
-  }
-  return {
-    href: path,
-    external: false,
-  };
-}

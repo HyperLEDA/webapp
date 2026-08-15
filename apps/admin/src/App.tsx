@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { BrowserRouter, Outlet, Route, Routes } from "react-router-dom";
 import {
   MdAdminPanelSettings,
+  MdAccountTree,
   MdOpenInNew,
   MdPublic,
   MdTableChart,
@@ -10,6 +11,7 @@ import {
   AdminMergePgcPage,
   AdminPage,
   CrossmatchResultsPage,
+  DataCatalogPage,
   LoginPage,
   RecordCrossmatchDetailsPage,
   TableDetailsPage,
@@ -80,6 +82,9 @@ function Layout() {
           <NavItem to="/tables" label="Tables">
             <MdTableChart size={20} />
           </NavItem>
+          <NavItem to="/data-catalog" label="Data catalog">
+            <MdAccountTree size={20} />
+          </NavItem>
         </NavRail>
       }
     >
@@ -97,6 +102,12 @@ function App() {
           <Route path="/merge-pgc" element={<AdminMergePgcPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/tables" element={<TablesPage />} />
+          <Route path="/data-catalog" element={<DataCatalogPage />} />
+          <Route path="/data-catalog/query" element={<DataCatalogPage />} />
+          <Route
+            path="/data-catalog/:schemaName/:tableName"
+            element={<DataCatalogPage />}
+          />
           <Route path="/table/:tableName" element={<TableDetailsPage />} />
           <Route path="/crossmatch" element={<CrossmatchResultsPage />} />
           <Route
