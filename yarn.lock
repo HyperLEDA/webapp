@@ -180,7 +180,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@emnapi/core@npm:^1.11.1":
+"@emnapi/core@npm:*, @emnapi/core@npm:^1.11.1":
   version: 1.11.3
   resolution: "@emnapi/core@npm:1.11.3"
   dependencies:
@@ -190,7 +190,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@emnapi/runtime@npm:^1.11.1":
+"@emnapi/runtime@npm:*, @emnapi/runtime@npm:^1.11.1":
   version: 1.11.3
   resolution: "@emnapi/runtime@npm:1.11.3"
   dependencies:
@@ -519,14 +519,18 @@ __metadata:
     flowbite-react: "npm:^0.12.17"
     globals: "npm:^17.9.0"
     jiti: "npm:^2.7.0"
+    react: "npm:^19.2.8"
+    react-dom: "npm:^19.2.8"
     react-icons: "npm:^5.7.0"
     react-router-dom: "npm:^7.18.2"
+    tailwindcss: "npm:^4.3.3"
     typescript: "npm:^6.0.3"
   peerDependencies:
     react: ^19.2.8
     react-dom: ^19.2.8
     react-icons: ^5.7.0
     react-router-dom: ^7.18.2
+    tailwindcss: ^4.3.3
   languageName: unknown
   linkType: soft
 

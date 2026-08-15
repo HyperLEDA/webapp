@@ -29,7 +29,8 @@
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-icons": "^5.7.0",
-    "react-router-dom": "^7.18.2"
+    "react-router-dom": "^7.18.2",
+    "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
     "@hyperleda/eslint-config": "*",
@@ -38,8 +39,11 @@
     "eslint": "^10.8.1",
     "globals": "^17.9.0",
     "jiti": "^2.7.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
     "react-icons": "^5.7.0",
     "react-router-dom": "^7.18.2",
+    "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3"
   }
 }
