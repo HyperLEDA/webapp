@@ -2,12 +2,18 @@ import classNames from "classnames";
 import { Children, ReactElement, ReactNode, useState } from "react";
 import { MdCode, MdKeyboardArrowDown } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
-import { AppTooltip, Button, Card, CardAction, Field } from "@hyperleda/lib/ui";
+import {
+  AppTooltip,
+  Button,
+  Card,
+  CardAction,
+  Field,
+  SqlQueryEmbed,
+} from "@hyperleda/lib/ui";
 import {
   getSourceLink,
   originalDataCatalogLink,
 } from "@hyperleda/lib/astronomy";
-import { SqlQueryEmbed } from "@hyperleda/lib/pages";
 
 export type { CardAction as CatalogCardAction };
 export { Field, getSourceLink };

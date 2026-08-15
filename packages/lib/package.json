@@ -9,7 +9,6 @@
     "./clients/backend": "./src/clients/backend/index.ts",
     "./clients/backend/*": "./src/clients/backend/*",
     "./hooks": "./src/hooks/index.ts",
-    "./pages": "./src/pages/index.ts",
     "./origins": "./src/origins.ts",
     "./tap": "./src/tap.ts",
     "./astronomy": "./src/astronomy/index.ts",

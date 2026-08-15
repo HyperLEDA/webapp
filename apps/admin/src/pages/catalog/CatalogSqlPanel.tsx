@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 import type { TapSchemaEntry } from "@hyperleda/lib/clients/backend";
 import { Button, Text } from "@hyperleda/lib/ui";
 import { SqlEditor } from "./SqlEditor";
-import { SqlQueryEmbed } from "@hyperleda/lib/pages";
+import { SqlQueryEmbed } from "@hyperleda/lib/ui";
 
 function runQueryShortcutLabel(): string {
   if (typeof navigator === "undefined") {

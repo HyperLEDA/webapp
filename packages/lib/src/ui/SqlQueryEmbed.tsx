@@ -1,14 +1,10 @@
 import React, { ReactElement, ReactNode, useEffect, useState } from "react";
 import type { TapSyncResponse } from "@hyperleda/lib/clients/backend";
-import { executeSqlQuery, syncPayloadToTable } from "../../tap";
-import { Markdown } from "../../ui/Markdown";
-import {
-  CellPrimitive,
-  Column,
-  CommonTable,
-  Loading,
-  Text,
-} from "@hyperleda/lib/ui";
+import { executeSqlQuery, syncPayloadToTable } from "../tap";
+import { type CellPrimitive, type Column, CommonTable } from "./CommonTable";
+import { Loading } from "./Loading";
+import { Markdown } from "./Markdown";
+import { Text } from "./Text";
 
 function renderMarkdownCell(value: CellPrimitive): ReactNode {
   if (value === undefined || value === null) {

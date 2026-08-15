@@ -34,3 +34,4 @@ export { Hint } from "./Hint";
 export { Loading } from "./Loading";
 export { Text, type TextStyle, type TextSize, type TextType } from "./Text";
 export { Markdown } from "./Markdown";
+export { SqlQueryEmbed } from "./SqlQueryEmbed";
