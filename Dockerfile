@@ -7,7 +7,6 @@ COPY package.json bun.lock ./
 COPY apps/web/package.json ./apps/web/
 COPY apps/admin/package.json ./apps/admin/
 COPY packages/lib/package.json ./packages/lib/
-COPY packages/eslint-config/package.json ./packages/eslint-config/
 RUN bun install --frozen-lockfile
 COPY . .
 ENV PATH="/app/node_modules/typescript/bin:/app/node_modules/.bin:$PATH"
@@ -24,7 +23,6 @@ COPY package.json bun.lock ./
 COPY apps/web/package.json ./apps/web/
 COPY apps/admin/package.json ./apps/admin/
 COPY packages/lib/package.json ./packages/lib/
-COPY packages/eslint-config/package.json ./packages/eslint-config/
 RUN bun install --frozen-lockfile --production
 COPY --from=builder /app/apps/${APP}/dist ./dist
 COPY server.mjs .
