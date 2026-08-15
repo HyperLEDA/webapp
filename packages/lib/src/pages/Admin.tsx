@@ -1,11 +1,11 @@
 import { ReactElement, useEffect } from "react";
 import { Navigate } from "react-router-dom";
-import { isLoggedIn } from "@hyperleda/lib/auth";
-import { Link } from "../components/core/Link";
+import { isLoggedIn } from "../auth";
+import { Link } from "../ui/Link";
 
 const tasks = [
   {
-    to: "/admin/merge-pgc",
+    to: "merge-pgc",
     title: "Merge PGC objects",
     description:
       "Reassign all records from a source PGC onto a surviving target PGC.",

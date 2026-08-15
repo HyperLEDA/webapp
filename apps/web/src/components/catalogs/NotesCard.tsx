@@ -1,6 +1,6 @@
 import { ReactElement } from "react";
 import { Catalogs, NoteEntry } from "@hyperleda/lib/clients/backend";
-import { Link } from "../core/Link";
+import { Link } from "@hyperleda/lib/ui";
 import { Hint } from "../ui/Hint";
 import { CatalogCard, Field, getSourceLink } from "./CatalogCard";
 

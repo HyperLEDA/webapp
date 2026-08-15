@@ -19,7 +19,7 @@ import { getResource } from "../resources/resources";
 import { Button } from "@hyperleda/lib/ui";
 import { Loading } from "../components/core/Loading";
 import { ErrorPage } from "../components/ui/ErrorPage";
-import { Link } from "../components/core/Link";
+import { Link } from "@hyperleda/lib/ui";
 import { useDataFetching } from "../hooks/useDataFetching";
 import { Pagination } from "../components/ui/Pagination";
 import { adminClient } from "@hyperleda/lib/clients";

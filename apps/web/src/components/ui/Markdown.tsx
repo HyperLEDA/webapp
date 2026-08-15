@@ -1,6 +1,6 @@
 import { ReactElement, ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
-import { Link } from "../core/Link";
+import { Link } from "@hyperleda/lib/ui";
 
 export function Markdown({ children }: { children: string }): ReactElement {
   return (

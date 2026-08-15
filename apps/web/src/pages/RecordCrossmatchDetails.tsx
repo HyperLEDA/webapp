@@ -1,6 +1,6 @@
 import { ReactElement, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { AladinViewer } from "../components/core/Aladin";
+import { AladinViewer, Link, ObjectSummary } from "@hyperleda/lib/ui";
 import { Loading } from "../components/core/Loading";
 import { ErrorPage } from "../components/ui/ErrorPage";
 import {
@@ -21,7 +21,6 @@ import {
 } from "@hyperleda/lib/clients/admin";
 import { Schema as BackendSchema } from "@hyperleda/lib/clients/backend";
 import { getResource } from "../resources/resources";
-import { Link } from "../components/core/Link";
 import { CopyButton } from "../components/ui/CopyButton";
 import { Badge, BadgeType } from "../components/ui/Badge";
 import { Accordion } from "../components/core/Accordion";
@@ -29,7 +28,6 @@ import { useDataFetching } from "../hooks/useDataFetching";
 import { adminClient } from "@hyperleda/lib/clients";
 import { Button } from "@hyperleda/lib/ui";
 import { isLoggedIn } from "@hyperleda/lib/auth";
-import { ObjectSummary } from "../components/catalogs/ObjectSummary";
 import classNames from "classnames";
 import { MdAdd, MdClose } from "react-icons/md";
 

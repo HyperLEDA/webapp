@@ -3,13 +3,15 @@ import { MdContentCopy, MdSearch } from "react-icons/md";
 import { Catalogs, Schema } from "@hyperleda/lib/clients/backend";
 import {
   buildNedPositionSearchUrl,
-  Declination,
   EQUATORIAL_COPY_FORMATS,
-  EquatorialDecimalDegrees,
   formatEquatorialForCopy,
-  RightAscension,
+} from "@hyperleda/lib/astronomy";
+import {
+  Declination,
+  EquatorialDecimalDegrees,
   Quantity,
-} from "../core/Astronomy";
+  RightAscension,
+} from "@hyperleda/lib/ui";
 import {
   bibcodeMarkdownSelect,
   CatalogCard,

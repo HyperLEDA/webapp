@@ -15,7 +15,7 @@ import { ErrorPage } from "../components/ui/ErrorPage";
 import { useDataFetching } from "../hooks/useDataFetching";
 import { Pagination } from "../components/ui/Pagination";
 import { adminClient } from "@hyperleda/lib/clients";
-import { Link } from "../components/core/Link";
+import { Link } from "@hyperleda/lib/ui";
 import { getSourceLink } from "../components/catalogs/CatalogCard";
 import { Card, CardAction, Field } from "../components/ui/Card";
 

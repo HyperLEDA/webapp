@@ -1,15 +1,18 @@
 import { ReactElement, ReactNode, useEffect, useRef, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { isLoggedIn } from "@hyperleda/lib/auth";
-import { mergePgcs } from "@hyperleda/lib/clients/admin";
-import { querySimple } from "@hyperleda/lib/clients/backend";
-import { PgcObject, Schema } from "@hyperleda/lib/clients/backend";
-import { adminClient, backendClient } from "@hyperleda/lib/clients";
-import { ObjectSummary } from "../components/catalogs/ObjectSummary";
-import { AladinViewer } from "../components/core/Aladin";
-import { Button } from "@hyperleda/lib/ui";
-import { Link } from "../components/core/Link";
-import { SuggestibleInput } from "../components/core/SuggestibleInput";
+import { isLoggedIn } from "../auth";
+import { mergePgcs } from "../clients/admin";
+import { querySimple } from "../clients/backend";
+import { PgcObject, Schema } from "../clients/backend";
+import { adminClient, backendClient } from "../clients";
+import { publicObjectUrl } from "../origins";
+import {
+  AladinViewer,
+  Button,
+  Link,
+  ObjectSummary,
+  SuggestibleInput,
+} from "../ui";
 
 const MIN_ALADIN_FOV_DEG = 0.05;
 const ALADIN_FOV_PADDING = 1.4;
@@ -139,6 +142,21 @@ interface PgcPickerProps {
   selection: PgcSelection | null;
   onSelect: (selection: PgcSelection | null) => void;
   disabled?: boolean;
+}
+
+function ObjectNameLink({
+  pgc,
+  label,
+}: {
+  pgc: number;
+  label: string;
+}): ReactElement {
+  const objectLink = publicObjectUrl(pgc);
+  return (
+    <Link href={objectLink.href} external={objectLink.external}>
+      {label}
+    </Link>
+  );
 }
 
 function PgcPicker({
@@ -343,9 +361,10 @@ function PgcPicker({
             catalogs={selection.object.catalogs}
             schema={selection.schema}
             name={
-              <Link href={`/object/${selection.object.pgc}`}>
-                {objectLabel(selection.object)}
-              </Link>
+              <ObjectNameLink
+                pgc={selection.object.pgc}
+                label={objectLabel(selection.object)}
+              />
             }
           />
         </div>

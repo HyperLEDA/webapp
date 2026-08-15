@@ -1,6 +1,6 @@
 import { ReactElement } from "react";
 import { Catalogs, Schema } from "@hyperleda/lib/clients/backend";
-import { Quantity, QuantityWithError } from "../core/Astronomy";
+import { Quantity, QuantityWithError } from "@hyperleda/lib/ui";
 import {
   bibcodeMarkdownSelect,
   CatalogCard,

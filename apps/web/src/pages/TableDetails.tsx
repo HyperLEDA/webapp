@@ -16,7 +16,7 @@ import {
 } from "../components/ui/CommonTable";
 import { CopyButton } from "../components/ui/CopyButton";
 import { Badge } from "../components/ui/Badge";
-import { Link } from "../components/core/Link";
+import { Link } from "@hyperleda/lib/ui";
 import { TextFilter } from "../components/core/TextFilter";
 import { Loading } from "../components/core/Loading";
 import { Card, CardAction, Field } from "../components/ui/Card";

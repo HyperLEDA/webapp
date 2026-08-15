@@ -1,5 +1,5 @@
 import { ReactElement } from "react";
-import { Link } from "../core/Link";
+import { Link } from "@hyperleda/lib/ui";
 
 export type BadgeType = "info" | "success" | "warning";
 

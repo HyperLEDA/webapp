@@ -2,7 +2,7 @@ import { ReactElement, ReactNode, useState } from "react";
 import { Link, NavigateFunction, useNavigate } from "react-router-dom";
 import classNames from "classnames";
 import { Button } from "@hyperleda/lib/ui";
-import { SuggestibleInput } from "../core/SuggestibleInput";
+import { SuggestibleInput } from "@hyperleda/lib/ui";
 import { useTheme } from "../../hooks/useTheme";
 import { inspectSearchTypes } from "../../lib/search/searchTypes";
 

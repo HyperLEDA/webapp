@@ -12,9 +12,13 @@ import { ErrorPage, ErrorPageHomeButton } from "../components/ui/ErrorPage";
 import { useDataFetching } from "../hooks/useDataFetching";
 import { querySimple } from "@hyperleda/lib/clients/backend";
 import { PgcObject, QuerySimpleResponse } from "@hyperleda/lib/clients/backend";
-import { Link } from "../components/core/Link";
-import { Declination, RightAscension } from "../components/core/Astronomy";
-import { AladinViewer, AladinViewerHandle } from "../components/core/Aladin";
+import {
+  AladinViewer,
+  Declination,
+  Link,
+  RightAscension,
+  type AladinViewerHandle,
+} from "@hyperleda/lib/ui";
 import { Button } from "@hyperleda/lib/ui";
 import { Pagination } from "../components/ui/Pagination";
 import { backendClient } from "@hyperleda/lib/clients";

@@ -12,6 +12,8 @@
     "./clients/admin": "./src/clients/admin/index.ts",
     "./clients/admin/*": "./src/clients/admin/*",
     "./pages": "./src/pages/index.ts",
+    "./origins": "./src/origins.ts",
+    "./astronomy": "./src/astronomy/index.ts",
     "./ui": "./src/ui/index.ts",
     "./ui/styles.css": "./src/ui/styles.css"
   },
