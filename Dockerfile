@@ -2,26 +2,26 @@ FROM node:22-slim AS builder
 ARG APP
 RUN test -n "$APP"
 WORKDIR /app
-COPY package.json yarn.lock ./
+COPY --from=oven/bun:1 /usr/local/bin/bun /usr/local/bin/bun
+COPY package.json bun.lock ./
 COPY apps/web/package.json ./apps/web/
 COPY apps/admin/package.json ./apps/admin/
 COPY packages/lib/package.json ./packages/lib/
-COPY packages/eslint-config/package.json ./packages/eslint-config/
-RUN yarn install --frozen-lockfile
+RUN bun install --frozen-lockfile
 COPY . .
-RUN yarn workspace @hyperleda/${APP} build
+RUN bun run --cwd apps/${APP} build
 
 FROM node:22-slim
 ARG APP
 RUN test -n "$APP"
 RUN apt-get update && apt-get install -y curl
 WORKDIR /app
-COPY package.json yarn.lock ./
+COPY --from=oven/bun:1 /usr/local/bin/bun /usr/local/bin/bun
+COPY package.json bun.lock ./
 COPY apps/web/package.json ./apps/web/
 COPY apps/admin/package.json ./apps/admin/
 COPY packages/lib/package.json ./packages/lib/
-COPY packages/eslint-config/package.json ./packages/eslint-config/
-RUN yarn install --frozen-lockfile --production
+RUN bun install --frozen-lockfile --production
 COPY --from=builder /app/apps/${APP}/dist ./dist
 COPY server.mjs .
 CMD ["node", "server.mjs"]

@@ -3,15 +3,25 @@
   "private": true,
   "workspaces": ["apps/*", "packages/*"],
   "scripts": {
-    "dev:web": "yarn workspace @hyperleda/web dev",
-    "dev:admin": "yarn workspace @hyperleda/admin dev",
-    "build:web": "yarn workspace @hyperleda/web build",
-    "build:admin": "yarn workspace @hyperleda/admin build",
-    "lint:web": "yarn workspace @hyperleda/web lint",
-    "lint:admin": "yarn workspace @hyperleda/admin lint",
-    "lint:lib": "yarn workspace @hyperleda/lib lint",
-    "test:web": "yarn workspace @hyperleda/web test",
-    "test:admin": "yarn workspace @hyperleda/admin test",
-    "start": "node server.mjs"
+    "dev:web": "bun run --cwd apps/web dev",
+    "dev:admin": "bun run --cwd apps/admin dev",
+    "build:web": "bun run --cwd apps/web build",
+    "build:admin": "bun run --cwd apps/admin build",
+    "lint": "eslint .",
+    "eslint": "eslint",
+    "test:web": "bun run --cwd apps/web test",
+    "test:admin": "bun run --cwd apps/admin test",
+    "start": "node server.mjs",
+    "prettier": "prettier",
+    "openapi-ts": "openapi-ts"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@hey-api/openapi-ts": "^0.99.0",
+    "eslint": "^10.8.1",
+    "eslint-config-prettier": "^10.1.8",
+    "jiti": "^2.7.0",
+    "prettier": "3.9.6",
+    "typescript-eslint": "^8.66.0"
   }
 }

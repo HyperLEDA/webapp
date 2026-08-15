@@ -1,28 +1,24 @@
 check:
-	@output=$$(yarn run --silent prettier --check apps/web/src apps/admin/src packages/lib/src 2>&1) || { echo "$$output"; exit 1; }
-	@output=$$(yarn workspace @hyperleda/web eslint src 2>&1) || { echo "$$output"; exit 1; }
-	@output=$$(yarn workspace @hyperleda/admin eslint src 2>&1) || { echo "$$output"; exit 1; }
-	@output=$$(yarn workspace @hyperleda/lib eslint src 2>&1) || { echo "$$output"; exit 1; }
-	@yarn test:web
-	@yarn test:admin
-	@yarn build:web
-	@yarn build:admin
+	@output=$$(bun --silent run prettier --check apps/web/src apps/admin/src packages/lib/src 2>&1) || { echo "$$output"; exit 1; }
+	@output=$$(bun --silent run eslint . 2>&1) || { echo "$$output"; exit 1; }
+	@bun run test:web
+	@bun run test:admin
+	@bun run build:web
+	@bun run build:admin
 
 fix:
-	@output=$$(yarn run --silent prettier --write apps/web/src apps/admin/src packages/lib/src 2>&1) || { echo "$$output"; exit 1; }
-	@output=$$(yarn workspace @hyperleda/web eslint --fix src 2>&1) || { echo "$$output"; exit 1; }
-	@output=$$(yarn workspace @hyperleda/admin eslint --fix src 2>&1) || { echo "$$output"; exit 1; }
-	@output=$$(yarn workspace @hyperleda/lib eslint --fix src 2>&1) || { echo "$$output"; exit 1; }
+	@output=$$(bun --silent run prettier --write apps/web/src apps/admin/src packages/lib/src 2>&1) || { echo "$$output"; exit 1; }
+	@output=$$(bun --silent run eslint --fix . 2>&1) || { echo "$$output"; exit 1; }
 
 run-web:
-	yarn dev:web
+	bun run dev:web
 
 run-admin:
-	yarn dev:admin
+	bun run dev:admin
 
 gen:
-	yarn run openapi-ts -i http://leda.sao.ru/api/openapi.json -o ./packages/lib/src/clients/backend
-	yarn run openapi-ts -i http://leda.sao.ru/admin/api/openapi.json -o ./packages/lib/src/clients/admin
+	bun run openapi-ts -i http://leda.sao.ru/api/openapi.json -o ./packages/lib/src/clients/backend
+	bun run openapi-ts -i http://leda.sao.ru/admin/api/openapi.json -o ./packages/lib/src/clients/admin
 
 new-branch:
 	@read -p "Branch name: " branch_name && \

@@ -2,18 +2,16 @@ import eslint from "@eslint/js";
 import tseslint from "typescript-eslint";
 import eslintConfigPrettier from "eslint-config-prettier/flat";
 
-type Options = {
-  tsconfigRootDir: string;
-  ignores?: string[];
-};
-
-export function createEslintConfig({ tsconfigRootDir, ignores }: Options) {
-  return tseslint.config(eslintConfigPrettier, {
+export default tseslint.config(
+  {
+    ignores: ["**/dist/**", "packages/lib/src/clients/**"],
+  },
+  eslintConfigPrettier,
+  {
     extends: [eslint.configs.recommended, tseslint.configs.recommended],
-    ...(ignores ? { ignores } : {}),
     languageOptions: {
       parserOptions: {
-        tsconfigRootDir,
+        tsconfigRootDir: import.meta.dirname,
       },
     },
     rules: {
@@ -64,5 +62,11 @@ export function createEslintConfig({ tsconfigRootDir, ignores }: Options) {
       "prefer-const": "error",
       "require-await": "error",
     },
-  });
-}
+  },
+  {
+    files: ["configs/**"],
+    languageOptions: {
+      globals: { window: "writable" },
+    },
+  },
+);

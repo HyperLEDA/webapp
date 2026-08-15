@@ -6,7 +6,6 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "eslint .",
     "preview": "vite preview",
     "test": "output=$(vitest run 2>&1) || { printf '%s\\n' \"$output\"; exit 1; }",
     "test:watch": "vitest"
@@ -21,13 +20,9 @@
     "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
-    "@hyperleda/eslint-config": "*",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "@vitejs/plugin-react-swc": "^4.3.3",
-    "eslint": "^10.8.1",
-    "globals": "^17.9.0",
-    "jiti": "^2.7.0",
     "typescript": "^6.0.3",
     "vite": "^8.2.1",
     "vitest": "^4.1.10"

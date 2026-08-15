@@ -15,11 +15,7 @@
     "./ui": "./src/ui/index.ts",
     "./ui/styles.css": "./src/ui/styles.css"
   },
-  "scripts": {
-    "lint": "eslint ."
-  },
   "dependencies": {
-    "@hey-api/openapi-ts": "^0.99.0",
     "classnames": "^2.5.1",
     "flowbite-react": "^0.12.17"
   },
@@ -30,12 +26,8 @@
     "react-router-dom": "^7.18.2"
   },
   "devDependencies": {
-    "@hyperleda/eslint-config": "*",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
-    "eslint": "^10.8.1",
-    "globals": "^17.9.0",
-    "jiti": "^2.7.0",
     "react-icons": "^5.7.0",
     "react-router-dom": "^7.18.2",
     "typescript": "^6.0.3"
