@@ -4,6 +4,9 @@
   "workspaces": {
     "": {
       "name": "hyperleda-webapp",
+      "dependencies": {
+        "serve-handler": "^6.1.6",
+      },
       "devDependencies": {
         "@eslint/js": "^10.0.1",
         "@hey-api/openapi-ts": "^0.99.0",
@@ -52,7 +55,6 @@
         "react-icons": "^5.7.0",
         "react-markdown": "^10.1.0",
         "react-router-dom": "^7.18.2",
-        "serve-handler": "^6.1.6",
         "tailwindcss": "^4.3.3",
         "uplot": "^1.6.32",
       },
