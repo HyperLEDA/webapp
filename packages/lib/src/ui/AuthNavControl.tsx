@@ -1,13 +1,14 @@
 import { ReactElement, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MdLogin, MdLogout } from "react-icons/md";
-import { clearAuthToken, isLoggedIn } from "../auth/token";
+import { clearAuthToken, useIsLoggedIn } from "../auth";
 import { logout } from "../clients/admin/sdk.gen";
 import { adminClient } from "../clients/index";
 import { NavButton, NavItem } from "./NavRail";
 
 export function AuthNavControl(): ReactElement {
   const navigate = useNavigate();
+  const loggedIn = useIsLoggedIn();
   const [loggingOut, setLoggingOut] = useState(false);
 
   async function handleLogout(): Promise<void> {
@@ -24,7 +25,7 @@ export function AuthNavControl(): ReactElement {
     }
   }
 
-  if (isLoggedIn()) {
+  if (loggedIn) {
     return (
       <NavButton label="Logout" onClick={handleLogout} disabled={loggingOut}>
         <MdLogout size={20} />

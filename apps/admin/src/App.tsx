@@ -1,5 +1,11 @@
 import { useMemo } from "react";
-import { BrowserRouter, Outlet, Route, Routes } from "react-router-dom";
+import {
+  BrowserRouter,
+  Navigate,
+  Outlet,
+  Route,
+  Routes,
+} from "react-router-dom";
 import {
   MdAdminPanelSettings,
   MdAccountTree,
@@ -17,6 +23,7 @@ import {
   TableDetailsPage,
   TablesPage,
 } from "@hyperleda/lib/pages";
+import { isLoggedIn, useIsLoggedIn } from "@hyperleda/lib/auth";
 import { sameEnvWebOrigin } from "@hyperleda/lib/origins";
 import {
   AuthNavControl,
@@ -36,7 +43,15 @@ function openCurrentPathOnOrigin(targetInput: string): void {
   );
 }
 
+function RequireAuth() {
+  if (!isLoggedIn()) {
+    return <Navigate to="/login" replace />;
+  }
+  return <Outlet />;
+}
+
 function Layout() {
+  const loggedIn = useIsLoggedIn();
   const showOpenProductionButton = useMemo(() => {
     try {
       return window.location.origin !== new URL(productionAdmin).origin;
@@ -51,7 +66,7 @@ function Layout() {
         <NavRail
           footer={
             <>
-              {showOpenProductionButton ? (
+              {loggedIn && showOpenProductionButton ? (
                 <NavButton
                   label="Open this page on production"
                   onClick={() => openCurrentPathOnOrigin(productionAdmin)}
@@ -59,32 +74,38 @@ function Layout() {
                   <MdOpenInNew size={20} />
                 </NavButton>
               ) : null}
-              <NavButton
-                label="Open public interface"
-                onClick={() => {
-                  window.open(
-                    sameEnvWebOrigin(),
-                    "_blank",
-                    "noopener,noreferrer",
-                  );
-                }}
-              >
-                <MdPublic size={20} />
-              </NavButton>
+              {loggedIn ? (
+                <NavButton
+                  label="Open public interface"
+                  onClick={() => {
+                    window.open(
+                      sameEnvWebOrigin(),
+                      "_blank",
+                      "noopener,noreferrer",
+                    );
+                  }}
+                >
+                  <MdPublic size={20} />
+                </NavButton>
+              ) : null}
               <AuthNavControl />
               <ThemeSwitcher />
             </>
           }
         >
-          <NavItem to="/" end label="Admin">
-            <MdAdminPanelSettings size={20} />
-          </NavItem>
-          <NavItem to="/tables" label="Tables">
-            <MdTableChart size={20} />
-          </NavItem>
-          <NavItem to="/data-catalog" label="Data catalog">
-            <MdAccountTree size={20} />
-          </NavItem>
+          {loggedIn ? (
+            <>
+              <NavItem to="/" end label="Admin">
+                <MdAdminPanelSettings size={20} />
+              </NavItem>
+              <NavItem to="/tables" label="Tables">
+                <MdTableChart size={20} />
+              </NavItem>
+              <NavItem to="/data-catalog" label="Data catalog">
+                <MdAccountTree size={20} />
+              </NavItem>
+            </>
+          ) : null}
         </NavRail>
       }
     >
@@ -98,22 +119,28 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route element={<Layout />}>
-          <Route path="/" element={<AdminPage />} />
-          <Route path="/merge-pgc" element={<AdminMergePgcPage />} />
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/tables" element={<TablesPage />} />
-          <Route path="/data-catalog" element={<DataCatalogPage />} />
-          <Route path="/data-catalog/query" element={<DataCatalogPage />} />
-          <Route
-            path="/data-catalog/:schemaName/:tableName"
-            element={<DataCatalogPage />}
-          />
-          <Route path="/table/:tableName" element={<TableDetailsPage />} />
-          <Route path="/crossmatch" element={<CrossmatchResultsPage />} />
-          <Route
-            path="/records/:recordId/crossmatch"
-            element={<RecordCrossmatchDetailsPage />}
-          />
+          <Route element={<RequireAuth />}>
+            <Route path="/" element={<AdminPage authGuard={false} />} />
+            <Route
+              path="/merge-pgc"
+              element={<AdminMergePgcPage authGuard={false} />}
+            />
+            <Route path="/tables" element={<TablesPage />} />
+            <Route path="/data-catalog" element={<DataCatalogPage />} />
+            <Route path="/data-catalog/query" element={<DataCatalogPage />} />
+            <Route
+              path="/data-catalog/:schemaName/:tableName"
+              element={<DataCatalogPage />}
+            />
+            <Route path="/table/:tableName" element={<TableDetailsPage />} />
+            <Route path="/crossmatch" element={<CrossmatchResultsPage />} />
+            <Route
+              path="/records/:recordId/crossmatch"
+              element={<RecordCrossmatchDetailsPage />}
+            />
+          </Route>
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </Route>
       </Routes>
     </BrowserRouter>

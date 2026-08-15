@@ -4,3 +4,4 @@ export {
   isLoggedIn,
   setAuthToken,
 } from "./token";
+export { useIsLoggedIn } from "./useIsLoggedIn";

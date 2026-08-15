@@ -14,7 +14,7 @@ import {
   NavItem,
   ThemeSwitcher,
 } from "@hyperleda/lib/ui";
-import { isLoggedIn } from "@hyperleda/lib/auth";
+import { useIsLoggedIn } from "@hyperleda/lib/auth";
 import { Link } from "@hyperleda/lib/ui";
 
 const navItems = [
@@ -50,6 +50,7 @@ function openCurrentPathOnOrigin(productionWebInput: string): void {
 }
 
 export function Navbar() {
+  const loggedIn = useIsLoggedIn();
   const [footerOpen, setFooterOpen] = useState(false);
   const infoPanelRef = useRef<HTMLDivElement>(null);
   const infoButtonRef = useRef<HTMLButtonElement>(null);
@@ -117,7 +118,7 @@ export function Navbar() {
             {item.icon}
           </NavItem>
         ))}
-        {isLoggedIn() ? (
+        {loggedIn ? (
           <NavItem
             to={adminNavItem.to}
             end={adminNavItem.end}

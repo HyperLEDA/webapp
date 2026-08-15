@@ -1,4 +1,9 @@
 const AUTH_TOKEN_STORAGE_KEY = "hyperleda.auth.token";
+export const AUTH_CHANGE_EVENT = "hyperleda.auth.change";
+
+function notifyAuthChange(): void {
+  window.dispatchEvent(new Event(AUTH_CHANGE_EVENT));
+}
 
 export function getAuthToken(): string | undefined {
   const token = window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
@@ -11,8 +16,10 @@ export function isLoggedIn(): boolean {
 
 export function setAuthToken(token: string): void {
   window.localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, token);
+  notifyAuthChange();
 }
 
 export function clearAuthToken(): void {
   window.localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
+  notifyAuthChange();
 }

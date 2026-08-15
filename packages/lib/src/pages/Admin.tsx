@@ -12,12 +12,16 @@ const tasks = [
   },
 ];
 
-export function AdminPage(): ReactElement {
+export function AdminPage({
+  authGuard = true,
+}: {
+  authGuard?: boolean;
+} = {}): ReactElement {
   useEffect(() => {
     document.title = "Admin | HyperLEDA";
   }, []);
 
-  if (!isLoggedIn()) {
+  if (authGuard && !isLoggedIn()) {
     return <Navigate to="/login" replace />;
   }
 
