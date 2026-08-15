@@ -5,4 +5,4 @@ export {
   themePreferenceLabel,
   type ThemePreference,
   type EffectiveTheme,
-} from "@hyperleda/ui";
+} from "@hyperleda/lib/ui";

@@ -1,5 +1,5 @@
 import { BrowserRouter, Outlet, Route, Routes } from "react-router-dom";
-import { Layout as SharedLayout } from "@hyperleda/ui";
+import { Layout as SharedLayout } from "@hyperleda/lib/ui";
 import { HomePage } from "./pages/Home";
 import { SearchResultsPage } from "./pages/SearchResults";
 import { ObjectDetailsPage } from "./pages/ObjectDetails";
@@ -10,7 +10,7 @@ import { TablesPage } from "./pages/Tables";
 import { DataCatalogPage } from "./pages/DataCatalog";
 import { Navbar } from "./components/ui/Navbar";
 import { SearchBar } from "./components/ui/Searchbar";
-import { LoginPage } from "./pages/Login";
+import { LoginPage } from "@hyperleda/lib/pages";
 import { TableDetailsPage } from "./pages/TableDetails";
 import { AdminPage } from "./pages/Admin";
 import { AdminMergePgcPage } from "./pages/AdminMergePgc";

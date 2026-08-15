@@ -5,7 +5,7 @@ WORKDIR /app
 COPY package.json yarn.lock ./
 COPY apps/web/package.json ./apps/web/
 COPY apps/admin/package.json ./apps/admin/
-COPY packages/ui/package.json ./packages/ui/
+COPY packages/lib/package.json ./packages/lib/
 COPY packages/eslint-config/package.json ./packages/eslint-config/
 RUN yarn install --frozen-lockfile
 COPY . .
@@ -19,7 +19,7 @@ WORKDIR /app
 COPY package.json yarn.lock ./
 COPY apps/web/package.json ./apps/web/
 COPY apps/admin/package.json ./apps/admin/
-COPY packages/ui/package.json ./packages/ui/
+COPY packages/lib/package.json ./packages/lib/
 COPY packages/eslint-config/package.json ./packages/eslint-config/
 RUN yarn install --frozen-lockfile --production
 COPY --from=builder /app/apps/${APP}/dist ./dist

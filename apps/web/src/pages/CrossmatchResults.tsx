@@ -8,21 +8,21 @@ import {
 import { Badge } from "../components/ui/Badge";
 import { DropdownFilter } from "../components/core/DropdownFilter";
 import { TextFilter } from "../components/core/TextFilter";
-import { getRecords } from "../clients/admin/sdk.gen";
+import { getRecords } from "@hyperleda/lib/clients/admin";
 import type {
   CrossmatchTriageStatus,
   GetRecordsResponse,
   Record as ApiRecord,
   ValidationError,
-} from "../clients/admin/types.gen";
+} from "@hyperleda/lib/clients/admin";
 import { getResource } from "../resources/resources";
-import { Button } from "../components/core/Button";
+import { Button } from "@hyperleda/lib/ui";
 import { Loading } from "../components/core/Loading";
 import { ErrorPage } from "../components/ui/ErrorPage";
 import { Link } from "../components/core/Link";
 import { useDataFetching } from "../hooks/useDataFetching";
 import { Pagination } from "../components/ui/Pagination";
-import { adminClient } from "../clients/config";
+import { adminClient } from "@hyperleda/lib/clients";
 
 interface CrossmatchFiltersProps {
   tableName: string | null;

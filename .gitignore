@@ -23,6 +23,6 @@ dist-ssr
 *.sw?
 
 # code-generated files
-apps/web/src/clients/backend
-apps/web/src/clients/admin
+packages/lib/src/clients/backend
+packages/lib/src/clients/admin
 

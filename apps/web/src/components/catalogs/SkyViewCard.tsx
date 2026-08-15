@@ -1,5 +1,5 @@
 import { ReactElement } from "react";
-import { Catalogs } from "../../clients/backend/types.gen";
+import { Catalogs } from "@hyperleda/lib/clients/backend";
 import { AladinViewer } from "../core/Aladin";
 import { CatalogCard, CatalogNoData } from "./CatalogCard";
 

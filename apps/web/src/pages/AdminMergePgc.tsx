@@ -1,13 +1,13 @@
 import { ReactElement, ReactNode, useEffect, useRef, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { isLoggedIn } from "../auth/token";
-import { mergePgcs } from "../clients/admin/sdk.gen";
-import { querySimple } from "../clients/backend/sdk.gen";
-import { PgcObject, Schema } from "../clients/backend/types.gen";
-import { adminClient, backendClient } from "../clients/config";
+import { isLoggedIn } from "@hyperleda/lib/auth";
+import { mergePgcs } from "@hyperleda/lib/clients/admin";
+import { querySimple } from "@hyperleda/lib/clients/backend";
+import { PgcObject, Schema } from "@hyperleda/lib/clients/backend";
+import { adminClient, backendClient } from "@hyperleda/lib/clients";
 import { ObjectSummary } from "../components/catalogs/ObjectSummary";
 import { AladinViewer } from "../components/core/Aladin";
-import { Button } from "../components/core/Button";
+import { Button } from "@hyperleda/lib/ui";
 import { Link } from "../components/core/Link";
 import { SuggestibleInput } from "../components/core/SuggestibleInput";
 

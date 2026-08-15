@@ -1,11 +1,36 @@
+import { useMemo } from "react";
 import { BrowserRouter, Outlet, Route, Routes } from "react-router-dom";
-import { MdAdminPanelSettings } from "react-icons/md";
+import { MdAdminPanelSettings, MdOpenInNew, MdPublic } from "react-icons/md";
+import { LoginPage } from "@hyperleda/lib/pages";
 import {
+  AuthNavControl,
   Layout as SharedLayout,
   NavRail,
+  NavButton,
   NavItem,
   ThemeSwitcher,
-} from "@hyperleda/ui";
+} from "@hyperleda/lib/ui";
+
+const productionAdmin = "https://admin.leda.sao.ru";
+const localWebOrigin = "http://localhost:5173";
+
+function openCurrentPathOnOrigin(targetInput: string): void {
+  const { origin } = new URL(targetInput);
+  window.location.assign(
+    `${origin}${window.location.pathname}${window.location.search}${window.location.hash}`,
+  );
+}
+
+function sameEnvWebOrigin(): string {
+  const { protocol, hostname } = window.location;
+  if (hostname === "localhost" || hostname === "127.0.0.1") {
+    return localWebOrigin;
+  }
+  if (hostname.startsWith("admin.")) {
+    return `${protocol}//${hostname.slice("admin.".length)}`;
+  }
+  return `${protocol}//${hostname}`;
+}
 
 function HomePage() {
   return (
@@ -17,10 +42,41 @@ function HomePage() {
 }
 
 function Layout() {
+  const showOpenProductionButton = useMemo(() => {
+    try {
+      return window.location.origin !== new URL(productionAdmin).origin;
+    } catch {
+      return false;
+    }
+  }, []);
+
   return (
     <SharedLayout
       navbar={
-        <NavRail footer={<ThemeSwitcher />}>
+        <NavRail
+          footer={
+            <>
+              {showOpenProductionButton ? (
+                <NavButton
+                  label="Open this page on production"
+                  onClick={() => openCurrentPathOnOrigin(productionAdmin)}
+                >
+                  <MdOpenInNew size={20} />
+                </NavButton>
+              ) : null}
+              <NavButton
+                label="Open public interface"
+                onClick={() => {
+                  window.location.assign(sameEnvWebOrigin());
+                }}
+              >
+                <MdPublic size={20} />
+              </NavButton>
+              <AuthNavControl />
+              <ThemeSwitcher />
+            </>
+          }
+        >
           <NavItem to="/" end label="Admin">
             <MdAdminPanelSettings size={20} />
           </NavItem>
@@ -38,6 +94,7 @@ function App() {
       <Routes>
         <Route element={<Layout />}>
           <Route path="/" element={<HomePage />} />
+          <Route path="/login" element={<LoginPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

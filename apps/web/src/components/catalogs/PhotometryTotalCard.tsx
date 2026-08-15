@@ -2,7 +2,7 @@ import { ReactElement } from "react";
 import {
   Catalogs,
   PhotometryTotalMeasurement,
-} from "../../clients/backend/types.gen";
+} from "@hyperleda/lib/clients/backend";
 import {
   magsysGroupFromMeasurements,
   photometryFilterVlines,

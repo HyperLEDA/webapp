@@ -1,17 +1,25 @@
 {
-  "name": "@hyperleda/ui",
+  "name": "@hyperleda/lib",
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "main": "src/index.ts",
+  "main": "src/ui/index.ts",
   "exports": {
-    ".": "./src/index.ts",
-    "./src/styles.css": "./src/styles.css"
+    "./auth": "./src/auth/index.ts",
+    "./clients": "./src/clients/index.ts",
+    "./clients/backend": "./src/clients/backend/index.ts",
+    "./clients/backend/*": "./src/clients/backend/*",
+    "./clients/admin": "./src/clients/admin/index.ts",
+    "./clients/admin/*": "./src/clients/admin/*",
+    "./pages": "./src/pages/index.ts",
+    "./ui": "./src/ui/index.ts",
+    "./ui/styles.css": "./src/ui/styles.css"
   },
   "scripts": {
     "lint": "eslint ."
   },
   "dependencies": {
+    "@hey-api/openapi-ts": "^0.99.0",
     "classnames": "^2.5.1",
     "flowbite-react": "^0.12.17"
   },

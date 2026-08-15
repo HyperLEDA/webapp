@@ -3,7 +3,7 @@ import {
   inspectCoordinateQuery,
   parseCoordinateQuery,
 } from "../astronomy/parseCoordinateQuery";
-import type { QuerySimpleData } from "../../clients/backend/types.gen";
+import type { QuerySimpleData } from "@hyperleda/lib/clients/backend";
 
 export type SearchQueryParams = Omit<
   NonNullable<QuerySimpleData["query"]>,

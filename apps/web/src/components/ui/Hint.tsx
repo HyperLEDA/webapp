@@ -1,6 +1,6 @@
 import { ReactElement, ReactNode } from "react";
 import { MdHelpOutline } from "react-icons/md";
-import { AppTooltip } from "@hyperleda/ui";
+import { AppTooltip } from "@hyperleda/lib/ui";
 
 interface HintProps {
   children?: ReactElement;

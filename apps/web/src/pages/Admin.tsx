@@ -1,6 +1,6 @@
 import { ReactElement, useEffect } from "react";
 import { Navigate } from "react-router-dom";
-import { isLoggedIn } from "../auth/token";
+import { isLoggedIn } from "@hyperleda/lib/auth";
 import { Link } from "../components/core/Link";
 
 const tasks = [

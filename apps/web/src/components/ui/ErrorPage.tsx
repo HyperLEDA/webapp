@@ -1,5 +1,5 @@
 import { ReactElement, ReactNode } from "react";
-import { Button } from "../core/Button";
+import { Button } from "@hyperleda/lib/ui";
 
 interface ErrorPageProps {
   title?: string;

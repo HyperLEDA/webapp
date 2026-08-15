@@ -1,5 +1,5 @@
 import { ReactElement } from "react";
-import { Catalogs, Schema } from "../../clients/backend/types.gen";
+import { Catalogs, Schema } from "@hyperleda/lib/clients/backend";
 import { Quantity, QuantityWithError } from "../core/Astronomy";
 import {
   bibcodeMarkdownSelect,

@@ -5,8 +5,8 @@ import {
   DataType,
   GetTableResponse,
   TableProgress,
-} from "../clients/admin/types.gen";
-import { getTable, patchTable } from "../clients/admin/sdk.gen";
+} from "@hyperleda/lib/clients/admin";
+import { getTable, patchTable } from "@hyperleda/lib/clients/admin";
 import { useNavigate, useParams } from "react-router-dom";
 import { EditableTextField } from "../components/core/EditableTextField";
 import {
@@ -23,8 +23,8 @@ import { Card, CardAction, Field } from "../components/ui/Card";
 import { ErrorPage } from "../components/ui/ErrorPage";
 import { Hint } from "../components/ui/Hint";
 import { useDataFetching } from "../hooks/useDataFetching";
-import { adminClient } from "../clients/config";
-import { isLoggedIn } from "../auth/token";
+import { adminClient } from "@hyperleda/lib/clients";
+import { isLoggedIn } from "@hyperleda/lib/auth";
 import { originalDataCatalogLink } from "../components/catalogs/catalogActions";
 
 const DATA_TYPES: DataType[] = [

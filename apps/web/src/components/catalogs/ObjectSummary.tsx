@@ -1,5 +1,5 @@
 import { ReactElement, ReactNode } from "react";
-import { Schema } from "../../clients/backend/types.gen";
+import { Schema } from "@hyperleda/lib/clients/backend";
 import {
   Declination,
   QuantityWithError,

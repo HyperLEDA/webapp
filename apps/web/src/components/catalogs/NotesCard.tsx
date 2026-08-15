@@ -1,5 +1,5 @@
 import { ReactElement } from "react";
-import { Catalogs, NoteEntry } from "../../clients/backend/types.gen";
+import { Catalogs, NoteEntry } from "@hyperleda/lib/clients/backend";
 import { Link } from "../core/Link";
 import { Hint } from "../ui/Hint";
 import { CatalogCard, Field, getSourceLink } from "./CatalogCard";

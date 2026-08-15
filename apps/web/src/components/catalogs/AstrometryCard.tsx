@@ -1,6 +1,6 @@
 import { ReactElement } from "react";
 import { MdContentCopy, MdSearch } from "react-icons/md";
-import { Catalogs, Schema } from "../../clients/backend/types.gen";
+import { Catalogs, Schema } from "@hyperleda/lib/clients/backend";
 import {
   buildNedPositionSearchUrl,
   Declination,
