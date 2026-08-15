@@ -12,23 +12,25 @@ import { useNavigate, useParams } from "react-router-dom";
 import { adminClient } from "../clients";
 import { isLoggedIn } from "../auth";
 import {
-  Badge,
   Card,
   CardAction,
   CellPrimitive,
   Column,
   CommonTable,
-  CopyButton,
-  EditableTextField,
   ErrorPage,
   Field,
   Hint,
   Link,
   Loading,
+} from "@hyperleda/lib/ui";
+import {
+  Badge,
+  CopyButton,
+  EditableTextField,
   TextFilter,
-} from "../ui";
-import { useDataFetching } from "../hooks";
-import { originalDataCatalogLink } from "../astronomy/links";
+} from "../components/ui";
+import { useDataFetching } from "@hyperleda/lib/hooks";
+import { originalDataCatalogLink } from "@hyperleda/lib/astronomy";
 
 const DATA_TYPES: DataType[] = [
   "regular",

@@ -5,25 +5,19 @@
   "type": "module",
   "main": "src/ui/index.ts",
   "exports": {
-    "./auth": "./src/auth/index.ts",
     "./clients": "./src/clients/index.ts",
     "./clients/backend": "./src/clients/backend/index.ts",
     "./clients/backend/*": "./src/clients/backend/*",
-    "./clients/admin": "./src/clients/admin/index.ts",
-    "./clients/admin/*": "./src/clients/admin/*",
     "./hooks": "./src/hooks/index.ts",
-    "./pages": "./src/pages/index.ts",
-    "./resources": "./src/resources/index.ts",
     "./origins": "./src/origins.ts",
+    "./tap": "./src/tap.ts",
     "./astronomy": "./src/astronomy/index.ts",
     "./ui": "./src/ui/index.ts",
     "./ui/styles.css": "./src/ui/styles.css"
   },
   "dependencies": {
-    "@monaco-editor/react": "^4.7.0",
     "classnames": "^2.5.1",
     "flowbite-react": "^0.12.17",
-    "monaco-editor": "^0.56.0",
     "react-markdown": "^10.1.0"
   },
   "peerDependencies": {

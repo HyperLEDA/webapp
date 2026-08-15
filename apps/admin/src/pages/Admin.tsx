@@ -1,7 +1,5 @@
 import { ReactElement, useEffect } from "react";
-import { Navigate } from "react-router-dom";
-import { isLoggedIn } from "../auth";
-import { Link } from "../ui/Link";
+import { Link } from "@hyperleda/lib/ui";
 
 const tasks = [
   {
@@ -12,18 +10,10 @@ const tasks = [
   },
 ];
 
-export function AdminPage({
-  authGuard = true,
-}: {
-  authGuard?: boolean;
-} = {}): ReactElement {
+export function AdminPage(): ReactElement {
   useEffect(() => {
     document.title = "Admin | HyperLEDA";
   }, []);
-
-  if (authGuard && !isLoggedIn()) {
-    return <Navigate to="/login" replace />;
-  }
 
   return (
     <div className="max-w-3xl">

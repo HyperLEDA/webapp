@@ -22,11 +22,11 @@ import {
   RecordCrossmatchDetailsPage,
   TableDetailsPage,
   TablesPage,
-} from "@hyperleda/lib/pages";
-import { isLoggedIn, useIsLoggedIn } from "@hyperleda/lib/auth";
+} from "./pages";
+import { isLoggedIn, useIsLoggedIn } from "./auth";
+import { AuthNavControl } from "./components/AuthNavControl";
 import { sameEnvWebOrigin } from "@hyperleda/lib/origins";
 import {
-  AuthNavControl,
   Layout as SharedLayout,
   NavRail,
   NavButton,
@@ -121,11 +121,8 @@ function App() {
         <Route element={<Layout />}>
           <Route path="/login" element={<LoginPage />} />
           <Route element={<RequireAuth />}>
-            <Route path="/" element={<AdminPage authGuard={false} />} />
-            <Route
-              path="/merge-pgc"
-              element={<AdminMergePgcPage authGuard={false} />}
-            />
+            <Route path="/" element={<AdminPage />} />
+            <Route path="/merge-pgc" element={<AdminMergePgcPage />} />
             <Route path="/tables" element={<TablesPage />} />
             <Route path="/data-catalog" element={<DataCatalogPage />} />
             <Route path="/data-catalog/query" element={<DataCatalogPage />} />

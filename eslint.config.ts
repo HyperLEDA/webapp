@@ -4,7 +4,11 @@ import eslintConfigPrettier from "eslint-config-prettier/flat";
 
 export default tseslint.config(
   {
-    ignores: ["**/dist/**", "packages/lib/src/clients/**"],
+    ignores: [
+      "**/dist/**",
+      "packages/lib/src/clients/**",
+      "apps/admin/src/clients/admin/**",
+    ],
   },
   eslintConfigPrettier,
   {

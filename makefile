@@ -18,7 +18,7 @@ run-admin:
 
 gen:
 	bun run openapi-ts -i http://leda.sao.ru/api/openapi.json -o ./packages/lib/src/clients/backend
-	bun run openapi-ts -i http://leda.sao.ru/admin/api/openapi.json -o ./packages/lib/src/clients/admin
+	bun run openapi-ts -i http://leda.sao.ru/admin/api/openapi.json -o ./apps/admin/src/clients/admin
 
 new-branch:
 	@read -p "Branch name: " branch_name && \

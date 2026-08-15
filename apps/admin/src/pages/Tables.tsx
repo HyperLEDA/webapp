@@ -12,16 +12,15 @@ import { adminClient } from "../clients";
 import {
   Card,
   CardAction,
-  DropdownFilter,
   ErrorPage,
   Field,
   Link,
   Loading,
   Pagination,
-  TextFilter,
-} from "../ui";
-import { useDataFetching } from "../hooks";
-import { getSourceLink } from "../astronomy";
+} from "@hyperleda/lib/ui";
+import { DropdownFilter, TextFilter } from "../components/ui";
+import { useDataFetching } from "@hyperleda/lib/hooks";
+import { getSourceLink } from "@hyperleda/lib/astronomy";
 
 const SEARCH_DEBOUNCE_MS = 300;
 

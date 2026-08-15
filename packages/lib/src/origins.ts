@@ -1,4 +1,5 @@
 const localWebOrigin = "http://localhost:5173";
+const localAdminOrigin = "http://localhost:5174";
 
 export function sameEnvWebOrigin(): string {
   const { protocol, hostname } = window.location;
@@ -11,28 +12,13 @@ export function sameEnvWebOrigin(): string {
   return `${protocol}//${hostname}`;
 }
 
-function isAdminInterface(): boolean {
-  const { hostname, port } = window.location;
+export function sameEnvAdminOrigin(): string {
+  const { protocol, hostname, port } = window.location;
+  if (hostname === "localhost" || hostname === "127.0.0.1") {
+    return localAdminOrigin;
+  }
   if (hostname.startsWith("admin.")) {
-    return true;
+    return `${protocol}//${hostname}${port ? `:${port}` : ""}`;
   }
-  return (
-    (hostname === "localhost" || hostname === "127.0.0.1") && port === "5174"
-  );
-}
-
-export function publicObjectUrl(pgc: number): {
-  href: string;
-  external: boolean;
-} {
-  if (isAdminInterface()) {
-    return {
-      href: `${sameEnvWebOrigin()}/object/${pgc}`,
-      external: true,
-    };
-  }
-  return {
-    href: `/object/${pgc}`,
-    external: false,
-  };
+  return `${protocol}//admin.${hostname}${port ? `:${port}` : ""}`;
 }

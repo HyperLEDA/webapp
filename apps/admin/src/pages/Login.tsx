@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { setAuthToken } from "../auth/token";
 import { login } from "../clients/admin/sdk.gen";
 import { adminClient } from "../clients/index";
-import { Button } from "../ui/Button";
+import { Button } from "@hyperleda/lib/ui";
 
 export function LoginPage(): ReactElement {
   const navigate = useNavigate();

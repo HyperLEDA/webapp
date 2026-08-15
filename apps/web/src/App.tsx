@@ -1,21 +1,34 @@
+import { ReactElement, useEffect } from "react";
 import { BrowserRouter, Outlet, Route, Routes } from "react-router-dom";
-import { Layout as SharedLayout } from "@hyperleda/lib/ui";
+import { Layout as SharedLayout, Loading } from "@hyperleda/lib/ui";
+import { sameEnvAdminOrigin } from "@hyperleda/lib/origins";
 import { HomePage } from "./pages/Home";
 import { SearchResultsPage } from "./pages/SearchResults";
 import { ObjectDetailsPage } from "./pages/ObjectDetails";
 import { NotFoundPage } from "./pages/NotFound";
 import { Navbar } from "./components/ui/Navbar";
 import { SearchBar } from "./components/ui/Searchbar";
-import {
-  AdminMergePgcPage,
-  AdminPage,
-  CrossmatchResultsPage,
-  DataCatalogPage,
-  LoginPage,
-  RecordCrossmatchDetailsPage,
-  TableDetailsPage,
-  TablesPage,
-} from "@hyperleda/lib/pages";
+
+function adminRedirectPath(pathname: string): string {
+  if (pathname === "/admin" || pathname === "/admin/") {
+    return "/";
+  }
+  if (pathname.startsWith("/admin/")) {
+    return pathname.slice("/admin".length);
+  }
+  return pathname;
+}
+
+function RedirectToAdminPage(): ReactElement {
+  useEffect(() => {
+    const path = adminRedirectPath(window.location.pathname);
+    window.location.replace(
+      `${sameEnvAdminOrigin()}${path}${window.location.search}${window.location.hash}`,
+    );
+  }, []);
+
+  return <Loading />;
+}
 
 function Layout() {
   return (
@@ -49,21 +62,20 @@ function App() {
               </>
             }
           />
-          <Route path="/table/:tableName" element={<TableDetailsPage />} />
-          <Route path="/tables" element={<TablesPage />} />
-          <Route path="/data-catalog" element={<DataCatalogPage />} />
-          <Route path="/data-catalog/query" element={<DataCatalogPage />} />
-          <Route
-            path="/data-catalog/:schemaName/:tableName"
-            element={<DataCatalogPage />}
-          />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/admin" element={<AdminPage />} />
-          <Route path="/admin/merge-pgc" element={<AdminMergePgcPage />} />
-          <Route path="/crossmatch" element={<CrossmatchResultsPage />} />
+          <Route path="/table/:tableName" element={<RedirectToAdminPage />} />
+          <Route path="/tables" element={<RedirectToAdminPage />} />
+          <Route path="/admin" element={<RedirectToAdminPage />} />
+          <Route path="/admin/merge-pgc" element={<RedirectToAdminPage />} />
+          <Route path="/crossmatch" element={<RedirectToAdminPage />} />
           <Route
             path="/records/:recordId/crossmatch"
-            element={<RecordCrossmatchDetailsPage />}
+            element={<RedirectToAdminPage />}
+          />
+          <Route path="/data-catalog" element={<RedirectToAdminPage />} />
+          <Route path="/data-catalog/query" element={<RedirectToAdminPage />} />
+          <Route
+            path="/data-catalog/:schemaName/:tableName"
+            element={<RedirectToAdminPage />}
           />
           <Route
             path="*"

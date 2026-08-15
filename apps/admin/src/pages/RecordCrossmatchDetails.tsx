@@ -11,27 +11,29 @@ import {
   Schema as AdminSchema,
   StatusesPayload,
 } from "../clients/admin";
-import { Schema as BackendSchema } from "../clients/backend";
+import { Schema as BackendSchema } from "@hyperleda/lib/clients/backend";
 import { adminClient } from "../clients";
 import { isLoggedIn } from "../auth";
 import { getResource } from "../resources";
-import { publicObjectUrl } from "../origins";
+import { publicObjectUrl, adminTableUrl } from "../origins";
 import {
-  Accordion,
   AladinViewer,
-  Badge,
-  BadgeType,
   Button,
   CellPrimitive,
   Column,
   CommonTable,
-  CopyButton,
   ErrorPage,
   Link,
   Loading,
+} from "@hyperleda/lib/ui";
+import {
+  Accordion,
+  Badge,
+  type BadgeType,
+  CopyButton,
   ObjectSummary,
-} from "../ui";
-import { useDataFetching } from "../hooks";
+} from "../components/ui";
+import { useDataFetching } from "@hyperleda/lib/hooks";
 
 function convertAdminSchemaToBackendSchema(
   adminSchema: AdminSchema,
@@ -521,7 +523,13 @@ function RecordCrossmatchDetails({
               </CopyButton>
             </p>
             <p>
-              Table: <Link href={`/table/${tableName}`}>{tableName}</Link>
+              Table:{" "}
+              <Link
+                href={adminTableUrl(tableName).href}
+                external={adminTableUrl(tableName).external}
+              >
+                {tableName}
+              </Link>
             </p>
             <p>
               {candidates.length === 1

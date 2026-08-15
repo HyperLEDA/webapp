@@ -1,5 +1,5 @@
 import { ReactElement, useState } from "react";
-import { Button } from "./Button";
+import { Button } from "@hyperleda/lib/ui";
 import { MdCheck, MdContentCopy } from "react-icons/md";
 
 interface CopyButtonProps {

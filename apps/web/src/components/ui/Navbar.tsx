@@ -1,44 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  MdAccountTree,
-  MdAdminPanelSettings,
-  MdInfo,
-  MdOpenInNew,
-  MdSearch,
-  MdTableChart,
-} from "react-icons/md";
-import {
-  AuthNavControl,
-  NavRail,
-  NavButton,
-  NavItem,
-  ThemeSwitcher,
-} from "@hyperleda/lib/ui";
-import { useIsLoggedIn } from "@hyperleda/lib/auth";
+import { MdInfo, MdOpenInNew, MdSearch } from "react-icons/md";
+import { NavRail, NavButton, NavItem, ThemeSwitcher } from "@hyperleda/lib/ui";
 import { Link } from "@hyperleda/lib/ui";
 
 const navItems = [
   { to: "/", icon: <MdSearch size={20} />, label: "Object search", end: true },
-  {
-    to: "/tables",
-    icon: <MdTableChart size={20} />,
-    label: "Tables",
-    end: true,
-  },
-  {
-    to: "/data-catalog",
-    icon: <MdAccountTree size={20} />,
-    label: "Data catalog",
-    end: false,
-  },
 ];
-
-const adminNavItem = {
-  to: "/admin",
-  icon: <MdAdminPanelSettings size={20} />,
-  label: "Admin",
-  end: false,
-};
 
 const configuredProductionWeb = "https://leda.sao.ru";
 
@@ -50,7 +17,6 @@ function openCurrentPathOnOrigin(productionWebInput: string): void {
 }
 
 export function Navbar() {
-  const loggedIn = useIsLoggedIn();
   const [footerOpen, setFooterOpen] = useState(false);
   const infoPanelRef = useRef<HTMLDivElement>(null);
   const infoButtonRef = useRef<HTMLButtonElement>(null);
@@ -95,7 +61,6 @@ export function Navbar() {
                 <MdOpenInNew size={20} />
               </NavButton>
             ) : null}
-            <AuthNavControl />
             <ThemeSwitcher />
             <NavButton
               ref={infoButtonRef}
@@ -118,15 +83,6 @@ export function Navbar() {
             {item.icon}
           </NavItem>
         ))}
-        {loggedIn ? (
-          <NavItem
-            to={adminNavItem.to}
-            end={adminNavItem.end}
-            label={adminNavItem.label}
-          >
-            {adminNavItem.icon}
-          </NavItem>
-        ) : null}
       </NavRail>
 
       <div
