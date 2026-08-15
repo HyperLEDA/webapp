@@ -373,7 +373,11 @@ function PgcPicker({
   );
 }
 
-export function AdminMergePgcPage(): ReactElement {
+export function AdminMergePgcPage({
+  authGuard = true,
+}: {
+  authGuard?: boolean;
+} = {}): ReactElement {
   const [target, setTarget] = useState<PgcSelection | null>(null);
   const [source, setSource] = useState<PgcSelection | null>(null);
   const [merging, setMerging] = useState(false);
@@ -384,7 +388,7 @@ export function AdminMergePgcPage(): ReactElement {
     document.title = "Merge PGC objects | HyperLEDA";
   }, []);
 
-  if (!isLoggedIn()) {
+  if (authGuard && !isLoggedIn()) {
     return <Navigate to="/login" replace />;
   }
 
