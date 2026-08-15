@@ -7,9 +7,8 @@
     "dev:admin": "bun run --cwd apps/admin dev",
     "build:web": "bun run --cwd apps/web build",
     "build:admin": "bun run --cwd apps/admin build",
-    "lint:web": "bun run --cwd apps/web lint",
-    "lint:admin": "bun run --cwd apps/admin lint",
-    "lint:lib": "bun run --cwd packages/lib lint",
+    "lint": "eslint .",
+    "eslint": "eslint",
     "test:web": "bun run --cwd apps/web test",
     "test:admin": "bun run --cwd apps/admin test",
     "start": "node server.mjs",
@@ -17,7 +16,12 @@
     "openapi-ts": "openapi-ts"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@hey-api/openapi-ts": "^0.99.0",
-    "prettier": "3.9.6"
+    "eslint": "^10.8.1",
+    "eslint-config-prettier": "^10.1.8",
+    "jiti": "^2.7.0",
+    "prettier": "3.9.6",
+    "typescript-eslint": "^8.66.0"
   }
 }

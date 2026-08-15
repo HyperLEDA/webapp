@@ -1,8 +1,6 @@
 check:
 	@output=$$(bun --silent run prettier --check apps/web/src apps/admin/src packages/lib/src 2>&1) || { echo "$$output"; exit 1; }
-	@output=$$(bun run lint:web 2>&1) || { echo "$$output"; exit 1; }
-	@output=$$(bun run lint:admin 2>&1) || { echo "$$output"; exit 1; }
-	@output=$$(bun run lint:lib 2>&1) || { echo "$$output"; exit 1; }
+	@output=$$(bun --silent run eslint . 2>&1) || { echo "$$output"; exit 1; }
 	@bun run test:web
 	@bun run test:admin
 	@bun run build:web
@@ -10,9 +8,7 @@ check:
 
 fix:
 	@output=$$(bun --silent run prettier --write apps/web/src apps/admin/src packages/lib/src 2>&1) || { echo "$$output"; exit 1; }
-	@output=$$(bun run lint:web -- --fix 2>&1) || { echo "$$output"; exit 1; }
-	@output=$$(bun run lint:admin -- --fix 2>&1) || { echo "$$output"; exit 1; }
-	@output=$$(bun run lint:lib -- --fix 2>&1) || { echo "$$output"; exit 1; }
+	@output=$$(bun --silent run eslint --fix . 2>&1) || { echo "$$output"; exit 1; }
 
 run-web:
 	bun run dev:web
