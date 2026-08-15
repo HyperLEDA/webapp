@@ -10,7 +10,9 @@ COPY packages/lib/package.json ./packages/lib/
 COPY packages/eslint-config/package.json ./packages/eslint-config/
 RUN bun install --frozen-lockfile
 COPY . .
-RUN bun run --cwd apps/${APP} build
+ENV PATH="/app/node_modules/typescript/bin:/app/node_modules/.bin:$PATH"
+WORKDIR /app/apps/${APP}
+RUN tsc -b && vite build
 
 FROM node:22-slim
 ARG APP
