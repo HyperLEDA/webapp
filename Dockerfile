@@ -9,9 +9,7 @@ COPY apps/admin/package.json ./apps/admin/
 COPY packages/lib/package.json ./packages/lib/
 RUN bun install --frozen-lockfile
 COPY . .
-ENV PATH="/app/node_modules/typescript/bin:/app/node_modules/.bin:$PATH"
-WORKDIR /app/apps/${APP}
-RUN tsc -b && vite build
+RUN bun run --cwd apps/${APP} build
 
 FROM node:22-slim
 ARG APP
