@@ -1,19 +1,20 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   MdAccountTree,
   MdAdminPanelSettings,
   MdInfo,
-  MdLogin,
-  MdLogout,
   MdOpenInNew,
   MdSearch,
   MdTableChart,
 } from "react-icons/md";
-import { NavRail, NavButton, NavItem, ThemeSwitcher } from "@hyperleda/lib/ui";
-import { clearAuthToken, isLoggedIn } from "../../auth/token";
-import { logout } from "../../clients/admin/sdk.gen";
-import { adminClient } from "../../clients/config";
+import {
+  AuthNavControl,
+  NavRail,
+  NavButton,
+  NavItem,
+  ThemeSwitcher,
+} from "@hyperleda/lib/ui";
+import { isLoggedIn } from "@hyperleda/lib/auth";
 import { Link } from "../core/Link";
 
 const navItems = [
@@ -49,9 +50,7 @@ function openCurrentPathOnOrigin(productionWebInput: string): void {
 }
 
 export function Navbar() {
-  const navigate = useNavigate();
   const [footerOpen, setFooterOpen] = useState(false);
-  const [loggingOut, setLoggingOut] = useState(false);
   const infoPanelRef = useRef<HTMLDivElement>(null);
   const infoButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -82,20 +81,6 @@ export function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [footerOpen]);
 
-  async function handleLogout(): Promise<void> {
-    setLoggingOut(true);
-    try {
-      await logout({
-        client: adminClient,
-        body: {},
-      });
-    } finally {
-      clearAuthToken();
-      navigate("/login");
-      setLoggingOut(false);
-    }
-  }
-
   return (
     <>
       <NavRail
@@ -109,19 +94,7 @@ export function Navbar() {
                 <MdOpenInNew size={20} />
               </NavButton>
             ) : null}
-            {isLoggedIn() ? (
-              <NavButton
-                label="Logout"
-                onClick={handleLogout}
-                disabled={loggingOut}
-              >
-                <MdLogout size={20} />
-              </NavButton>
-            ) : (
-              <NavItem to="/login" end label="Login">
-                <MdLogin size={20} />
-              </NavItem>
-            )}
+            <AuthNavControl />
             <ThemeSwitcher />
             <NavButton
               ref={infoButtonRef}

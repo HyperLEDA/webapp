@@ -10,14 +10,14 @@ import { CommonTable, Column } from "../components/ui/CommonTable";
 import { Loading } from "../components/core/Loading";
 import { ErrorPage, ErrorPageHomeButton } from "../components/ui/ErrorPage";
 import { useDataFetching } from "../hooks/useDataFetching";
-import { querySimple } from "../clients/backend/sdk.gen";
-import { PgcObject, QuerySimpleResponse } from "../clients/backend/types.gen";
+import { querySimple } from "@hyperleda/lib/clients/backend";
+import { PgcObject, QuerySimpleResponse } from "@hyperleda/lib/clients/backend";
 import { Link } from "../components/core/Link";
 import { Declination, RightAscension } from "../components/core/Astronomy";
 import { AladinViewer, AladinViewerHandle } from "../components/core/Aladin";
-import { Button } from "../components/core/Button";
+import { Button } from "@hyperleda/lib/ui";
 import { Pagination } from "../components/ui/Pagination";
-import { backendClient } from "../clients/config";
+import { backendClient } from "@hyperleda/lib/clients";
 import {
   resolveEligibleSearchTypes,
   SearchType,

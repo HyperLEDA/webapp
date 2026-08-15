@@ -4,7 +4,7 @@ import { MdCode, MdKeyboardArrowDown } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 import { AppTooltip } from "@hyperleda/lib/ui";
 import { SqlQueryEmbed } from "../catalog/SqlQueryEmbed";
-import { Button } from "../core/Button";
+import { Button } from "@hyperleda/lib/ui";
 import { Card, CardAction, Field } from "../ui/Card";
 import { originalDataCatalogLink } from "./catalogActions";
 

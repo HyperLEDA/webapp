@@ -5,6 +5,13 @@
   "type": "module",
   "main": "src/ui/index.ts",
   "exports": {
+    "./auth": "./src/auth/index.ts",
+    "./clients": "./src/clients/index.ts",
+    "./clients/backend": "./src/clients/backend/index.ts",
+    "./clients/backend/*": "./src/clients/backend/*",
+    "./clients/admin": "./src/clients/admin/index.ts",
+    "./clients/admin/*": "./src/clients/admin/*",
+    "./pages": "./src/pages/index.ts",
     "./ui": "./src/ui/index.ts",
     "./ui/styles.css": "./src/ui/styles.css"
   },
@@ -12,6 +19,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@hey-api/openapi-ts": "^0.99.0",
     "classnames": "^2.5.1",
     "flowbite-react": "^0.12.17"
   },

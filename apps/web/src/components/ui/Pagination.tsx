@@ -1,5 +1,5 @@
 import { ReactElement } from "react";
-import { Button } from "../core/Button";
+import { Button } from "@hyperleda/lib/ui";
 
 type PaginationProps = {
   page: number;

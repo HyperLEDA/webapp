@@ -3,18 +3,18 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import classNames from "classnames";
 import { DropdownFilter } from "../components/core/DropdownFilter";
 import { TextFilter } from "../components/core/TextFilter";
-import { getTableList } from "../clients/admin/sdk.gen";
+import { getTableList } from "@hyperleda/lib/clients/admin";
 import type {
   GetTableListResponse,
   TableListItem,
   TableProgress,
   ValidationError,
-} from "../clients/admin/types.gen";
+} from "@hyperleda/lib/clients/admin";
 import { Loading } from "../components/core/Loading";
 import { ErrorPage } from "../components/ui/ErrorPage";
 import { useDataFetching } from "../hooks/useDataFetching";
 import { Pagination } from "../components/ui/Pagination";
-import { adminClient } from "../clients/config";
+import { adminClient } from "@hyperleda/lib/clients";
 import { Link } from "../components/core/Link";
 import { getSourceLink } from "../components/catalogs/CatalogCard";
 import { Card, CardAction, Field } from "../components/ui/Card";

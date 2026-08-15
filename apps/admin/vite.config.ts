@@ -6,6 +6,16 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     port: 5174,
+    proxy: {
+      "/api": {
+        target: "https://leda.kraysent.dev",
+        changeOrigin: true,
+      },
+      "/admin": {
+        target: "https://leda.kraysent.dev",
+        changeOrigin: true,
+      },
+    },
   },
   test: {
     include: ["src/**/*.test.ts"],

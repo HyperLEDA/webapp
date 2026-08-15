@@ -1,9 +1,9 @@
 import { FormEvent, ReactElement, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "../components/core/Button";
-import { login } from "../clients/admin/sdk.gen";
-import { adminClient } from "../clients/config";
 import { setAuthToken } from "../auth/token";
+import { login } from "../clients/admin/sdk.gen";
+import { adminClient } from "../clients/index";
+import { Button } from "../ui/Button";
 
 export function LoginPage(): ReactElement {
   const navigate = useNavigate();

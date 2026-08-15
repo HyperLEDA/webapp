@@ -11,15 +11,15 @@ import {
   useParams,
   useSearchParams,
 } from "react-router-dom";
-import { tapSync, tapTables } from "../clients/backend/sdk.gen";
+import { tapSync, tapTables } from "@hyperleda/lib/clients/backend";
 import type {
   ListTapTablesResponse,
   TapColumnInfo,
   TapSchemaEntry,
   TapSyncResponse,
   TapTableInfo,
-} from "../clients/backend/types.gen";
-import { backendClient } from "../clients/config";
+} from "@hyperleda/lib/clients/backend";
+import { backendClient } from "@hyperleda/lib/clients";
 import { useDataFetching } from "../hooks/useDataFetching";
 import { Loading } from "../components/core/Loading";
 import { ErrorPage } from "../components/ui/ErrorPage";
@@ -27,7 +27,7 @@ import { CommonTable, Column } from "../components/ui/CommonTable";
 import { TextFilter } from "../components/core/TextFilter";
 import { Accordion } from "../components/core/Accordion";
 import { Text } from "../components/core/Text";
-import { Button } from "../components/core/Button";
+import { Button } from "@hyperleda/lib/ui";
 import classNames from "classnames";
 import { CatalogViewTabs } from "../components/catalog/CatalogViewTabs";
 import { CatalogSqlPanel } from "../components/catalog/CatalogSqlPanel";

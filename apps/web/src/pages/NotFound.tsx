@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { ErrorPage } from "../components/ui/ErrorPage";
-import { Button } from "../components/core/Button";
+import { Button } from "@hyperleda/lib/ui";
 import { useEffect } from "react";
 
 export function NotFoundPage() {

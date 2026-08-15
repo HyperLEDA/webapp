@@ -10,10 +10,10 @@ import {
   PhotometryTotalCard,
   SkyViewCard,
 } from "../components/catalogs";
-import { querySimple } from "../clients/backend/sdk.gen";
-import { PgcObject, Schema } from "../clients/backend/types.gen";
+import { querySimple } from "@hyperleda/lib/clients/backend";
+import { PgcObject, Schema } from "@hyperleda/lib/clients/backend";
 import { useDataFetching } from "../hooks/useDataFetching";
-import { backendClient } from "../clients/config";
+import { backendClient } from "@hyperleda/lib/clients";
 
 interface ObjectDetailsProps {
   object: PgcObject;

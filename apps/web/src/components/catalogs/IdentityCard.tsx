@@ -1,6 +1,6 @@
 import { ReactElement } from "react";
 import { MdOpenInNew } from "react-icons/md";
-import { Catalogs, Schema } from "../../clients/backend/types.gen";
+import { Catalogs, Schema } from "@hyperleda/lib/clients/backend";
 import { Quantity, QuantityWithError } from "../core/Astronomy";
 import { Link } from "../core/Link";
 import { Hint } from "../ui/Hint";

@@ -11,24 +11,24 @@ import {
 import {
   getRecordCrossmatch,
   setCrossmatchResults,
-} from "../clients/admin/sdk.gen";
+} from "@hyperleda/lib/clients/admin";
 import {
   GetRecordCrossmatchResponse,
   RecordCrossmatch,
   PgcCandidate,
   Schema as AdminSchema,
   StatusesPayload,
-} from "../clients/admin/types.gen";
-import { Schema as BackendSchema } from "../clients/backend/types.gen";
+} from "@hyperleda/lib/clients/admin";
+import { Schema as BackendSchema } from "@hyperleda/lib/clients/backend";
 import { getResource } from "../resources/resources";
 import { Link } from "../components/core/Link";
 import { CopyButton } from "../components/ui/CopyButton";
 import { Badge, BadgeType } from "../components/ui/Badge";
 import { Accordion } from "../components/core/Accordion";
 import { useDataFetching } from "../hooks/useDataFetching";
-import { adminClient } from "../clients/config";
-import { Button } from "../components/core/Button";
-import { isLoggedIn } from "../auth/token";
+import { adminClient } from "@hyperleda/lib/clients";
+import { Button } from "@hyperleda/lib/ui";
+import { isLoggedIn } from "@hyperleda/lib/auth";
 import { ObjectSummary } from "../components/catalogs/ObjectSummary";
 import classNames from "classnames";
 import { MdAdd, MdClose } from "react-icons/md";

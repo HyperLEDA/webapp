@@ -1,7 +1,7 @@
 import { FormEvent, ReactElement, useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
-import type { TapSchemaEntry } from "../../clients/backend/types.gen";
-import { Button } from "../core/Button";
+import type { TapSchemaEntry } from "@hyperleda/lib/clients/backend";
+import { Button } from "@hyperleda/lib/ui";
 import { Text } from "../core/Text";
 import { SqlEditor } from "./SqlEditor";
 import { SqlQueryEmbed } from "./SqlQueryEmbed";

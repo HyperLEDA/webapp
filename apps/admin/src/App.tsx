@@ -1,7 +1,9 @@
 import { useMemo } from "react";
 import { BrowserRouter, Outlet, Route, Routes } from "react-router-dom";
 import { MdAdminPanelSettings, MdOpenInNew, MdPublic } from "react-icons/md";
+import { LoginPage } from "@hyperleda/lib/pages";
 import {
+  AuthNavControl,
   Layout as SharedLayout,
   NavRail,
   NavButton,
@@ -70,6 +72,7 @@ function Layout() {
               >
                 <MdPublic size={20} />
               </NavButton>
+              <AuthNavControl />
               <ThemeSwitcher />
             </>
           }
@@ -91,6 +94,7 @@ function App() {
       <Routes>
         <Route element={<Layout />}>
           <Route path="/" element={<HomePage />} />
+          <Route path="/login" element={<LoginPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
