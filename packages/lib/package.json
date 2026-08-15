@@ -15,6 +15,7 @@
     "./pages": "./src/pages/index.ts",
     "./resources": "./src/resources/index.ts",
     "./origins": "./src/origins.ts",
+    "./tap": "./src/tap.ts",
     "./astronomy": "./src/astronomy/index.ts",
     "./ui": "./src/ui/index.ts",
     "./ui/styles.css": "./src/ui/styles.css"

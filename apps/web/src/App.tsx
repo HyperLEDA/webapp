@@ -8,19 +8,23 @@ import { ObjectDetailsPage } from "./pages/ObjectDetails";
 import { NotFoundPage } from "./pages/NotFound";
 import { Navbar } from "./components/ui/Navbar";
 import { SearchBar } from "./components/ui/Searchbar";
-import {
-  AdminMergePgcPage,
-  AdminPage,
-  CrossmatchResultsPage,
-  DataCatalogPage,
-  LoginPage,
-  RecordCrossmatchDetailsPage,
-} from "@hyperleda/lib/pages";
+import { LoginPage } from "@hyperleda/lib/pages";
+
+function adminRedirectPath(pathname: string): string {
+  if (pathname === "/admin" || pathname === "/admin/") {
+    return "/";
+  }
+  if (pathname.startsWith("/admin/")) {
+    return pathname.slice("/admin".length);
+  }
+  return pathname;
+}
 
 function RedirectToAdminPage(): ReactElement {
   useEffect(() => {
+    const path = adminRedirectPath(window.location.pathname);
     window.location.replace(
-      `${sameEnvAdminOrigin()}${window.location.pathname}${window.location.search}${window.location.hash}`,
+      `${sameEnvAdminOrigin()}${path}${window.location.search}${window.location.hash}`,
     );
   }, []);
 
@@ -61,20 +65,20 @@ function App() {
           />
           <Route path="/table/:tableName" element={<RedirectToAdminPage />} />
           <Route path="/tables" element={<RedirectToAdminPage />} />
-          <Route path="/data-catalog" element={<DataCatalogPage />} />
-          <Route path="/data-catalog/query" element={<DataCatalogPage />} />
-          <Route
-            path="/data-catalog/:schemaName/:tableName"
-            element={<DataCatalogPage />}
-          />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/admin" element={<AdminPage />} />
-          <Route path="/admin/merge-pgc" element={<AdminMergePgcPage />} />
-          <Route path="/crossmatch" element={<CrossmatchResultsPage />} />
+          <Route path="/admin" element={<RedirectToAdminPage />} />
+          <Route path="/admin/merge-pgc" element={<RedirectToAdminPage />} />
+          <Route path="/crossmatch" element={<RedirectToAdminPage />} />
           <Route
             path="/records/:recordId/crossmatch"
-            element={<RecordCrossmatchDetailsPage />}
+            element={<RedirectToAdminPage />}
           />
+          <Route path="/data-catalog" element={<RedirectToAdminPage />} />
+          <Route path="/data-catalog/query" element={<RedirectToAdminPage />} />
+          <Route
+            path="/data-catalog/:schemaName/:tableName"
+            element={<RedirectToAdminPage />}
+          />
+          <Route path="/login" element={<LoginPage />} />
           <Route
             path="*"
             element={

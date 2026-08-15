@@ -40,7 +40,7 @@ import {
   formatApiError,
   parseSqlPermalink,
   syncPayloadToTable,
-} from "../tap";
+} from "@hyperleda/lib/tap";
 
 async function fetchTablesList(): Promise<ListTapTablesResponse> {
   const response = await tapTables({

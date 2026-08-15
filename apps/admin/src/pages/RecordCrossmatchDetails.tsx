@@ -10,12 +10,12 @@ import {
   PgcCandidate,
   Schema as AdminSchema,
   StatusesPayload,
-} from "../clients/admin";
-import { Schema as BackendSchema } from "../clients/backend";
-import { adminClient } from "../clients";
-import { isLoggedIn } from "../auth";
-import { getResource } from "../resources";
-import { publicObjectUrl, adminTableUrl } from "../origins";
+} from "@hyperleda/lib/clients/admin";
+import { Schema as BackendSchema } from "@hyperleda/lib/clients/backend";
+import { adminClient } from "@hyperleda/lib/clients";
+import { isLoggedIn } from "@hyperleda/lib/auth";
+import { getResource } from "@hyperleda/lib/resources";
+import { publicObjectUrl, adminTableUrl } from "@hyperleda/lib/origins";
 import {
   Accordion,
   AladinViewer,
@@ -30,8 +30,8 @@ import {
   Link,
   Loading,
   ObjectSummary,
-} from "../ui";
-import { useDataFetching } from "../hooks";
+} from "@hyperleda/lib/ui";
+import { useDataFetching } from "@hyperleda/lib/hooks";
 
 function convertAdminSchemaToBackendSchema(
   adminSchema: AdminSchema,

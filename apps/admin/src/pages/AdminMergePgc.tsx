@@ -1,18 +1,16 @@
 import { ReactElement, ReactNode, useEffect, useRef, useState } from "react";
-import { Navigate } from "react-router-dom";
-import { isLoggedIn } from "../auth";
-import { mergePgcs } from "../clients/admin";
-import { querySimple } from "../clients/backend";
-import { PgcObject, Schema } from "../clients/backend";
-import { adminClient, backendClient } from "../clients";
-import { publicObjectUrl } from "../origins";
+import { mergePgcs } from "@hyperleda/lib/clients/admin";
+import { querySimple } from "@hyperleda/lib/clients/backend";
+import { PgcObject, Schema } from "@hyperleda/lib/clients/backend";
+import { adminClient, backendClient } from "@hyperleda/lib/clients";
+import { publicObjectUrl } from "@hyperleda/lib/origins";
 import {
   AladinViewer,
   Button,
   Link,
   ObjectSummary,
   SuggestibleInput,
-} from "../ui";
+} from "@hyperleda/lib/ui";
 
 const MIN_ALADIN_FOV_DEG = 0.05;
 const ALADIN_FOV_PADDING = 1.4;
@@ -373,11 +371,7 @@ function PgcPicker({
   );
 }
 
-export function AdminMergePgcPage({
-  authGuard = true,
-}: {
-  authGuard?: boolean;
-} = {}): ReactElement {
+export function AdminMergePgcPage(): ReactElement {
   const [target, setTarget] = useState<PgcSelection | null>(null);
   const [source, setSource] = useState<PgcSelection | null>(null);
   const [merging, setMerging] = useState(false);
@@ -387,10 +381,6 @@ export function AdminMergePgcPage({
   useEffect(() => {
     document.title = "Merge PGC objects | HyperLEDA";
   }, []);
-
-  if (authGuard && !isLoggedIn()) {
-    return <Navigate to="/login" replace />;
-  }
 
   const samePgc =
     target !== null &&

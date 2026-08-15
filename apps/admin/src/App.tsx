@@ -13,15 +13,16 @@ import {
   MdPublic,
   MdTableChart,
 } from "react-icons/md";
+import { LoginPage } from "@hyperleda/lib/pages";
 import {
   AdminMergePgcPage,
   AdminPage,
   CrossmatchResultsPage,
   DataCatalogPage,
-  LoginPage,
   RecordCrossmatchDetailsPage,
-} from "@hyperleda/lib/pages";
-import { TableDetailsPage, TablesPage } from "./pages";
+  TableDetailsPage,
+  TablesPage,
+} from "./pages";
 import { isLoggedIn, useIsLoggedIn } from "@hyperleda/lib/auth";
 import { sameEnvWebOrigin } from "@hyperleda/lib/origins";
 import {
@@ -120,11 +121,8 @@ function App() {
         <Route element={<Layout />}>
           <Route path="/login" element={<LoginPage />} />
           <Route element={<RequireAuth />}>
-            <Route path="/" element={<AdminPage authGuard={false} />} />
-            <Route
-              path="/merge-pgc"
-              element={<AdminMergePgcPage authGuard={false} />}
-            />
+            <Route path="/" element={<AdminPage />} />
+            <Route path="/merge-pgc" element={<AdminMergePgcPage />} />
             <Route path="/tables" element={<TablesPage />} />
             <Route path="/data-catalog" element={<DataCatalogPage />} />
             <Route path="/data-catalog/query" element={<DataCatalogPage />} />

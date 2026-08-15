@@ -1,15 +1,15 @@
 import { ReactElement, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { getRecords } from "../clients/admin";
+import { getRecords } from "@hyperleda/lib/clients/admin";
 import type {
   CrossmatchTriageStatus,
   GetRecordsResponse,
   Record as ApiRecord,
   ValidationError,
-} from "../clients/admin";
-import { adminClient } from "../clients";
-import { getResource } from "../resources";
-import { publicObjectUrl, adminTableUrl } from "../origins";
+} from "@hyperleda/lib/clients/admin";
+import { adminClient } from "@hyperleda/lib/clients";
+import { getResource } from "@hyperleda/lib/resources";
+import { publicObjectUrl, adminTableUrl } from "@hyperleda/lib/origins";
 import {
   Badge,
   Button,
@@ -22,8 +22,8 @@ import {
   Loading,
   Pagination,
   TextFilter,
-} from "../ui";
-import { useDataFetching } from "../hooks";
+} from "@hyperleda/lib/ui";
+import { useDataFetching } from "@hyperleda/lib/hooks";
 
 interface CrossmatchFiltersProps {
   tableName: string | null;
