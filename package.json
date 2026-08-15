@@ -12,6 +12,12 @@
     "lint:lib": "yarn workspace @hyperleda/lib lint",
     "test:web": "yarn workspace @hyperleda/web test",
     "test:admin": "yarn workspace @hyperleda/admin test",
-    "start": "node server.mjs"
+    "start": "node server.mjs",
+    "prettier": "prettier",
+    "openapi-ts": "openapi-ts"
+  },
+  "devDependencies": {
+    "@hey-api/openapi-ts": "^0.99.0",
+    "prettier": "3.9.6"
   }
 }

@@ -9,8 +9,6 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "start": "node server.mjs",
-    "openapi-ts": "openapi-ts",
-    "prettier": "prettier",
     "test": "output=$(vitest run 2>&1) || { printf '%s\\n' \"$output\"; exit 1; }",
     "test:watch": "vitest"
   },
@@ -42,7 +40,6 @@
     "eslint-plugin-react-refresh": "^0.5.3",
     "globals": "^17.9.0",
     "jiti": "^2.7.0",
-    "prettier": "3.9.6",
     "typescript": "^6.0.3",
     "vite": "^8.2.1",
     "vitest": "^4.1.10"

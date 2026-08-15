@@ -19,7 +19,6 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@hey-api/openapi-ts": "^0.99.0",
     "classnames": "^2.5.1",
     "flowbite-react": "^0.12.17"
   },
