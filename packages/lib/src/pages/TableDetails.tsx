@@ -28,7 +28,7 @@ import {
   TextFilter,
 } from "../ui";
 import { useDataFetching } from "../hooks";
-import { originalDataCatalogLink } from "../astronomy";
+import { publicDataCatalogQueryUrl } from "../origins";
 
 const DATA_TYPES: DataType[] = [
   "regular",
@@ -585,15 +585,16 @@ function ColumnInfo(props: ColumnInfoProps): ReactElement {
   const actions: CardAction[] = [
     {
       title: "View table data",
-      onClick: () =>
-        navigate(
-          originalDataCatalogLink(
-            selectAllColumnsFromRawdataTable(
-              props.tableName,
-              selectedColumnInfo,
-            ),
-          ),
-        ),
+      onClick: () => {
+        const link = publicDataCatalogQueryUrl(
+          selectAllColumnsFromRawdataTable(props.tableName, selectedColumnInfo),
+        );
+        if (link.external) {
+          window.open(link.href, "_blank", "noopener,noreferrer");
+          return;
+        }
+        navigate(link.href);
+      },
     },
   ];
 
