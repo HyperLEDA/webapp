@@ -1,12 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MdInfo, MdOpenInNew, MdSearch } from "react-icons/md";
-import {
-  AuthNavControl,
-  NavRail,
-  NavButton,
-  NavItem,
-  ThemeSwitcher,
-} from "@hyperleda/lib/ui";
+import { NavRail, NavButton, NavItem, ThemeSwitcher } from "@hyperleda/lib/ui";
 import { Link } from "@hyperleda/lib/ui";
 
 const navItems = [
@@ -67,7 +61,6 @@ export function Navbar() {
                 <MdOpenInNew size={20} />
               </NavButton>
             ) : null}
-            <AuthNavControl />
             <ThemeSwitcher />
             <NavButton
               ref={infoButtonRef}

@@ -13,20 +13,20 @@ import {
   MdPublic,
   MdTableChart,
 } from "react-icons/md";
-import { LoginPage } from "@hyperleda/lib/pages";
 import {
   AdminMergePgcPage,
   AdminPage,
   CrossmatchResultsPage,
   DataCatalogPage,
+  LoginPage,
   RecordCrossmatchDetailsPage,
   TableDetailsPage,
   TablesPage,
 } from "./pages";
-import { isLoggedIn, useIsLoggedIn } from "@hyperleda/lib/auth";
+import { isLoggedIn, useIsLoggedIn } from "./auth";
+import { AuthNavControl } from "./components/AuthNavControl";
 import { sameEnvWebOrigin } from "@hyperleda/lib/origins";
 import {
-  AuthNavControl,
   Layout as SharedLayout,
   NavRail,
   NavButton,

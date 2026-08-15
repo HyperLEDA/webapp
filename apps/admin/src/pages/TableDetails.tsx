@@ -7,10 +7,10 @@ import {
   TableProgress,
   getTable,
   patchTable,
-} from "@hyperleda/lib/clients/admin";
+} from "../clients/admin";
 import { useNavigate, useParams } from "react-router-dom";
-import { adminClient } from "@hyperleda/lib/clients";
-import { isLoggedIn } from "@hyperleda/lib/auth";
+import { adminClient } from "../clients";
+import { isLoggedIn } from "../auth";
 import {
   Badge,
   Card,

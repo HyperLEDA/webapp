@@ -1,8 +1,9 @@
 import { ReactElement, ReactNode, useEffect, useRef, useState } from "react";
-import { mergePgcs } from "@hyperleda/lib/clients/admin";
+import { mergePgcs } from "../clients/admin";
 import { querySimple } from "@hyperleda/lib/clients/backend";
 import { PgcObject, Schema } from "@hyperleda/lib/clients/backend";
-import { adminClient, backendClient } from "@hyperleda/lib/clients";
+import { adminClient } from "../clients";
+import { backendClient } from "@hyperleda/lib/clients";
 import { publicObjectUrl } from "@hyperleda/lib/origins";
 import {
   AladinViewer,

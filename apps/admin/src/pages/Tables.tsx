@@ -1,14 +1,14 @@
 import { ReactElement, useEffect, useState, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import classNames from "classnames";
-import { getTableList } from "@hyperleda/lib/clients/admin";
+import { getTableList } from "../clients/admin";
 import type {
   GetTableListResponse,
   TableListItem,
   TableProgress,
   ValidationError,
-} from "@hyperleda/lib/clients/admin";
-import { adminClient } from "@hyperleda/lib/clients";
+} from "../clients/admin";
+import { adminClient } from "../clients";
 import {
   Card,
   CardAction,

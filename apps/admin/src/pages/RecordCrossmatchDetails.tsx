@@ -10,10 +10,10 @@ import {
   PgcCandidate,
   Schema as AdminSchema,
   StatusesPayload,
-} from "@hyperleda/lib/clients/admin";
+} from "../clients/admin";
 import { Schema as BackendSchema } from "@hyperleda/lib/clients/backend";
-import { adminClient } from "@hyperleda/lib/clients";
-import { isLoggedIn } from "@hyperleda/lib/auth";
+import { adminClient } from "../clients";
+import { isLoggedIn } from "../auth";
 import { getResource } from "@hyperleda/lib/resources";
 import { publicObjectUrl, adminTableUrl } from "@hyperleda/lib/origins";
 import {

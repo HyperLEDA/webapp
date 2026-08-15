@@ -1,7 +1,6 @@
 export { Layout } from "./Layout";
 export { NavRail, NavButton, NavItem } from "./NavRail";
 export { AppTooltip } from "./AppTooltip";
-export { AuthNavControl } from "./AuthNavControl";
 export { Button } from "./Button";
 export { Link } from "./Link";
 export { SuggestibleInput } from "./SuggestibleInput";

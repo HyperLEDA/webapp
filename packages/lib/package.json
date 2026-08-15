@@ -5,12 +5,9 @@
   "type": "module",
   "main": "src/ui/index.ts",
   "exports": {
-    "./auth": "./src/auth/index.ts",
     "./clients": "./src/clients/index.ts",
     "./clients/backend": "./src/clients/backend/index.ts",
     "./clients/backend/*": "./src/clients/backend/*",
-    "./clients/admin": "./src/clients/admin/index.ts",
-    "./clients/admin/*": "./src/clients/admin/*",
     "./hooks": "./src/hooks/index.ts",
     "./pages": "./src/pages/index.ts",
     "./resources": "./src/resources/index.ts",

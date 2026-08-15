@@ -1,13 +1,13 @@
 import { ReactElement, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { getRecords } from "@hyperleda/lib/clients/admin";
+import { getRecords } from "../clients/admin";
 import type {
   CrossmatchTriageStatus,
   GetRecordsResponse,
   Record as ApiRecord,
   ValidationError,
-} from "@hyperleda/lib/clients/admin";
-import { adminClient } from "@hyperleda/lib/clients";
+} from "../clients/admin";
+import { adminClient } from "../clients";
 import { getResource } from "@hyperleda/lib/resources";
 import { publicObjectUrl, adminTableUrl } from "@hyperleda/lib/origins";
 import {

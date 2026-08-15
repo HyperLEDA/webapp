@@ -8,7 +8,6 @@ import { ObjectDetailsPage } from "./pages/ObjectDetails";
 import { NotFoundPage } from "./pages/NotFound";
 import { Navbar } from "./components/ui/Navbar";
 import { SearchBar } from "./components/ui/Searchbar";
-import { LoginPage } from "@hyperleda/lib/pages";
 
 function adminRedirectPath(pathname: string): string {
   if (pathname === "/admin" || pathname === "/admin/") {
@@ -78,7 +77,6 @@ function App() {
             path="/data-catalog/:schemaName/:tableName"
             element={<RedirectToAdminPage />}
           />
-          <Route path="/login" element={<LoginPage />} />
           <Route
             path="*"
             element={
