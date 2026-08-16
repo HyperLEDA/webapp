@@ -188,9 +188,11 @@ function TableListCard({ table }: { table: TableListItem }): ReactElement {
           <Link href={`/table/${table.name}`} className="hover:opacity-80">
             {table.description || "—"}
           </Link>
-          <Badge type={table.status === "archived" ? "warning" : "info"}>
-            {formatTableStatusLabel(table.status)}
-          </Badge>
+          {table.status !== "initiated" ? (
+            <Badge type="warning">
+              {formatTableStatusLabel(table.status)}
+            </Badge>
+          ) : null}
         </span>
       }
       className="w-full"
