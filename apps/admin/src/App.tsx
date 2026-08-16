@@ -95,14 +95,14 @@ function Layout() {
         >
           {loggedIn ? (
             <>
-              <NavItem to="/" end label="Admin">
-                <MdAdminPanelSettings size={20} />
-              </NavItem>
               <NavItem to="/tables" label="Tables">
                 <MdTableChart size={20} />
               </NavItem>
               <NavItem to="/data-catalog" label="Data catalog">
                 <MdAccountTree size={20} />
+              </NavItem>
+              <NavItem to="/" end label="Admin">
+                <MdAdminPanelSettings size={20} />
               </NavItem>
             </>
           ) : null}
