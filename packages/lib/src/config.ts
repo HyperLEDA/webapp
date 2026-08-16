@@ -17,7 +17,10 @@ function getConfig(): AppConfig {
   }
 
   if (import.meta.env.DEV) {
-    return { backendBaseUrl: "", adminBaseUrl: "" };
+    return {
+      backendBaseUrl: "https://leda.kraysent.dev",
+      adminBaseUrl: "https://leda.kraysent.dev",
+    };
   }
 
   if (!window.__APP_CONFIG__) {

@@ -5,6 +5,7 @@ import {
   DataType,
   GetTableResponse,
   TableProgress,
+  TableStatus,
   getTable,
   patchTable,
 } from "../clients/admin";
@@ -39,6 +40,8 @@ const DATA_TYPES: DataType[] = [
   "compilation",
 ];
 
+const TABLE_STATUSES: TableStatus[] = ["initiated", "archived"];
+
 function asDataType(value: unknown): DataType {
   if (
     value === "regular" ||
@@ -49,6 +52,13 @@ function asDataType(value: unknown): DataType {
     return value;
   }
   return "regular";
+}
+
+function asTableStatus(value: unknown): TableStatus {
+  if (value === "initiated" || value === "archived") {
+    return value;
+  }
+  return "initiated";
 }
 
 function quoteSqlIdentifier(identifier: string): string {
@@ -160,17 +170,18 @@ function TableMeta(props: TableMetaProps): ReactElement {
   const navigate = useNavigate();
   const canEdit = isLoggedIn();
   const [savingField, setSavingField] = useState<
-    "name" | "description" | "datatype" | null
+    "name" | "description" | "datatype" | "status" | null
   >(null);
   const [patchError, setPatchError] = useState<string | null>(null);
 
   async function runTablePatch(
-    field: "name" | "description" | "datatype",
+    field: "name" | "description" | "datatype" | "status",
     body: {
       table_name: string;
       new_table_name?: string;
       description?: string;
       datatype?: DataType;
+      status?: TableStatus;
     },
     onSuccess: () => void,
   ): Promise<void> {
@@ -233,6 +244,21 @@ function TableMeta(props: TableMetaProps): ReactElement {
     );
   }
 
+  async function commitStatus(next: TableStatus): Promise<void> {
+    const current = asTableStatus(props.table.meta.status);
+    if (next === current) {
+      return;
+    }
+    await runTablePatch(
+      "status",
+      {
+        table_name: props.tableName,
+        status: next,
+      },
+      () => props.onAfterPatch(),
+    );
+  }
+
   const datatypeControl = canEdit ? (
     <select
       value={asDataType(props.table.meta.datatype)}
@@ -248,6 +274,25 @@ function TableMeta(props: TableMetaProps): ReactElement {
     </select>
   ) : (
     String(props.table.meta.datatype)
+  );
+
+  const tableStatus = asTableStatus(props.table.meta.status);
+
+  const statusControl = canEdit ? (
+    <select
+      value={tableStatus}
+      onChange={(event) => void commitStatus(event.target.value as TableStatus)}
+      disabled={savingField !== null}
+      className="bg-surface-2 border border-border rounded px-2 py-1 text-primary max-w-xs"
+    >
+      {TABLE_STATUSES.map((option) => (
+        <option key={option} value={option} className="bg-surface-2">
+          {option.charAt(0).toUpperCase() + option.slice(1)}
+        </option>
+      ))}
+    </select>
+  ) : (
+    tableStatus.charAt(0).toUpperCase() + tableStatus.slice(1)
   );
 
   return (
@@ -283,6 +328,7 @@ function TableMeta(props: TableMetaProps): ReactElement {
         {renderBibliography(props.table.bibliography)}
       </Field>
       <Field label="Type of data">{datatypeControl}</Field>
+      <Field label="Status">{statusControl}</Field>
       <Field label="Modification time">
         {renderTime(props.table.meta.modification_dt as string)}
       </Field>

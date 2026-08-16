@@ -6,6 +6,7 @@ import type {
   GetTableListResponse,
   TableListItem,
   TableProgress,
+  TableStatus,
   ValidationError,
 } from "../clients/admin";
 import { adminClient } from "../clients";
@@ -18,24 +19,56 @@ import {
   Loading,
   Pagination,
 } from "@hyperleda/lib/ui";
-import { DropdownFilter, TextFilter } from "../components/ui";
+import {
+  Badge,
+  DropdownFilter,
+  MultiSelectFilter,
+  TextFilter,
+} from "../components/ui";
 import { useDataFetching } from "@hyperleda/lib/hooks";
 import { getSourceLink } from "@hyperleda/lib/astronomy";
 
 const SEARCH_DEBOUNCE_MS = 300;
 
+const TABLE_STATUS_OPTIONS: { value: TableStatus; label: string }[] = [
+  { value: "initiated", label: "Initiated" },
+  { value: "archived", label: "Archived" },
+];
+
+function parseStatusesParam(param: string | null): TableStatus[] {
+  if (!param) {
+    return [];
+  }
+
+  const validStatuses = new Set<TableStatus>(["initiated", "archived"]);
+  return param
+    .split(",")
+    .map((value) => value.trim())
+    .filter((value): value is TableStatus =>
+      validStatuses.has(value as TableStatus),
+    );
+}
+
+function formatTableStatusLabel(status: TableStatus): string {
+  return status.charAt(0).toUpperCase() + status.slice(1);
+}
+
 interface TablesFiltersProps {
   query: string | null;
   pageSize: number;
+  statuses: TableStatus[];
   onQueryChange: (query: string) => void;
   onPageSizeChange: (pageSize: number) => void;
+  onStatusesChange: (statuses: TableStatus[]) => void;
 }
 
 function TablesFilters({
   query,
   pageSize,
+  statuses,
   onQueryChange,
   onPageSizeChange,
+  onStatusesChange,
 }: TablesFiltersProps): ReactElement {
   const [localQuery, setLocalQuery] = useState<string>(query || "");
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -67,6 +100,14 @@ function TablesFilters({
         value={localQuery}
         onChange={handleQueryChange}
         placeholder="Search by name or description"
+      />
+      <MultiSelectFilter
+        title="Status"
+        options={TABLE_STATUS_OPTIONS}
+        values={statuses}
+        onChange={(values) =>
+          onStatusesChange(parseStatusesParam(values.join(",")))
+        }
       />
       <DropdownFilter
         title="Page size"
@@ -143,9 +184,14 @@ function TableListCard({ table }: { table: TableListItem }): ReactElement {
   return (
     <Card
       title={
-        <Link href={`/table/${table.name}`} className="hover:opacity-80">
-          {table.description || "—"}
-        </Link>
+        <span className="inline-flex items-center gap-2 flex-wrap">
+          <Link href={`/table/${table.name}`} className="hover:opacity-80">
+            {table.description || "—"}
+          </Link>
+          {table.status !== "initiated" ? (
+            <Badge type="warning">{formatTableStatusLabel(table.status)}</Badge>
+          ) : null}
+        </span>
       }
       className="w-full"
       variant="responsive-fields"
@@ -217,6 +263,7 @@ async function fetcher(
   query: string | null,
   page: number,
   pageSize: number,
+  statuses: TableStatus[],
 ): Promise<GetTableListResponse> {
   const response = await getTableList({
     client: adminClient,
@@ -224,6 +271,7 @@ async function fetcher(
       query: query?.trim() || undefined,
       page,
       page_size: pageSize,
+      statuses: statuses.length > 0 ? statuses : undefined,
     },
   });
 
@@ -248,14 +296,15 @@ export function TablesPage(): ReactElement {
   const query = searchParams.get("q");
   const page = parseInt(searchParams.get("page") || "0");
   const pageSize = parseInt(searchParams.get("page_size") || "25");
+  const statuses = parseStatusesParam(searchParams.get("statuses"));
 
   useEffect(() => {
     document.title = "Tables | HyperLEDA";
   }, []);
 
   const { data, loading, error } = useDataFetching(
-    () => fetcher(query, page, pageSize),
-    [query, page, pageSize],
+    () => fetcher(query, page, pageSize, statuses),
+    [query, page, pageSize, statuses.join(",")],
   );
 
   function handlePageChange(newPage: number): void {
@@ -264,7 +313,11 @@ export function TablesPage(): ReactElement {
     setSearchParams(newSearchParams);
   }
 
-  function updateParams(updates: { q?: string; page_size?: number }): void {
+  function updateParams(updates: {
+    q?: string;
+    page_size?: number;
+    statuses?: TableStatus[];
+  }): void {
     const newSearchParams = new URLSearchParams(searchParams);
     if (updates.q !== undefined) {
       if (updates.q.trim()) {
@@ -275,6 +328,13 @@ export function TablesPage(): ReactElement {
     }
     if (updates.page_size !== undefined) {
       newSearchParams.set("page_size", updates.page_size.toString());
+    }
+    if (updates.statuses !== undefined) {
+      if (updates.statuses.length > 0) {
+        newSearchParams.set("statuses", updates.statuses.join(","));
+      } else {
+        newSearchParams.delete("statuses");
+      }
     }
     newSearchParams.set("page", "0");
     setSearchParams(newSearchParams);
@@ -304,8 +364,12 @@ export function TablesPage(): ReactElement {
       <TablesFilters
         query={query}
         pageSize={pageSize}
+        statuses={statuses}
         onQueryChange={(q) => updateParams({ q })}
         onPageSizeChange={(size) => updateParams({ page_size: size })}
+        onStatusesChange={(nextStatuses) =>
+          updateParams({ statuses: nextStatuses })
+        }
       />
       <Content />
     </>
