@@ -189,9 +189,7 @@ function TableListCard({ table }: { table: TableListItem }): ReactElement {
             {table.description || "—"}
           </Link>
           {table.status !== "initiated" ? (
-            <Badge type="warning">
-              {formatTableStatusLabel(table.status)}
-            </Badge>
+            <Badge type="warning">{formatTableStatusLabel(table.status)}</Badge>
           ) : null}
         </span>
       }
