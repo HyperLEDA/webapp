@@ -3,7 +3,7 @@ import { getAuthToken } from "../auth/token";
 
 function getAdminBaseUrl(): string {
   if (import.meta.env.DEV) {
-    return "";
+    return "https://leda.kraysent.dev";
   }
 
   if (!window.__APP_CONFIG__) {
