@@ -101,7 +101,7 @@ function Layout() {
               <NavItem to="/data-catalog" label="Data catalog">
                 <MdAccountTree size={20} />
               </NavItem>
-              <NavItem to="/" end label="Admin">
+              <NavItem to="/tasks" label="Tasks">
                 <MdAdminPanelSettings size={20} />
               </NavItem>
             </>
@@ -121,7 +121,8 @@ function App() {
         <Route element={<Layout />}>
           <Route path="/login" element={<LoginPage />} />
           <Route element={<RequireAuth />}>
-            <Route path="/" element={<AdminPage />} />
+            <Route path="/" element={<Navigate to="/tables" replace />} />
+            <Route path="/tasks" element={<AdminPage />} />
             <Route path="/merge-pgc" element={<AdminMergePgcPage />} />
             <Route path="/tables" element={<TablesPage />} />
             <Route path="/data-catalog" element={<DataCatalogPage />} />
