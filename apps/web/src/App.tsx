@@ -11,7 +11,7 @@ import { SearchBar } from "./components/ui/Searchbar";
 
 function adminRedirectPath(pathname: string): string {
   if (pathname === "/admin" || pathname === "/admin/") {
-    return "/";
+    return "/tasks";
   }
   if (pathname.startsWith("/admin/")) {
     return pathname.slice("/admin".length);

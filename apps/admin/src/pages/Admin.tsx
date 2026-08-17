@@ -3,7 +3,7 @@ import { Link } from "@hyperleda/lib/ui";
 
 const tasks = [
   {
-    to: "merge-pgc",
+    to: "/merge-pgc",
     title: "Merge PGC objects",
     description:
       "Reassign all records from a source PGC onto a surviving target PGC.",
@@ -12,12 +12,12 @@ const tasks = [
 
 export function AdminPage(): ReactElement {
   useEffect(() => {
-    document.title = "Admin | HyperLEDA";
+    document.title = "Tasks | HyperLEDA";
   }, []);
 
   return (
     <div className="max-w-3xl">
-      <h2 className="text-3xl font-bold mb-4">Admin</h2>
+      <h2 className="text-3xl font-bold mb-4">Tasks</h2>
       <ul className="flex flex-col gap-4">
         {tasks.map((task) => (
           <li key={task.to}>

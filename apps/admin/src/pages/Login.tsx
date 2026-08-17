@@ -38,7 +38,7 @@ export function LoginPage(): ReactElement {
 
       setAuthToken(token);
       setSuccess(true);
-      navigate("/");
+      navigate("/tables");
     } catch (submitError) {
       setError(`${submitError}`);
     } finally {
