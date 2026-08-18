@@ -1,3 +1,4 @@
+export { SqlQueryPage } from "./SqlQuery";
 export { AdminPage } from "./Admin";
 export { AdminMergePgcPage } from "./AdminMergePgc";
 export { CrossmatchResultsPage } from "./CrossmatchResults";
