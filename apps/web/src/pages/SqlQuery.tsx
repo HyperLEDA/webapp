@@ -1,28 +1,7 @@
 import { ReactElement, useEffect, useLayoutEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import type { TapSyncResponse } from "@hyperleda/lib/clients/backend";
-import { tapSync } from "../clients/admin";
-import { adminClient } from "../clients";
-import {
-  DEFAULT_SQL_EXAMPLE,
-  formatApiError,
-  parseSqlPermalink,
-} from "@hyperleda/lib/tap";
 import { CatalogSqlPanel } from "@hyperleda/lib/ui";
-
-async function executeAdminSqlQuery(sql: string): Promise<TapSyncResponse> {
-  const response = await tapSync({
-    client: adminClient,
-    query: { query: sql },
-  });
-  if (response.error) {
-    throw new Error(formatApiError(response.error));
-  }
-  if (!response.data?.data) {
-    throw new Error("No data received from server");
-  }
-  return response.data.data;
-}
+import { DEFAULT_SQL_EXAMPLE, parseSqlPermalink } from "@hyperleda/lib/tap";
 
 export function SqlQueryPage(): ReactElement {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -51,7 +30,6 @@ export function SqlQueryPage(): ReactElement {
         onSqlChange={setSqlDraft}
         permalinkRunKey={permalinkSql ? parseSqlPermalink(permalinkSql) : null}
         onQueryRun={handleQueryRun}
-        executeQuery={executeAdminSqlQuery}
       />
     </div>
   );

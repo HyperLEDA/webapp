@@ -4,9 +4,10 @@ import type {
   TapSchemaEntry,
   TapSyncResponse,
 } from "@hyperleda/lib/clients/backend";
-import { Button, Text } from "@hyperleda/lib/ui";
+import { Button } from "./Button";
 import { SqlEditor } from "./SqlEditor";
-import { SqlQueryEmbed } from "@hyperleda/lib/ui";
+import { SqlQueryEmbed } from "./SqlQueryEmbed";
+import { Text } from "./Text";
 
 function runQueryShortcutLabel(): string {
   if (typeof navigator === "undefined") {

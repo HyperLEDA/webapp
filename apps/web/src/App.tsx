@@ -6,6 +6,7 @@ import { HomePage } from "./pages/Home";
 import { SearchResultsPage } from "./pages/SearchResults";
 import { ObjectDetailsPage } from "./pages/ObjectDetails";
 import { NotFoundPage } from "./pages/NotFound";
+import { SqlQueryPage } from "./pages/SqlQuery";
 import { Navbar } from "./components/ui/Navbar";
 import { SearchBar } from "./components/ui/Searchbar";
 
@@ -53,6 +54,7 @@ function App() {
             }
           />
           <Route path="/query" element={<SearchResultsPage />} />
+          <Route path="/sql" element={<SqlQueryPage />} />
           <Route
             path="/object/:pgcId"
             element={

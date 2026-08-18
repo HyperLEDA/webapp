@@ -2,7 +2,7 @@ import { ReactElement, useEffect, useMemo, useRef, useState } from "react";
 import Editor from "@monaco-editor/react";
 import type * as Monaco from "monaco-editor";
 import type { TapSchemaEntry } from "@hyperleda/lib/clients/backend";
-import { useTheme } from "@hyperleda/lib/ui";
+import { useTheme } from "./useTheme";
 
 type CatalogCompletionTemplate = Omit<Monaco.languages.CompletionItem, "range">;
 

@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { MdInfo, MdOpenInNew, MdSearch } from "react-icons/md";
+import { MdCode, MdInfo, MdOpenInNew, MdSearch } from "react-icons/md";
 import { NavRail, NavButton, NavItem, ThemeSwitcher } from "@hyperleda/lib/ui";
 import { Link } from "@hyperleda/lib/ui";
 
 const navItems = [
   { to: "/", icon: <MdSearch size={20} />, label: "Object search", end: true },
+  { to: "/sql", icon: <MdCode size={20} />, label: "SQL", end: true },
 ];
 
 const configuredProductionWeb = "https://leda.sao.ru";
