@@ -26,9 +26,11 @@ function markdownColumns(columns: Column[]): Column[] {
 export function SqlQueryEmbed({
   sql,
   onLoadingChange,
+  executeQuery = executeSqlQuery,
 }: {
   sql: string;
   onLoadingChange?: (loading: boolean) => void;
+  executeQuery?: (sql: string) => Promise<TapSyncResponse>;
 }): ReactElement {
   const [result, setResult] = useState<TapSyncResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -50,7 +52,7 @@ export function SqlQueryEmbed({
       setResult(null);
 
       try {
-        const payload = await executeSqlQuery(sql);
+        const payload = await executeQuery(sql);
         if (!cancelled) {
           setResult(payload);
         }
@@ -69,7 +71,7 @@ export function SqlQueryEmbed({
     return () => {
       cancelled = true;
     };
-  }, [sql]);
+  }, [sql, executeQuery]);
 
   const tableData = result ? syncPayloadToTable(result) : null;
   const rowCount = tableData?.rows.length ?? 0;

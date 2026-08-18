@@ -1,9 +1,13 @@
 import { FormEvent, ReactElement, useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
-import type { TapSchemaEntry } from "@hyperleda/lib/clients/backend";
-import { Button, Text } from "@hyperleda/lib/ui";
+import type {
+  TapSchemaEntry,
+  TapSyncResponse,
+} from "@hyperleda/lib/clients/backend";
+import { Button } from "./Button";
 import { SqlEditor } from "./SqlEditor";
-import { SqlQueryEmbed } from "@hyperleda/lib/ui";
+import { SqlQueryEmbed } from "./SqlQueryEmbed";
+import { Text } from "./Text";
 
 function runQueryShortcutLabel(): string {
   if (typeof navigator === "undefined") {
@@ -18,6 +22,7 @@ interface CatalogSqlPanelProps {
   schemas?: TapSchemaEntry[];
   permalinkRunKey?: string | null;
   onQueryRun?: (sql: string) => void;
+  executeQuery?: (sql: string) => Promise<TapSyncResponse>;
 }
 
 export function CatalogSqlPanel({
@@ -26,6 +31,7 @@ export function CatalogSqlPanel({
   schemas,
   permalinkRunKey,
   onQueryRun,
+  executeQuery,
 }: CatalogSqlPanelProps): ReactElement {
   const [executedSql, setExecutedSql] = useState<string | null>(null);
   const [runId, setRunId] = useState(0);
@@ -112,6 +118,7 @@ export function CatalogSqlPanel({
           key={runId}
           sql={executedSql}
           onLoadingChange={setLoading}
+          executeQuery={executeQuery}
         />
       ) : null}
     </div>

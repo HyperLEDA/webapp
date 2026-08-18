@@ -32,7 +32,7 @@ import { useDataFetching } from "@hyperleda/lib/hooks";
 import { Button } from "@hyperleda/lib/ui";
 import classNames from "classnames";
 import { CatalogViewTabs } from "./catalog/CatalogViewTabs";
-import { CatalogSqlPanel } from "./catalog/CatalogSqlPanel";
+import { CatalogSqlPanel } from "@hyperleda/lib/ui";
 import {
   DEFAULT_SQL_EXAMPLE,
   defaultSelectForTable,

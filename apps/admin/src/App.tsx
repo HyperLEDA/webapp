@@ -9,6 +9,7 @@ import {
 import {
   MdAdminPanelSettings,
   MdAccountTree,
+  MdCode,
   MdOpenInNew,
   MdPublic,
   MdTableChart,
@@ -20,6 +21,7 @@ import {
   DataCatalogPage,
   LoginPage,
   RecordCrossmatchDetailsPage,
+  SqlQueryPage,
   TableDetailsPage,
   TablesPage,
 } from "./pages";
@@ -101,6 +103,9 @@ function Layout() {
               <NavItem to="/data-catalog" label="Data catalog">
                 <MdAccountTree size={20} />
               </NavItem>
+              <NavItem to="/sql" label="SQL">
+                <MdCode size={20} />
+              </NavItem>
               <NavItem to="/tasks" label="Tasks">
                 <MdAdminPanelSettings size={20} />
               </NavItem>
@@ -125,6 +130,7 @@ function App() {
             <Route path="/tasks" element={<AdminPage />} />
             <Route path="/merge-pgc" element={<AdminMergePgcPage />} />
             <Route path="/tables" element={<TablesPage />} />
+            <Route path="/sql" element={<SqlQueryPage />} />
             <Route path="/data-catalog" element={<DataCatalogPage />} />
             <Route path="/data-catalog/query" element={<DataCatalogPage />} />
             <Route
