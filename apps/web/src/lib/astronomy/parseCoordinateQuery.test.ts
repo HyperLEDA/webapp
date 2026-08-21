@@ -110,6 +110,36 @@ describe("inspectCoordinateQuery", () => {
           lat: CANONICAL.lat,
         },
       },
+      {
+        name: "sexagesimal units without + defaults to positive Dec",
+        input: '12h 30m 00s 45d 00m 00"',
+        expect: {
+          status: "valid",
+          system: "j2000",
+          lon: CANONICAL.lon,
+          lat: CANONICAL.lat,
+        },
+      },
+      {
+        name: "sexagesimal colon without + defaults to positive Dec",
+        input: "12:30:00 45:00:00",
+        expect: {
+          status: "valid",
+          system: "j2000",
+          lon: CANONICAL.lon,
+          lat: CANONICAL.lat,
+        },
+      },
+      {
+        name: "sexagesimal space without + defaults to positive Dec",
+        input: "12 30 00 45 00 00",
+        expect: {
+          status: "valid",
+          system: "j2000",
+          lon: CANONICAL.lon,
+          lat: CANONICAL.lat,
+        },
+      },
 
       // --- packed equatorial ---
       {
@@ -125,6 +155,26 @@ describe("inspectCoordinateQuery", () => {
       {
         name: "packed J2000 without prefix",
         input: "123000+450000",
+        expect: {
+          status: "valid",
+          system: "j2000",
+          lon: CANONICAL.lon,
+          lat: CANONICAL.lat,
+        },
+      },
+      {
+        name: "packed J2000 without + defaults to positive Dec",
+        input: "J123000450000",
+        expect: {
+          status: "valid",
+          system: "j2000",
+          lon: CANONICAL.lon,
+          lat: CANONICAL.lat,
+        },
+      },
+      {
+        name: "packed J2000 HHMMDDMM without + defaults to positive Dec",
+        input: "J12304500",
         expect: {
           status: "valid",
           system: "j2000",
@@ -167,6 +217,26 @@ describe("inspectCoordinateQuery", () => {
       {
         name: "decimal degrees space-separated",
         input: "187.5 +45",
+        expect: {
+          status: "valid",
+          system: "j2000",
+          lon: CANONICAL.lon,
+          lat: CANONICAL.lat,
+        },
+      },
+      {
+        name: "decimal degrees with d units without + defaults to positive Dec",
+        input: "187.5d 45d",
+        expect: {
+          status: "valid",
+          system: "j2000",
+          lon: CANONICAL.lon,
+          lat: CANONICAL.lat,
+        },
+      },
+      {
+        name: "decimal degrees space-separated without + defaults to positive Dec",
+        input: "187.5 45",
         expect: {
           status: "valid",
           system: "j2000",

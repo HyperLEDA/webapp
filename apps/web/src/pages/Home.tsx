@@ -1,5 +1,5 @@
 import { ReactElement } from "react";
-import { Link } from "@hyperleda/lib/ui";
+import { Link } from "@leda/lib/ui";
 
 const homePageHint: ReactElement = (
   <div>

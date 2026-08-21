@@ -1,6 +1,6 @@
 import { ReactElement } from "react";
-import { Catalogs } from "@hyperleda/lib/clients/backend";
-import { AladinViewer } from "@hyperleda/lib/ui";
+import { Catalogs } from "@leda/lib/clients/backend";
+import { AladinViewer } from "@leda/lib/ui";
 import { CatalogCard, CatalogNoData } from "./CatalogCard";
 
 export function SkyViewCard({

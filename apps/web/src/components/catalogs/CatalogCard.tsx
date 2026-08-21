@@ -9,11 +9,8 @@ import {
   CardAction,
   Field,
   SqlQueryEmbed,
-} from "@hyperleda/lib/ui";
-import {
-  getSourceLink,
-  originalDataCatalogLink,
-} from "@hyperleda/lib/astronomy";
+} from "@leda/lib/ui";
+import { getSourceLink, originalDataCatalogLink } from "@leda/lib/astronomy";
 
 export type { CardAction as CatalogCardAction };
 export { Field, getSourceLink };

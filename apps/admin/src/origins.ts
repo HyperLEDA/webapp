@@ -1,4 +1,4 @@
-import { sameEnvWebOrigin } from "@hyperleda/lib/origins";
+import { sameEnvWebOrigin } from "@leda/lib/origins";
 
 interface ExternalLinkTarget {
   href: string;

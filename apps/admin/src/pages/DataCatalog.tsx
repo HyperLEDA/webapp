@@ -11,35 +11,29 @@ import {
   useParams,
   useSearchParams,
 } from "react-router-dom";
-import { tapSync, tapTables } from "@hyperleda/lib/clients/backend";
+import { tapSync, tapTables } from "@leda/lib/clients/backend";
 import type {
   ListTapTablesResponse,
   TapColumnInfo,
   TapSchemaEntry,
   TapSyncResponse,
   TapTableInfo,
-} from "@hyperleda/lib/clients/backend";
-import { backendClient } from "@hyperleda/lib/clients";
-import {
-  CommonTable,
-  Column,
-  ErrorPage,
-  Loading,
-  Text,
-} from "@hyperleda/lib/ui";
+} from "@leda/lib/clients/backend";
+import { backendClient } from "@leda/lib/clients";
+import { CommonTable, Column, ErrorPage, Loading, Text } from "@leda/lib/ui";
 import { Accordion, TextFilter } from "../components/ui";
-import { useDataFetching } from "@hyperleda/lib/hooks";
-import { Button } from "@hyperleda/lib/ui";
+import { useDataFetching } from "@leda/lib/hooks";
+import { Button } from "@leda/lib/ui";
 import classNames from "classnames";
 import { CatalogViewTabs } from "./catalog/CatalogViewTabs";
-import { CatalogSqlPanel } from "@hyperleda/lib/ui";
+import { CatalogSqlPanel } from "@leda/lib/ui";
 import {
   DEFAULT_SQL_EXAMPLE,
   defaultSelectForTable,
   formatApiError,
   parseSqlPermalink,
   syncPayloadToTable,
-} from "@hyperleda/lib/tap";
+} from "@leda/lib/tap";
 
 async function fetchTablesList(): Promise<ListTapTablesResponse> {
   const response = await tapTables({
@@ -306,9 +300,7 @@ export function DataCatalogPage(): ReactElement {
     : (tableName ?? null);
 
   useEffect(() => {
-    document.title = isQueryMode
-      ? "SQL query | HyperLEDA"
-      : "Data catalog | HyperLEDA";
+    document.title = isQueryMode ? "SQL query | LEDA" : "Data catalog | LEDA";
   }, [isQueryMode]);
 
   useLayoutEffect(() => {

@@ -1,13 +1,21 @@
 import { FormEvent, ReactElement, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { setAuthToken } from "../auth/token";
 import { login } from "../clients/admin/sdk.gen";
 import { adminClient } from "../clients/index";
-import { formatCaughtError } from "@hyperleda/lib/tap";
-import { Button } from "@hyperleda/lib/ui";
+import { formatCaughtError } from "@leda/lib/tap";
+import { Button } from "@leda/lib/ui";
+
+function getSafeRedirectPath(next: string | null): string {
+  if (next && next.startsWith("/") && !next.startsWith("//")) {
+    return next;
+  }
+  return "/tables";
+}
 
 export function LoginPage(): ReactElement {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -15,7 +23,7 @@ export function LoginPage(): ReactElement {
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
-    document.title = "Login | HyperLEDA";
+    document.title = "Login | LEDA";
   }, []);
 
   async function handleSubmit(
@@ -38,7 +46,7 @@ export function LoginPage(): ReactElement {
       const token = response.data.data.token;
       setAuthToken(token);
       setSuccess(true);
-      void navigate("/tables");
+      void navigate(getSafeRedirectPath(searchParams.get("next")));
     } catch (submitError) {
       setError(formatCaughtError(submitError));
     } finally {

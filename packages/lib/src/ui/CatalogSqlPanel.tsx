@@ -10,7 +10,7 @@ import { useLocation } from "react-router-dom";
 import type {
   TapSchemaEntry,
   TapSyncResponse,
-} from "@hyperleda/lib/clients/backend";
+} from "@leda/lib/clients/backend";
 import { Button } from "./Button";
 import { SqlEditor } from "./SqlEditor";
 import { SqlQueryEmbed } from "./SqlQueryEmbed";

@@ -17,16 +17,16 @@ import {
   Link,
   Loading,
   Pagination,
-} from "@hyperleda/lib/ui";
+} from "@leda/lib/ui";
 import {
   Badge,
   DropdownFilter,
   MultiSelectFilter,
   TextFilter,
 } from "../components/ui";
-import { useDataFetching } from "@hyperleda/lib/hooks";
-import { formatApiError } from "@hyperleda/lib/tap";
-import { getSourceLink } from "@hyperleda/lib/astronomy";
+import { useDataFetching } from "@leda/lib/hooks";
+import { formatApiError } from "@leda/lib/tap";
+import { getSourceLink } from "@leda/lib/astronomy";
 
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -328,7 +328,7 @@ export function TablesPage(): ReactElement {
   const statuses = parseStatusesParam(searchParams.get("statuses"));
 
   useEffect(() => {
-    document.title = "Tables | HyperLEDA";
+    document.title = "Tables | LEDA";
   }, []);
 
   const { data, loading, error } = useDataFetching(

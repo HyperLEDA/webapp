@@ -1,6 +1,6 @@
 import { ReactElement } from "react";
 import { MdContentCopy, MdSearch } from "react-icons/md";
-import { Catalogs, Schema } from "@hyperleda/lib/clients/backend";
+import { Catalogs, Schema } from "@leda/lib/clients/backend";
 import {
   buildNedPositionSearchUrl,
   EQUATORIAL_COPY_FORMATS,
@@ -11,7 +11,7 @@ import {
   EquatorialDecimalDegrees,
   Quantity,
   RightAscension,
-} from "@hyperleda/lib/ui";
+} from "@leda/lib/ui";
 import {
   bibcodeMarkdownSelect,
   CatalogCard,

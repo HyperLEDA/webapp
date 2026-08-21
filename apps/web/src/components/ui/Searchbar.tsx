@@ -1,8 +1,8 @@
 import { ReactElement, ReactNode, useState } from "react";
 import { Link, NavigateFunction, useNavigate } from "react-router-dom";
 import classNames from "classnames";
-import { Button } from "@hyperleda/lib/ui";
-import { SuggestibleInput } from "@hyperleda/lib/ui";
+import { Button } from "@leda/lib/ui";
+import { SuggestibleInput } from "@leda/lib/ui";
 import { useTheme } from "../../hooks/useTheme";
 import { inspectSearchTypes } from "../../lib/search/searchTypes";
 
@@ -81,7 +81,7 @@ export function SearchBar({
       <Link to="/">
         <img
           src={logoSrc}
-          alt="HyperLeda Logo"
+          alt="LEDA Logo"
           className={classNames({
             "h-32 mx-auto mb-2": logoSize === "large",
             "h-10": logoSize === "small",

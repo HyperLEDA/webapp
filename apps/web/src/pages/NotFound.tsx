@@ -1,13 +1,13 @@
 import { useNavigate } from "react-router-dom";
-import { ErrorPage } from "@hyperleda/lib/ui";
-import { Button } from "@hyperleda/lib/ui";
+import { ErrorPage } from "@leda/lib/ui";
+import { Button } from "@leda/lib/ui";
 import { useEffect } from "react";
 
 export function NotFoundPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    document.title = `404 | HyperLEDA`;
+    document.title = `404 | LEDA`;
   }, []);
 
   return (

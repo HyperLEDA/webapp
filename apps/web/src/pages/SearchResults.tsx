@@ -13,20 +13,20 @@ import {
   ErrorPageHomeButton,
   Loading,
   Pagination,
-} from "@hyperleda/lib/ui";
-import { useDataFetching } from "@hyperleda/lib/hooks";
-import { querySimple } from "@hyperleda/lib/clients/backend";
-import { PgcObject, QuerySimpleResponse } from "@hyperleda/lib/clients/backend";
+} from "@leda/lib/ui";
+import { useDataFetching } from "@leda/lib/hooks";
+import { querySimple } from "@leda/lib/clients/backend";
+import { PgcObject, QuerySimpleResponse } from "@leda/lib/clients/backend";
 import {
   AladinViewer,
   Declination,
   Link,
   RightAscension,
   type AladinViewerHandle,
-} from "@hyperleda/lib/ui";
-import { Button } from "@hyperleda/lib/ui";
-import { backendClient } from "@hyperleda/lib/clients";
-import { describeUnknownError } from "@hyperleda/lib/tap";
+} from "@leda/lib/ui";
+import { Button } from "@leda/lib/ui";
+import { backendClient } from "@leda/lib/clients";
+import { describeUnknownError } from "@leda/lib/tap";
 import {
   resolveEligibleSearchTypes,
   SearchType,
@@ -371,7 +371,7 @@ export function SearchResultsPage(): ReactElement {
   const pageSize = parseInt(searchParams.get("pagesize") || "25");
 
   useEffect(() => {
-    document.title = `${query} | HyperLEDA`;
+    document.title = `${query} | LEDA`;
   }, [query]);
 
   const {

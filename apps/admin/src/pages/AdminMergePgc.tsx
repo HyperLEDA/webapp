@@ -1,17 +1,12 @@
 import { ReactElement, ReactNode, useEffect, useRef, useState } from "react";
 import { mergePgcs } from "../clients/admin";
-import { querySimple } from "@hyperleda/lib/clients/backend";
-import { PgcObject, Schema } from "@hyperleda/lib/clients/backend";
+import { querySimple } from "@leda/lib/clients/backend";
+import { PgcObject, Schema } from "@leda/lib/clients/backend";
 import { adminClient } from "../clients";
-import { backendClient } from "@hyperleda/lib/clients";
-import { describeUnknownError } from "@hyperleda/lib/tap";
+import { backendClient } from "@leda/lib/clients";
+import { describeUnknownError } from "@leda/lib/tap";
 import { publicObjectUrl } from "../origins";
-import {
-  AladinViewer,
-  Button,
-  Link,
-  SuggestibleInput,
-} from "@hyperleda/lib/ui";
+import { AladinViewer, Button, Link, SuggestibleInput } from "@leda/lib/ui";
 import { ObjectSummary } from "../components/ui";
 
 const MIN_ALADIN_FOV_DEG = 0.05;
@@ -375,7 +370,7 @@ export function AdminMergePgcPage(): ReactElement {
   const [mergeSuccess, setMergeSuccess] = useState<string | null>(null);
 
   useEffect(() => {
-    document.title = "Merge PGC objects | HyperLEDA";
+    document.title = "Merge PGC objects | LEDA";
   }, []);
 
   const samePgc =

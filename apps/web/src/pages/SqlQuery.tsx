@@ -1,7 +1,7 @@
 import { ReactElement, useEffect, useLayoutEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { CatalogSqlPanel } from "@hyperleda/lib/ui";
-import { DEFAULT_SQL_EXAMPLE, parseSqlPermalink } from "@hyperleda/lib/tap";
+import { CatalogSqlPanel } from "@leda/lib/ui";
+import { DEFAULT_SQL_EXAMPLE, parseSqlPermalink } from "@leda/lib/tap";
 
 export function SqlQueryPage(): ReactElement {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -9,7 +9,7 @@ export function SqlQueryPage(): ReactElement {
   const [sqlDraft, setSqlDraft] = useState(DEFAULT_SQL_EXAMPLE);
 
   useEffect(() => {
-    document.title = "SQL | HyperLEDA";
+    document.title = "SQL | LEDA";
   }, []);
 
   useLayoutEffect(() => {

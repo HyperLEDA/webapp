@@ -1,6 +1,6 @@
 import { ReactElement, ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
-import { Link } from "@hyperleda/lib/ui";
+import { Link } from "@leda/lib/ui";
 
 function MarkdownLink({
   href,

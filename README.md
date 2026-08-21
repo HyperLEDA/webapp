@@ -1,1 +1,1 @@
-WebApp for HyperLEDA.
+WebApp for LEDA.

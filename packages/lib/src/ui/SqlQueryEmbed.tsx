@@ -1,5 +1,5 @@
 import React, { ReactElement, ReactNode, useEffect, useState } from "react";
-import type { TapSyncResponse } from "@hyperleda/lib/clients/backend";
+import type { TapSyncResponse } from "@leda/lib/clients/backend";
 import { executeSqlQuery, formatCaughtError, syncPayloadToTable } from "../tap";
 import { type CellPrimitive, type Column, CommonTable } from "./CommonTable";
 import { Loading } from "./Loading";

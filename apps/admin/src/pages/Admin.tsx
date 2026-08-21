@@ -1,5 +1,5 @@
 import { ReactElement, useEffect } from "react";
-import { Link } from "@hyperleda/lib/ui";
+import { Link } from "@leda/lib/ui";
 
 const tasks = [
   {
@@ -12,7 +12,7 @@ const tasks = [
 
 export function AdminPage(): ReactElement {
   useEffect(() => {
-    document.title = "Tasks | HyperLEDA";
+    document.title = "Tasks | LEDA";
   }, []);
 
   return (

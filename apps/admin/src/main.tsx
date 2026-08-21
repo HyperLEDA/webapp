@@ -1,6 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { ThemeProvider } from "@hyperleda/lib/ui";
+import { ThemeProvider } from "@leda/lib/ui";
 import "./index.css";
 import App from "./App.tsx";
 

@@ -5,6 +5,7 @@ import {
   Outlet,
   Route,
   Routes,
+  useLocation,
 } from "react-router-dom";
 import {
   MdAdminPanelSettings,
@@ -27,14 +28,14 @@ import {
 } from "./pages";
 import { isLoggedIn, useIsLoggedIn } from "./auth";
 import { AuthNavControl } from "./components/AuthNavControl";
-import { sameEnvWebOrigin } from "@hyperleda/lib/origins";
+import { sameEnvWebOrigin } from "@leda/lib/origins";
 import {
   Layout as SharedLayout,
   NavRail,
   NavButton,
   NavItem,
   ThemeSwitcher,
-} from "@hyperleda/lib/ui";
+} from "@leda/lib/ui";
 
 const productionAdmin = "https://admin.leda.sao.ru";
 
@@ -46,8 +47,10 @@ function openCurrentPathOnOrigin(targetInput: string): void {
 }
 
 function RequireAuth() {
+  const location = useLocation();
   if (!isLoggedIn()) {
-    return <Navigate to="/login" replace />;
+    const next = `${location.pathname}${location.search}${location.hash}`;
+    return <Navigate to={`/login?next=${encodeURIComponent(next)}`} replace />;
   }
   return <Outlet />;
 }

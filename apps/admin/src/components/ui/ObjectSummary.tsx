@@ -1,10 +1,6 @@
 import { ReactElement, ReactNode } from "react";
-import { Schema } from "@hyperleda/lib/clients/backend";
-import {
-  Declination,
-  QuantityWithError,
-  RightAscension,
-} from "@hyperleda/lib/ui";
+import { Schema } from "@leda/lib/clients/backend";
+import { Declination, QuantityWithError, RightAscension } from "@leda/lib/ui";
 
 type ObjectSummaryCatalogs = {
   coordinates?: {
