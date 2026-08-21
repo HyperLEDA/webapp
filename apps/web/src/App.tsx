@@ -1,7 +1,7 @@
 import { ReactElement, useEffect } from "react";
 import { BrowserRouter, Outlet, Route, Routes } from "react-router-dom";
-import { Layout as SharedLayout, Loading } from "@hyperleda/lib/ui";
-import { sameEnvAdminOrigin } from "@hyperleda/lib/origins";
+import { Layout as SharedLayout, Loading } from "@leda/lib/ui";
+import { sameEnvAdminOrigin } from "@leda/lib/origins";
 import { HomePage } from "./pages/Home";
 import { SearchResultsPage } from "./pages/SearchResults";
 import { ObjectDetailsPage } from "./pages/ObjectDetails";

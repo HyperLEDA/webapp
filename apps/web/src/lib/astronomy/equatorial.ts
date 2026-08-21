@@ -1,4 +1,4 @@
-import { decomposeDec, decomposeRa, pad2 } from "@hyperleda/lib/astronomy";
+import { decomposeDec, decomposeRa, pad2 } from "@leda/lib/astronomy";
 
 function formatSexagesimalSeconds(seconds: number, decimals: number): string {
   const fixed = seconds.toFixed(decimals);

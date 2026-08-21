@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MdCode, MdInfo, MdOpenInNew, MdSearch } from "react-icons/md";
-import { NavRail, NavButton, NavItem, ThemeSwitcher } from "@hyperleda/lib/ui";
-import { Link } from "@hyperleda/lib/ui";
+import { NavRail, NavButton, NavItem, ThemeSwitcher } from "@leda/lib/ui";
+import { Link } from "@leda/lib/ui";
 
 const navItems = [
   { to: "/", icon: <MdSearch size={20} />, label: "Object search", end: true },
@@ -92,7 +92,7 @@ export function Navbar() {
           <div>
             Information:{" "}
             <Link href="https://hyperleda.github.io/" external>
-              The next generation of the HyperLeda database
+              The next generation of the LEDA database
             </Link>
           </div>
           <div>

@@ -19,9 +19,9 @@ import {
   Link,
   Loading,
   Pagination,
-} from "@hyperleda/lib/ui";
+} from "@leda/lib/ui";
 import { Badge, DropdownFilter, TextFilter } from "../components/ui";
-import { useDataFetching } from "@hyperleda/lib/hooks";
+import { useDataFetching } from "@leda/lib/hooks";
 
 interface CrossmatchFiltersProps {
   tableName: string | null;
@@ -289,7 +289,7 @@ export function CrossmatchResultsPage(): ReactElement {
   const pageSize = parseInt(searchParams.get("page_size") || "25");
 
   useEffect(() => {
-    document.title = `Crossmatch - ${tableName} | HyperLEDA`;
+    document.title = `Crossmatch - ${tableName} | LEDA`;
   }, [tableName]);
 
   const { data, loading, error } = useDataFetching(

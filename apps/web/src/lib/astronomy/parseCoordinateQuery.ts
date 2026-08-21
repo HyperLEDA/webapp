@@ -1,4 +1,4 @@
-import { decomposeDec, decomposeRa, pad2 } from "@hyperleda/lib/astronomy";
+import { decomposeDec, decomposeRa, pad2 } from "@leda/lib/astronomy";
 
 export const COORDINATE_SEARCH_RADIUS_ARCMIN = 1;
 const ARCMINUTE_RADIUS_DEG = COORDINATE_SEARCH_RADIUS_ARCMIN / 60;

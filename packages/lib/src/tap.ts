@@ -1,9 +1,9 @@
-import { tapSync } from "@hyperleda/lib/clients/backend";
+import { tapSync } from "@leda/lib/clients/backend";
 import type {
   TapSyncResponse,
   ValidationError,
-} from "@hyperleda/lib/clients/backend";
-import { backendClient } from "@hyperleda/lib/clients";
+} from "@leda/lib/clients/backend";
+import { backendClient } from "@leda/lib/clients";
 
 export type TapCellValue = string | number;
 

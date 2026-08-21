@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { setAuthToken } from "../auth/token";
 import { login } from "../clients/admin/sdk.gen";
 import { adminClient } from "../clients/index";
-import { formatCaughtError } from "@hyperleda/lib/tap";
-import { Button } from "@hyperleda/lib/ui";
+import { formatCaughtError } from "@leda/lib/tap";
+import { Button } from "@leda/lib/ui";
 
 export function LoginPage(): ReactElement {
   const navigate = useNavigate();
@@ -15,7 +15,7 @@ export function LoginPage(): ReactElement {
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
-    document.title = "Login | HyperLEDA";
+    document.title = "Login | LEDA";
   }, []);
 
   async function handleSubmit(

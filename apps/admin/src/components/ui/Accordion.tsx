@@ -1,5 +1,5 @@
 import React, { ReactElement, useState } from "react";
-import { Text } from "@hyperleda/lib/ui";
+import { Text } from "@leda/lib/ui";
 
 interface AccordionProps {
   title: string;

@@ -11,7 +11,7 @@ import {
   Schema as AdminSchema,
   StatusesPayload,
 } from "../clients/admin";
-import { Schema as BackendSchema } from "@hyperleda/lib/clients/backend";
+import { Schema as BackendSchema } from "@leda/lib/clients/backend";
 import { adminClient } from "../clients";
 import { isLoggedIn } from "../auth";
 import { getResource } from "../resources";
@@ -25,7 +25,7 @@ import {
   ErrorPage,
   Link,
   Loading,
-} from "@hyperleda/lib/ui";
+} from "@leda/lib/ui";
 import {
   Accordion,
   Badge,
@@ -33,8 +33,8 @@ import {
   CopyButton,
   ObjectSummary,
 } from "../components/ui";
-import { useDataFetching } from "@hyperleda/lib/hooks";
-import { describeUnknownError, formatCaughtError } from "@hyperleda/lib/tap";
+import { useDataFetching } from "@leda/lib/hooks";
+import { describeUnknownError, formatCaughtError } from "@leda/lib/tap";
 
 function convertAdminSchemaToBackendSchema(
   adminSchema: AdminSchema,
@@ -607,7 +607,7 @@ export function RecordCrossmatchDetailsPage(): ReactElement {
   );
 
   useEffect(() => {
-    document.title = `Crossmatch - ${data?.crossmatch.catalogs.designation?.name ?? recordId} | HyperLEDA`;
+    document.title = `Crossmatch - ${data?.crossmatch.catalogs.designation?.name ?? recordId} | LEDA`;
   }, [data, recordId]);
 
   if (loading) return <Loading />;

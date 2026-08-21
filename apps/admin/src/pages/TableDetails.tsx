@@ -23,16 +23,16 @@ import {
   Hint,
   Link,
   Loading,
-} from "@hyperleda/lib/ui";
+} from "@leda/lib/ui";
 import {
   Badge,
   CopyButton,
   EditableTextField,
   TextFilter,
 } from "../components/ui";
-import { useDataFetching } from "@hyperleda/lib/hooks";
-import { originalDataCatalogLink } from "@hyperleda/lib/astronomy";
-import { formatCaughtError } from "@hyperleda/lib/tap";
+import { useDataFetching } from "@leda/lib/hooks";
+import { originalDataCatalogLink } from "@leda/lib/astronomy";
+import { formatCaughtError } from "@leda/lib/tap";
 
 const DATA_TYPES: DataType[] = [
   "regular",
@@ -753,9 +753,7 @@ export function TableDetailsPage(): ReactElement {
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
-    document.title = tableName
-      ? `${tableName} | HyperLEDA`
-      : "Table | HyperLEDA";
+    document.title = tableName ? `${tableName} | LEDA` : "Table | LEDA";
   }, [tableName]);
 
   const {

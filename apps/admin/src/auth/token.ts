@@ -1,5 +1,5 @@
-const AUTH_TOKEN_STORAGE_KEY = "hyperleda.auth.token";
-export const AUTH_CHANGE_EVENT = "hyperleda.auth.change";
+const AUTH_TOKEN_STORAGE_KEY = "leda.auth.token";
+export const AUTH_CHANGE_EVENT = "leda.auth.change";
 
 function notifyAuthChange(): void {
   window.dispatchEvent(new Event(AUTH_CHANGE_EVENT));

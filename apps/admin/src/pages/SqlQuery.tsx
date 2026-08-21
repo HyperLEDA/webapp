@@ -1,14 +1,14 @@
 import { ReactElement, useEffect, useLayoutEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import type { TapSyncResponse } from "@hyperleda/lib/clients/backend";
+import type { TapSyncResponse } from "@leda/lib/clients/backend";
 import { tapSync } from "../clients/admin";
 import { adminClient } from "../clients";
 import {
   DEFAULT_SQL_EXAMPLE,
   formatApiError,
   parseSqlPermalink,
-} from "@hyperleda/lib/tap";
-import { CatalogSqlPanel } from "@hyperleda/lib/ui";
+} from "@leda/lib/tap";
+import { CatalogSqlPanel } from "@leda/lib/ui";
 
 async function executeAdminSqlQuery(sql: string): Promise<TapSyncResponse> {
   const response = await tapSync({
@@ -27,7 +27,7 @@ export function SqlQueryPage(): ReactElement {
   const [sqlDraft, setSqlDraft] = useState(DEFAULT_SQL_EXAMPLE);
 
   useEffect(() => {
-    document.title = "SQL | HyperLEDA";
+    document.title = "SQL | LEDA";
   }, []);
 
   useLayoutEffect(() => {

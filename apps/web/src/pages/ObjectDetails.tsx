@@ -1,6 +1,6 @@
 import { ReactElement, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { ErrorPage, Loading } from "@hyperleda/lib/ui";
+import { ErrorPage, Loading } from "@leda/lib/ui";
 import {
   AstrometryCard,
   IdentityCard,
@@ -9,11 +9,11 @@ import {
   PhotometryTotalCard,
   SkyViewCard,
 } from "../components/catalogs";
-import { querySimple } from "@hyperleda/lib/clients/backend";
-import { PgcObject, Schema } from "@hyperleda/lib/clients/backend";
-import { useDataFetching } from "@hyperleda/lib/hooks";
-import { backendClient } from "@hyperleda/lib/clients";
-import { describeUnknownError } from "@hyperleda/lib/tap";
+import { querySimple } from "@leda/lib/clients/backend";
+import { PgcObject, Schema } from "@leda/lib/clients/backend";
+import { useDataFetching } from "@leda/lib/hooks";
+import { backendClient } from "@leda/lib/clients";
+import { describeUnknownError } from "@leda/lib/tap";
 
 interface ObjectDetailsProps {
   object: PgcObject;
@@ -100,7 +100,7 @@ export function ObjectDetailsPage(): ReactElement {
   const { pgcId } = useParams<{ pgcId: string }>();
 
   useEffect(() => {
-    document.title = `PGC ${pgcId} | HyperLEDA`;
+    document.title = `PGC ${pgcId} | LEDA`;
   }, [pgcId]);
 
   const {

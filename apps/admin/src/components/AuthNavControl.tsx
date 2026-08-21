@@ -4,7 +4,7 @@ import { MdLogin, MdLogout } from "react-icons/md";
 import { clearAuthToken, useIsLoggedIn } from "../auth";
 import { logout } from "../clients/admin/sdk.gen";
 import { adminClient } from "../clients/index";
-import { NavButton, NavItem } from "@hyperleda/lib/ui";
+import { NavButton, NavItem } from "@leda/lib/ui";
 
 export function AuthNavControl(): ReactElement {
   const navigate = useNavigate();
