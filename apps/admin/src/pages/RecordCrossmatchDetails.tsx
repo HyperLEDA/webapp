@@ -613,13 +613,9 @@ export function RecordCrossmatchDetailsPage(): ReactElement {
     document.title = `Crossmatch - ${data?.crossmatch.catalogs.designation?.name ?? recordId} | HyperLEDA`;
   }, [data, recordId]);
 
-  function Content(): ReactElement {
-    if (loading) return <Loading />;
-    if (error) return <ErrorPage message={error} />;
-    if (data) return <RecordCrossmatchDetails data={data} />;
+  if (loading) return <Loading />;
+  if (error) return <ErrorPage message={error} />;
+  if (data) return <RecordCrossmatchDetails data={data} />;
 
-    return <ErrorPage message="Unknown error" />;
-  }
-
-  return <Content />;
+  return <ErrorPage message="Unknown error" />;
 }

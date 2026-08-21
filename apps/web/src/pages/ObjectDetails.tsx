@@ -112,14 +112,10 @@ export function ObjectDetailsPage(): ReactElement {
 
   const [object, schema] = payload || [null, null];
 
-  function Content(): ReactElement {
-    if (loading) return <Loading />;
-    if (error) return <ErrorPage message={error} />;
-    if (object && schema)
-      return <ObjectDetails object={object} schema={schema} />;
+  if (loading) return <Loading />;
+  if (error) return <ErrorPage message={error} />;
+  if (object && schema)
+    return <ObjectDetails object={object} schema={schema} />;
 
-    return <ErrorPage message="Unknown error" />;
-  }
-
-  return <Content />;
+  return <ErrorPage message="Unknown error" />;
 }

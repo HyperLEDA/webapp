@@ -232,7 +232,9 @@ export const AladinViewer = forwardRef<AladinViewerHandle, AladinViewerProps>(
           onSourceClickRef.current?.(id);
         });
 
-        if (additionalSources && additionalSources.length > 0) {
+        // SAFETY: additionalSourcesKey is JSON.stringify of AdditionalSource[].
+        const sources = JSON.parse(additionalSourcesKey) as AdditionalSource[];
+        if (sources.length > 0) {
           const nameCatalog = window.A.catalog({
             [ALADIN_MARKER_STYLE]: drawSourceWithLabel,
             color: "black",
@@ -246,7 +248,7 @@ export const AladinViewer = forwardRef<AladinViewerHandle, AladinViewerProps>(
           aladin.addCatalog(nameCatalog);
           aladin.addCatalog(descrCatalog);
 
-          additionalSources.forEach((source) => {
+          sources.forEach((source) => {
             const data: AladinSourceData = {
               name: source.label,
               id: source.id,

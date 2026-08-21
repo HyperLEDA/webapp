@@ -244,6 +244,40 @@ async function fetcher(
   return response.data.data;
 }
 
+interface CrossmatchContentProps {
+  data: GetRecordsResponse | null;
+  loading: boolean;
+  error: string | null;
+  page: number;
+  pageSize: number;
+  onPageChange: (page: number) => void;
+}
+
+function CrossmatchContent({
+  data,
+  loading,
+  error,
+  page,
+  pageSize,
+  onPageChange,
+}: CrossmatchContentProps): ReactElement {
+  if (error && !data) return <ErrorPage title="Error" message={error} />;
+  if (!data?.records && loading) return <Loading />;
+  if (!data?.records) return <ErrorPage title="Error" message="No records" />;
+
+  return (
+    <>
+      <CrossmatchResults data={data} loading={loading} />
+      <Pagination
+        page={page}
+        pageSize={pageSize}
+        records={data.records}
+        handlePageChange={onPageChange}
+      />
+    </>
+  );
+}
+
 export function CrossmatchResultsPage(): ReactElement {
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -298,24 +332,6 @@ export function CrossmatchResultsPage(): ReactElement {
     setSearchParams(newSearchParams);
   }
 
-  function Content(): ReactElement {
-    if (error && !data) return <ErrorPage title="Error" message={error} />;
-    if (!data?.records && loading) return <Loading />;
-    if (!data?.records) return <ErrorPage title="Error" message="No records" />;
-
-    return (
-      <>
-        <CrossmatchResults data={data} loading={loading} />
-        <Pagination
-          page={page}
-          pageSize={pageSize}
-          records={data?.records}
-          handlePageChange={handlePageChange}
-        />
-      </>
-    );
-  }
-
   return (
     <>
       <h2 className="text-3xl font-bold mb-4">Crossmatch results</h2>
@@ -325,7 +341,14 @@ export function CrossmatchResultsPage(): ReactElement {
         pageSize={pageSize}
         onApplyFilters={handleApplyFilters}
       />
-      <Content />
+      <CrossmatchContent
+        data={data}
+        loading={loading}
+        error={error}
+        page={page}
+        pageSize={pageSize}
+        onPageChange={handlePageChange}
+      />
     </>
   );
 }

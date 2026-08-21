@@ -326,6 +326,42 @@ async function fetcher(
   return { sections };
 }
 
+interface SearchPageContentProps {
+  results: MultiSearchResults | null;
+  loading: boolean;
+  error: string | null;
+  query: string;
+  page: number;
+  pageSize: number;
+  navigate: NavigateFunction;
+}
+
+function SearchPageContent({
+  results,
+  loading,
+  error,
+  query,
+  page,
+  pageSize,
+  navigate,
+}: SearchPageContentProps): ReactElement {
+  if (loading) return <Loading />;
+  if (error) return <ErrorPage message={error} />;
+  if (results) {
+    return (
+      <SearchResults
+        sections={results.sections}
+        query={query}
+        page={page}
+        pageSize={pageSize}
+        navigate={navigate}
+      />
+    );
+  }
+
+  return <ErrorPage message="Unknown error" />;
+}
+
 export function SearchResultsPage(): ReactElement {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -346,24 +382,6 @@ export function SearchResultsPage(): ReactElement {
     [query, page, pageSize],
   );
 
-  function Content(): ReactElement {
-    if (loading) return <Loading />;
-    if (error) return <ErrorPage message={error} />;
-    if (results) {
-      return (
-        <SearchResults
-          sections={results.sections}
-          query={query}
-          page={page}
-          pageSize={pageSize}
-          navigate={navigate}
-        />
-      );
-    }
-
-    return <ErrorPage message="Unknown error" />;
-  }
-
   return (
     <>
       <SearchBar
@@ -371,7 +389,15 @@ export function SearchResultsPage(): ReactElement {
         onSearch={searchHandler(navigate)}
         logoSize="small"
       />
-      <Content />
+      <SearchPageContent
+        results={results}
+        loading={loading}
+        error={error}
+        query={query}
+        page={page}
+        pageSize={pageSize}
+        navigate={navigate}
+      />
     </>
   );
 }

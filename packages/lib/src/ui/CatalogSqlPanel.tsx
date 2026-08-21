@@ -1,4 +1,11 @@
-import { FormEvent, ReactElement, useEffect, useRef, useState } from "react";
+import {
+  FormEvent,
+  ReactElement,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { useLocation } from "react-router-dom";
 import type {
   TapSchemaEntry,
@@ -41,13 +48,16 @@ export function CatalogSqlPanel({
   const location = useLocation();
   const didAutoRun = useRef(false);
 
-  function triggerRun(trimmed: string): void {
-    setValidationError(null);
-    setExecutedSql(trimmed);
-    setRunId((id) => id + 1);
-    setLoading(true);
-    onQueryRun?.(trimmed);
-  }
+  const triggerRun = useCallback(
+    (trimmed: string): void => {
+      setValidationError(null);
+      setExecutedSql(trimmed);
+      setRunId((id) => id + 1);
+      setLoading(true);
+      onQueryRun?.(trimmed);
+    },
+    [onQueryRun],
+  );
 
   function runQuery(): void {
     if (loading) {
@@ -81,7 +91,7 @@ export function CatalogSqlPanel({
     }
     didAutoRun.current = true;
     triggerRun(sql.trim());
-  }, [permalinkRunKey, sql]);
+  }, [permalinkRunKey, sql, triggerRun]);
 
   return (
     <div className="flex flex-col gap-4">

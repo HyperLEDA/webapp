@@ -287,6 +287,40 @@ async function fetcher(
   return response.data.data;
 }
 
+interface TablesContentProps {
+  data: GetTableListResponse | null;
+  loading: boolean;
+  error: string | null;
+  page: number;
+  pageSize: number;
+  onPageChange: (page: number) => void;
+}
+
+function TablesContent({
+  data,
+  loading,
+  error,
+  page,
+  pageSize,
+  onPageChange,
+}: TablesContentProps): ReactElement {
+  if (error && !data) return <ErrorPage title="Error" message={error} />;
+  if (!data?.tables && loading) return <Loading />;
+  if (!data?.tables) return <ErrorPage title="Error" message="No tables" />;
+
+  return (
+    <>
+      <TablesResults data={data} loading={loading} />
+      <Pagination
+        page={page}
+        pageSize={pageSize}
+        records={data.tables}
+        handlePageChange={onPageChange}
+      />
+    </>
+  );
+}
+
 export function TablesPage(): ReactElement {
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -337,24 +371,6 @@ export function TablesPage(): ReactElement {
     setSearchParams(newSearchParams);
   }
 
-  function Content(): ReactElement {
-    if (error && !data) return <ErrorPage title="Error" message={error} />;
-    if (!data?.tables && loading) return <Loading />;
-    if (!data?.tables) return <ErrorPage title="Error" message="No tables" />;
-
-    return (
-      <>
-        <TablesResults data={data} loading={loading} />
-        <Pagination
-          page={page}
-          pageSize={pageSize}
-          records={data.tables}
-          handlePageChange={handlePageChange}
-        />
-      </>
-    );
-  }
-
   return (
     <>
       <h2 className="text-3xl font-bold mb-4">Tables</h2>
@@ -368,7 +384,14 @@ export function TablesPage(): ReactElement {
           updateParams({ statuses: nextStatuses })
         }
       />
-      <Content />
+      <TablesContent
+        data={data}
+        loading={loading}
+        error={error}
+        page={page}
+        pageSize={pageSize}
+        onPageChange={handlePageChange}
+      />
     </>
   );
 }

@@ -766,47 +766,45 @@ export function TableDetailsPage(): ReactElement {
     error,
   } = useDataFetching(() => fetcher(tableName), [tableName, refreshKey]);
 
-  function Content(): ReactElement {
-    if (loading) return <Loading />;
-    if (error) return <ErrorPage message={error} />;
-    if (payload) {
-      return (
-        <div className="space-y-5">
-          <div className="grid grid-cols-1 lg:grid-cols-6 gap-5">
-            <TableMeta
-              tableName={tableName ?? ""}
-              table={payload}
-              onAfterPatch={() => setRefreshKey((key) => key + 1)}
-              className="lg:col-span-6"
-            />
-            <TableProgressSummaryCard
-              progress={payload.progress}
-              tableName={tableName ?? ""}
-              className={
-                Object.keys(payload.progress.catalogs).length > 0
-                  ? "lg:col-span-3"
-                  : "lg:col-span-6"
-              }
-            />
-            {Object.keys(payload.progress.catalogs).length > 0 ? (
-              <CatalogProgressCard
-                catalogs={payload.progress.catalogs}
-                totalRecords={payload.progress.total_records}
-                className="lg:col-span-3"
-              />
-            ) : null}
-          </div>
-          <ColumnInfo
-            tableName={tableName ?? ""}
-            table={payload}
-            onAfterPatch={() => setRefreshKey((key) => key + 1)}
-          />
-        </div>
-      );
-    }
-
-    return <ErrorPage message="Unknown error" />;
+  function onAfterPatch(): void {
+    setRefreshKey((key) => key + 1);
   }
 
-  return <Content />;
+  if (loading) return <Loading />;
+  if (error) return <ErrorPage message={error} />;
+  if (!payload) return <ErrorPage message="Unknown error" />;
+
+  return (
+    <div className="space-y-5">
+      <div className="grid grid-cols-1 lg:grid-cols-6 gap-5">
+        <TableMeta
+          tableName={tableName ?? ""}
+          table={payload}
+          onAfterPatch={onAfterPatch}
+          className="lg:col-span-6"
+        />
+        <TableProgressSummaryCard
+          progress={payload.progress}
+          tableName={tableName ?? ""}
+          className={
+            Object.keys(payload.progress.catalogs).length > 0
+              ? "lg:col-span-3"
+              : "lg:col-span-6"
+          }
+        />
+        {Object.keys(payload.progress.catalogs).length > 0 ? (
+          <CatalogProgressCard
+            catalogs={payload.progress.catalogs}
+            totalRecords={payload.progress.total_records}
+            className="lg:col-span-3"
+          />
+        ) : null}
+      </div>
+      <ColumnInfo
+        tableName={tableName ?? ""}
+        table={payload}
+        onAfterPatch={onAfterPatch}
+      />
+    </div>
+  );
 }

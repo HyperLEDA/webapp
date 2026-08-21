@@ -2,7 +2,8 @@
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "plugins": [
     "unicorn",
-    "typescript"
+    "typescript",
+    "react"
   ],
   "categories": {
     "correctness": "off"
@@ -168,7 +169,14 @@
     "anti-slop/no-unknown-type-aliases": "error",
     "anti-slop/no-unsafe-dictionary-type": "error",
     "anti-slop/no-widen-then-assert": "error",
-    "anti-slop/require-safety-comment-for-type-assertion": "error"
+    "anti-slop/require-safety-comment-for-type-assertion": "error",
+    "react/rules-of-hooks": "error",
+    "react/exhaustive-deps": "error",
+    "react/jsx-key": "error",
+    "react/jsx-no-duplicate-props": "error",
+    "react/no-unstable-nested-components": "error",
+    "react/jsx-no-target-blank": "error",
+    "react/void-dom-elements-no-children": "error"
   },
   "overrides": [
     {
