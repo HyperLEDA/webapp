@@ -11,7 +11,7 @@ export function CardAnchorLink({
 
   function handleClick(event: MouseEvent<HTMLAnchorElement>): void {
     event.preventDefault();
-    navigate({ hash: anchorId }, { replace: true });
+    void navigate({ hash: anchorId }, { replace: true });
   }
 
   return (

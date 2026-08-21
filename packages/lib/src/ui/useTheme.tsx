@@ -137,11 +137,11 @@ export function nextThemePreference(current: ThemePreference): ThemePreference {
   return themeCycle[(index + 1) % themeCycle.length];
 }
 
-const themeLabels: Record<ThemePreference, string> = {
+const themeLabels = {
   system: "System",
   light: "Light",
   dark: "Dark",
-};
+} satisfies Record<ThemePreference, string>;
 
 export function themePreferenceLabel(theme: ThemePreference): string {
   return themeLabels[theme];

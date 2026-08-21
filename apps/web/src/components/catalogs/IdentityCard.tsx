@@ -22,9 +22,10 @@ export function IdentityCard({
   anchorId?: string;
   className?: string;
 }): ReactElement {
-  const name = catalogs?.designation?.name || `PGC ${pgc}`;
-  const redshift = catalogs?.redshift;
-  const heliocentric = catalogs?.velocity?.heliocentric;
+  const name = catalogs.designation?.name || `PGC ${pgc}`;
+  const redshift = catalogs.redshift;
+  const heliocentric = catalogs.velocity?.heliocentric;
+  const heliocentricUnits = schema.units.velocity.heliocentric;
   const ohpMirrorUrl = `http://atlas.obs-hp.fr/hyperleda/ledacat.cgi?o=%23${pgc}`;
   const identityActions: CatalogCardAction[] = [
     {
@@ -42,10 +43,10 @@ export function IdentityCard({
       className={className}
     >
       <Field label="PGC">{pgc}</Field>
-      {catalogs?.nature?.type_name && (
+      {catalogs.nature?.type_name && (
         <Field label="Nature">{catalogs.nature.type_name}</Field>
       )}
-      {catalogs?.additional_designations &&
+      {catalogs.additional_designations &&
         catalogs.additional_designations.length > 0 && (
           <Field label="Also known as">
             <ul className="list-none grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
@@ -68,22 +69,22 @@ export function IdentityCard({
             </ul>
           </Field>
         )}
-      {redshift?.z !== undefined && (
+      {redshift !== null && redshift !== undefined && (
         <Field label="Redshift">
           <QuantityWithError error={redshift.e_z} decimalPlaces={5}>
             {redshift.z.toFixed(5)}
           </QuantityWithError>
         </Field>
       )}
-      {heliocentric?.v !== undefined && (
+      {heliocentric !== undefined && (
         <Field label="Heliocentric">
           <QuantityWithError
             error={heliocentric.e_v}
-            unit={schema.units.velocity?.heliocentric?.v}
+            unit={heliocentricUnits.v}
           >
             <Quantity
               value={heliocentric.v.toFixed(0)}
-              unit={schema.units.velocity?.heliocentric?.v}
+              unit={heliocentricUnits.v}
             />
           </QuantityWithError>
         </Field>

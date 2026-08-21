@@ -43,41 +43,58 @@ type Prefix = "J" | "B" | "G" | "S";
 
 function systemFromPrefix(prefix: Prefix | null): CoordinateSystem {
   switch (prefix) {
+    case "J":
+      return "j2000";
     case "B":
       return "b1950";
     case "G":
       return "galactic";
     case "S":
       return "supergalactic";
-    default:
+    case null:
       return "j2000";
+    default: {
+      const unreachable: never = prefix;
+      return unreachable;
+    }
   }
 }
 
 function systemLabel(system: CoordinateSystem): string {
   switch (system) {
+    case "j2000":
+      return "J2000";
     case "b1950":
       return "B1950";
     case "galactic":
       return "Galactic";
     case "supergalactic":
       return "Supergalactic";
-    default:
-      return "J2000";
+    default: {
+      const unreachable: never = system;
+      return unreachable;
+    }
   }
 }
 
-function axisLabels(system: CoordinateSystem): {
+interface CoordinateAxisLabels {
   first: string;
   second: string;
-} {
+}
+
+function axisLabels(system: CoordinateSystem): CoordinateAxisLabels {
   switch (system) {
+    case "j2000":
+    case "b1950":
+      return { first: "RA", second: "Dec" };
     case "galactic":
       return { first: "l", second: "b" };
     case "supergalactic":
       return { first: "SGL", second: "SGB" };
-    default:
-      return { first: "RA", second: "Dec" };
+    default: {
+      const unreachable: never = system;
+      return unreachable;
+    }
   }
 }
 
@@ -94,7 +111,7 @@ function isSexagesimalToken(token: string): boolean {
   return integerDigitCount(token) >= 4;
 }
 
-function looksCoordinateShaped(body: string): boolean {
+function matchesCoordinateTokenPattern(body: string): boolean {
   return /^(\d+\.?\d*)?([+-]\d*\.?\d*)?$/.test(body);
 }
 
@@ -292,6 +309,13 @@ function buildQuery(
     lat,
     toQueryParams(): CoordinateQueryParams {
       switch (system) {
+        case "j2000":
+          return {
+            ra: lon,
+            dec: lat,
+            eq_epoch: "J2000",
+            radius: ARCMINUTE_RADIUS_DEG,
+          };
         case "b1950":
           return {
             ra: lon,
@@ -303,13 +327,10 @@ function buildQuery(
           return { glon: lon, glat: lat, radius: ARCMINUTE_RADIUS_DEG };
         case "supergalactic":
           return { sgl: lon, sgb: lat, radius: ARCMINUTE_RADIUS_DEG };
-        default:
-          return {
-            ra: lon,
-            dec: lat,
-            eq_epoch: "J2000",
-            radius: ARCMINUTE_RADIUS_DEG,
-          };
+        default: {
+          const unreachable: never = system;
+          return unreachable;
+        }
       }
     },
   };
@@ -408,6 +429,7 @@ function inspectSexagesimalHms(
   const lat =
     sign && deg !== undefined
       ? degreesMinutesSecondsToDegrees(
+          // SAFETY: The sexagesimal regex captures only "+" or "-" in this group.
           sign as "+" | "-",
           Number(deg),
           Number(arcmin ?? "0"),
@@ -626,7 +648,7 @@ function tryParseEquatorialCopyFormats(
   return null;
 }
 
-type ParsedShape = {
+type CoordinateInputParts = {
   prefix: Prefix | null;
   firstToken: string;
   sign: "+" | "-" | null;
@@ -634,7 +656,7 @@ type ParsedShape = {
   hasSeparator: boolean;
 };
 
-function splitInput(trimmed: string): ParsedShape | null {
+function splitInput(trimmed: string): CoordinateInputParts | null {
   if (!trimmed) {
     return null;
   }
@@ -644,13 +666,14 @@ function splitInput(trimmed: string): ParsedShape | null {
   let body = trimmed;
 
   if (prefixMatch) {
+    // SAFETY: The prefix regex only matches J, B, G, or S.
     prefix = prefixMatch[1].toUpperCase() as Prefix;
     body = prefixMatch[2];
   } else if (!/^\d/.test(trimmed)) {
     return null;
   }
 
-  if (body.length > 0 && !looksCoordinateShaped(body)) {
+  if (body.length > 0 && !matchesCoordinateTokenPattern(body)) {
     return null;
   }
 
@@ -681,6 +704,7 @@ function splitInput(trimmed: string): ParsedShape | null {
   return {
     prefix,
     firstToken: body.slice(0, sepIndex),
+    // SAFETY: `sepIndex` comes from the first "+" or "-" separator in the body.
     sign: body[sepIndex] as "+" | "-",
     secondToken: body.slice(sepIndex + 1),
     hasSeparator: true,
@@ -694,25 +718,30 @@ export function inspectCoordinateQuery(input: string): CoordinateInspect {
     return fromCopyFormats;
   }
 
-  const shape = splitInput(trimmed);
-  if (!shape) {
+  const inputParts = splitInput(trimmed);
+  if (!inputParts) {
     return { status: "none" };
   }
 
-  const system = systemFromPrefix(shape.prefix);
+  const system = systemFromPrefix(inputParts.prefix);
   const labels = axisLabels(system);
   const firstLon =
-    shape.firstToken.length > 0
-      ? parseFirstAxis(system, shape.firstToken)
+    inputParts.firstToken.length > 0
+      ? parseFirstAxis(system, inputParts.firstToken)
       : null;
   const firstWasSexagesimal =
-    shape.firstToken.length > 0 && isSexagesimalToken(shape.firstToken);
+    inputParts.firstToken.length > 0 &&
+    isSexagesimalToken(inputParts.firstToken);
 
   let secondLat: number | null = null;
-  if (shape.hasSeparator && shape.sign && shape.secondToken.length > 0) {
+  if (
+    inputParts.hasSeparator &&
+    inputParts.sign &&
+    inputParts.secondToken.length > 0
+  ) {
     secondLat = parseSecondAxis(
-      shape.secondToken,
-      shape.sign,
+      inputParts.secondToken,
+      inputParts.sign,
       firstWasSexagesimal,
     );
   }

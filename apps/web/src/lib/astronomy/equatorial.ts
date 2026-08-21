@@ -3,9 +3,7 @@ import { decomposeDec, decomposeRa, pad2 } from "@hyperleda/lib/astronomy";
 function formatSexagesimalSeconds(seconds: number, decimals: number): string {
   const fixed = seconds.toFixed(decimals);
   const [integerPart, fractionalPart] = fixed.split(".");
-  return fractionalPart === undefined
-    ? pad2(Number(integerPart))
-    : `${pad2(Number(integerPart))}.${fractionalPart}`;
+  return `${pad2(Number(integerPart))}.${fractionalPart}`;
 }
 
 export type EquatorialCopyFormat =

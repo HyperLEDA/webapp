@@ -13,15 +13,14 @@ import { querySimple } from "@hyperleda/lib/clients/backend";
 import { PgcObject, Schema } from "@hyperleda/lib/clients/backend";
 import { useDataFetching } from "@hyperleda/lib/hooks";
 import { backendClient } from "@hyperleda/lib/clients";
+import { describeUnknownError } from "@hyperleda/lib/tap";
 
 interface ObjectDetailsProps {
   object: PgcObject;
-  schema: Schema | null;
+  schema: Schema;
 }
 
 function ObjectDetails({ object, schema }: ObjectDetailsProps): ReactElement {
-  if (!object || !schema) return <div />;
-
   const catalogs = object.catalogs;
 
   return (
@@ -81,17 +80,16 @@ async function fetcher(
     },
   });
 
-  if (response.error || !response.data) {
-    const err = response.error;
+  if (response.error) {
     throw new Error(
-      `Error during query: ${typeof err === "object" ? JSON.stringify(err) : err}`,
+      `Error during query: ${describeUnknownError(response.error)}`,
     );
   }
 
   const objects = response.data.data.objects;
   const schema = response.data.data.schema;
 
-  if (!objects || objects.length === 0) {
+  if (objects.length === 0) {
     throw new Error(`Object ${pgcId} not found`);
   }
 
@@ -111,16 +109,12 @@ export function ObjectDetailsPage(): ReactElement {
     error,
   } = useDataFetching(() => fetcher(pgcId), [pgcId]);
 
-  const [object, schema] = payload || [null, null];
-
-  function Content(): ReactElement {
-    if (loading) return <Loading />;
-    if (error) return <ErrorPage message={error} />;
-    if (object && schema)
-      return <ObjectDetails object={object} schema={schema} />;
-
-    return <ErrorPage message="Unknown error" />;
+  if (loading) return <Loading />;
+  if (error) return <ErrorPage message={error} />;
+  if (payload) {
+    const [object, schema] = payload;
+    return <ObjectDetails object={object} schema={schema} />;
   }
 
-  return <Content />;
+  return <ErrorPage message="Unknown error" />;
 }

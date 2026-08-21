@@ -23,9 +23,6 @@ export function Navbar() {
   const infoButtonRef = useRef<HTMLButtonElement>(null);
 
   const showOpenProductionButton = useMemo(() => {
-    if (!configuredProductionWeb) {
-      return false;
-    }
     try {
       return window.location.origin !== new URL(configuredProductionWeb).origin;
     } catch {
@@ -36,7 +33,9 @@ export function Navbar() {
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       const clickedInside =
+        // SAFETY: `contains` expects a DOM Node; event targets inside the document are Nodes.
         infoPanelRef.current?.contains(e.target as Node) ||
+        // SAFETY: `contains` expects a DOM Node; event targets inside the document are Nodes.
         infoButtonRef.current?.contains(e.target as Node);
       if (!clickedInside) {
         setFooterOpen(false);
@@ -75,12 +74,7 @@ export function Navbar() {
         }
       >
         {navItems.map((item) => (
-          <NavItem
-            key={item.to}
-            to={item.to}
-            end={item.end ?? true}
-            label={item.label}
-          >
+          <NavItem key={item.to} to={item.to} end={item.end} label={item.label}>
             {item.icon}
           </NavItem>
         ))}

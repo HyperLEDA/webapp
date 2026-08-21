@@ -34,16 +34,17 @@ import {
   ObjectSummary,
 } from "../components/ui";
 import { useDataFetching } from "@hyperleda/lib/hooks";
+import { describeUnknownError, formatCaughtError } from "@hyperleda/lib/tap";
 
 function convertAdminSchemaToBackendSchema(
   adminSchema: AdminSchema,
 ): BackendSchema {
   function getCoordinateUnit(type: string, param: string): string {
-    return adminSchema.units.coordinates?.[type]?.[param] || "deg";
+    return adminSchema.units.coordinates[type]?.[param] || "deg";
   }
 
   function getVelocityUnit(type: string, param: string): string {
-    return adminSchema.units.velocity?.[type]?.[param] || "km/s";
+    return adminSchema.units.velocity[type]?.[param] || "km/s";
   }
 
   return {
@@ -108,7 +109,7 @@ function createDescription(
 }
 
 function getCandidateLabel(candidate: PgcCandidate): string {
-  return candidate.catalogs?.designation?.name ?? `PGC ${candidate.pgc}`;
+  return candidate.catalogs.designation?.name ?? `PGC ${candidate.pgc}`;
 }
 
 function convertCandidatesToAdditionalSources(
@@ -116,23 +117,23 @@ function convertCandidatesToAdditionalSources(
   mainRecord: RecordCrossmatch,
 ) {
   const candidateSources = candidates
-    .filter((candidate) => candidate.catalogs?.coordinates?.equatorial)
+    .filter((candidate) => candidate.catalogs.coordinates?.equatorial)
     .map((candidate) => ({
-      ra: candidate.catalogs!.coordinates!.equatorial.ra,
-      dec: candidate.catalogs!.coordinates!.equatorial.dec,
+      ra: candidate.catalogs.coordinates!.equatorial.ra,
+      dec: candidate.catalogs.coordinates!.equatorial.dec,
       label: getCandidateLabel(candidate),
       description: createDescription(
-        candidate.catalogs?.velocity?.heliocentric,
-        candidate.catalogs?.redshift,
+        candidate.catalogs.velocity?.heliocentric,
+        candidate.catalogs.redshift,
       ),
     }));
 
-  const mainRecordSource = mainRecord.catalogs?.coordinates?.equatorial
+  const mainRecordSource = mainRecord.catalogs.coordinates?.equatorial
     ? {
         ra: mainRecord.catalogs.coordinates.equatorial.ra,
         dec: mainRecord.catalogs.coordinates.equatorial.dec,
         label:
-          mainRecord.catalogs?.designation?.name ||
+          mainRecord.catalogs.designation?.name ||
           `Record ${mainRecord.record_id}`,
       }
     : null;
@@ -194,7 +195,7 @@ function ResolutionSelector({
     try {
       await onAddCandidate(pgc);
     } catch (err) {
-      setAddCandidateError(`${err}`);
+      setAddCandidateError(formatCaughtError(err));
     }
   }
 
@@ -365,16 +366,15 @@ function ResolutionSelector({
   );
 }
 
-function OriginalData({
-  data,
-}: {
-  data: { [key: string]: unknown };
-}): ReactElement {
+type OriginalColumnValue = string | number | boolean | null;
+type OriginalDataFields = Record<string, OriginalColumnValue>;
+
+function OriginalData({ data }: { data: OriginalDataFields }): ReactElement {
   const columns: Column[] = [{ name: "Column" }, { name: "Value" }];
   const tableData: Record<string, CellPrimitive>[] = Object.entries(data).map(
     ([key, value]) => ({
       Column: key,
-      Value: value === null || value === undefined ? "NULL" : String(value),
+      Value: value === null ? "NULL" : String(value),
     }),
   );
 
@@ -411,7 +411,7 @@ function RecordCrossmatchDetails({
     `crossmatch.triage.verbose.${crossmatch.triage_status}`,
   ).Title;
   const objectName =
-    crossmatch.catalogs?.designation?.name ?? `Record ${crossmatch.record_id}`;
+    crossmatch.catalogs.designation?.name ?? `Record ${crossmatch.record_id}`;
 
   async function submitCrossmatchResolution(
     statuses: StatusesPayload,
@@ -421,12 +421,8 @@ function RecordCrossmatchDetails({
       body: { statuses },
     });
 
-    if (response.error || !response.data?.data) {
-      throw new Error(
-        typeof response.error === "object"
-          ? JSON.stringify(response.error)
-          : String(response.error || "Unknown error"),
-      );
+    if (response.error) {
+      throw new Error(describeUnknownError(response.error));
     }
 
     window.location.reload();
@@ -444,7 +440,7 @@ function RecordCrossmatchDetails({
         },
       });
     } catch (err) {
-      setResolveError(`${err}`);
+      setResolveError(formatCaughtError(err));
     } finally {
       setResolving(null);
     }
@@ -461,7 +457,7 @@ function RecordCrossmatchDetails({
         },
       });
     } catch (err) {
-      setResolveError(`${err}`);
+      setResolveError(formatCaughtError(err));
     } finally {
       setResolving(null);
     }
@@ -480,7 +476,7 @@ function RecordCrossmatchDetails({
         },
       });
     } catch (err) {
-      setResolveError(`${err}`);
+      setResolveError(formatCaughtError(err));
       throw err;
     } finally {
       setAddingCandidate(false);
@@ -496,10 +492,13 @@ function RecordCrossmatchDetails({
     }
   }
 
+  // SAFETY: Crossmatch original data is JSON scalar values keyed by column name.
+  const originalDataFields = originalData as OriginalDataFields | undefined;
+
   return (
     <div className="space-y-6 rounded-lg">
       <div className="flex items-start gap-6">
-        {crossmatch.catalogs?.coordinates?.equatorial && (
+        {crossmatch.catalogs.coordinates?.equatorial && (
           <AladinViewer
             ra={crossmatch.catalogs.coordinates.equatorial.ra}
             dec={crossmatch.catalogs.coordinates.equatorial.dec}
@@ -567,9 +566,9 @@ function RecordCrossmatchDetails({
         </p>
       )}
 
-      {originalData && (
+      {originalDataFields && (
         <Accordion title="Original Data">
-          <OriginalData data={originalData} />
+          <OriginalData data={originalDataFields} />
         </Accordion>
       )}
     </div>
@@ -590,9 +589,9 @@ async function fetcher(
     },
   });
 
-  if (response.error || !response.data?.data) {
+  if (response.error) {
     throw new Error(
-      `Error fetching crossmatch details: ${typeof response.error === "object" ? JSON.stringify(response.error) : response.error || "Unknown error"}`,
+      `Error fetching crossmatch details: ${describeUnknownError(response.error) || "Unknown error"}`,
     );
   }
 
@@ -611,13 +610,9 @@ export function RecordCrossmatchDetailsPage(): ReactElement {
     document.title = `Crossmatch - ${data?.crossmatch.catalogs.designation?.name ?? recordId} | HyperLEDA`;
   }, [data, recordId]);
 
-  function Content(): ReactElement {
-    if (loading) return <Loading />;
-    if (error) return <ErrorPage message={error} />;
-    if (data) return <RecordCrossmatchDetails data={data} />;
+  if (loading) return <Loading />;
+  if (error) return <ErrorPage message={error} />;
+  if (data) return <RecordCrossmatchDetails data={data} />;
 
-    return <ErrorPage message="Unknown error" />;
-  }
-
-  return <Content />;
+  return <ErrorPage message="Unknown error" />;
 }

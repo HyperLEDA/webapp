@@ -4,6 +4,7 @@ import { querySimple } from "@hyperleda/lib/clients/backend";
 import { PgcObject, Schema } from "@hyperleda/lib/clients/backend";
 import { adminClient } from "../clients";
 import { backendClient } from "@hyperleda/lib/clients";
+import { describeUnknownError } from "@hyperleda/lib/tap";
 import { publicObjectUrl } from "../origins";
 import {
   AladinViewer,
@@ -61,7 +62,7 @@ function objectLabel(object: PgcObject): string {
 
 function objectToSkySource(object: PgcObject, role: string): SkySource | null {
   const equatorial = object.catalogs.coordinates?.equatorial;
-  if (equatorial?.ra === undefined || equatorial?.dec === undefined) {
+  if (!equatorial) {
     return null;
   }
 
@@ -87,20 +88,15 @@ async function fetchPgc(
     },
   });
 
-  if (response.error || !response.data) {
-    const err = response.error;
+  if (response.error) {
     throw new Error(
-      `Error during query: ${typeof err === "object" ? JSON.stringify(err) : err}`,
+      `Error during query: ${describeUnknownError(response.error)}`,
     );
   }
 
   const objects = response.data.data.objects;
   const schema = response.data.data.schema;
-  const object = objects?.[0];
-
-  if (!object || Object.keys(object.catalogs).length === 0) {
-    throw new Error(`Object PGC ${pgc} not found`);
-  }
+  const object = objects[0];
 
   return { object, schema };
 }
@@ -118,10 +114,9 @@ async function fetchByName(
     },
   });
 
-  if (response.error || !response.data) {
-    const err = response.error;
+  if (response.error) {
     throw new Error(
-      `Error during query: ${typeof err === "object" ? JSON.stringify(err) : err}`,
+      `Error during query: ${describeUnknownError(response.error)}`,
     );
   }
 
@@ -426,12 +421,8 @@ export function AdminMergePgcPage(): ReactElement {
         },
       });
 
-      if (response.error || !response.data?.data) {
-        throw new Error(
-          typeof response.error === "object"
-            ? JSON.stringify(response.error)
-            : String(response.error || "Unknown error"),
-        );
+      if (response.error) {
+        throw new Error(describeUnknownError(response.error));
       }
 
       const result = response.data.data;

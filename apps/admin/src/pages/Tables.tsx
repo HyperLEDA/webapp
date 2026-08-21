@@ -7,7 +7,6 @@ import type {
   TableListItem,
   TableProgress,
   TableStatus,
-  ValidationError,
 } from "../clients/admin";
 import { adminClient } from "../clients";
 import {
@@ -26,6 +25,7 @@ import {
   TextFilter,
 } from "../components/ui";
 import { useDataFetching } from "@hyperleda/lib/hooks";
+import { formatApiError } from "@hyperleda/lib/tap";
 import { getSourceLink } from "@hyperleda/lib/astronomy";
 
 const SEARCH_DEBOUNCE_MS = 300;
@@ -35,18 +35,19 @@ const TABLE_STATUS_OPTIONS: { value: TableStatus; label: string }[] = [
   { value: "archived", label: "Archived" },
 ];
 
+function isTableStatus(value: string): value is TableStatus {
+  return value === "initiated" || value === "archived";
+}
+
 function parseStatusesParam(param: string | null): TableStatus[] {
   if (!param) {
     return [];
   }
 
-  const validStatuses = new Set<TableStatus>(["initiated", "archived"]);
   return param
     .split(",")
     .map((value) => value.trim())
-    .filter((value): value is TableStatus =>
-      validStatuses.has(value as TableStatus),
-    );
+    .filter(isTableStatus);
 }
 
 function formatTableStatusLabel(status: TableStatus): string {
@@ -177,7 +178,9 @@ function TableListCard({ table }: { table: TableListItem }): ReactElement {
   const actions: CardAction[] = [
     {
       title: "View crossmatch results",
-      onClick: () => navigate(crossmatchListHref(table.name)),
+      onClick: () => {
+        void navigate(crossmatchListHref(table.name));
+      },
     },
   ];
 
@@ -276,18 +279,44 @@ async function fetcher(
   });
 
   if (response.error) {
-    throw new Error(
-      (response.error as { detail?: ValidationError[] }).detail
-        ?.map((err: ValidationError) => err.msg)
-        .join(", ") || "Failed to fetch tables",
-    );
-  }
-
-  if (!response.data) {
-    throw new Error("No data received from server");
+    throw new Error(formatApiError(response.error) || "Failed to fetch tables");
   }
 
   return response.data.data;
+}
+
+interface TablesContentProps {
+  data: GetTableListResponse | null;
+  loading: boolean;
+  error: string | null;
+  page: number;
+  pageSize: number;
+  onPageChange: (page: number) => void;
+}
+
+function TablesContent({
+  data,
+  loading,
+  error,
+  page,
+  pageSize,
+  onPageChange,
+}: TablesContentProps): ReactElement {
+  if (error && !data) return <ErrorPage title="Error" message={error} />;
+  if (!data?.tables && loading) return <Loading />;
+  if (!data?.tables) return <ErrorPage title="Error" message="No tables" />;
+
+  return (
+    <>
+      <TablesResults data={data} loading={loading} />
+      <Pagination
+        page={page}
+        pageSize={pageSize}
+        records={data.tables}
+        handlePageChange={onPageChange}
+      />
+    </>
+  );
 }
 
 export function TablesPage(): ReactElement {
@@ -340,24 +369,6 @@ export function TablesPage(): ReactElement {
     setSearchParams(newSearchParams);
   }
 
-  function Content(): ReactElement {
-    if (error && !data) return <ErrorPage title="Error" message={error} />;
-    if (!data?.tables && loading) return <Loading />;
-    if (!data?.tables) return <ErrorPage title="Error" message="No tables" />;
-
-    return (
-      <>
-        <TablesResults data={data} loading={loading} />
-        <Pagination
-          page={page}
-          pageSize={pageSize}
-          records={data.tables}
-          handlePageChange={handlePageChange}
-        />
-      </>
-    );
-  }
-
   return (
     <>
       <h2 className="text-3xl font-bold mb-4">Tables</h2>
@@ -371,7 +382,14 @@ export function TablesPage(): ReactElement {
           updateParams({ statuses: nextStatuses })
         }
       />
-      <Content />
+      <TablesContent
+        data={data}
+        loading={loading}
+        error={error}
+        page={page}
+        pageSize={pageSize}
+        onPageChange={handlePageChange}
+      />
     </>
   );
 }

@@ -3,10 +3,12 @@ import { useLocation } from "react-router-dom";
 
 const HIGHLIGHT_DURATION_MS = 2000;
 
-export function useAnchoredElement(id: string): {
+interface AnchoredElementState {
   ref: RefObject<HTMLDivElement | null>;
   highlighted: boolean;
-} {
+}
+
+export function useAnchoredElement(id: string): AnchoredElementState {
   const ref = useRef<HTMLDivElement>(null);
   const location = useLocation();
   const [highlighted, setHighlighted] = useState(false);

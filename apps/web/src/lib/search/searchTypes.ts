@@ -14,6 +14,11 @@ export type SearchTypePartial = {
   hint: string;
 };
 
+interface SearchTypeInspection {
+  eligible: { type: SearchType; suggestion: string }[];
+  partial: { type: SearchType; hint: string }[];
+}
+
 export type SearchType = {
   id: string;
   title: string;
@@ -108,10 +113,7 @@ export function resolveEligibleSearchTypes(query: string): SearchType[] {
   return SEARCH_TYPES.filter((type) => type.suggest(trimmed) !== null);
 }
 
-export function inspectSearchTypes(query: string): {
-  eligible: { type: SearchType; suggestion: string }[];
-  partial: { type: SearchType; hint: string }[];
-} {
+export function inspectSearchTypes(query: string): SearchTypeInspection {
   const trimmed = query.trim();
   if (!trimmed) {
     return { eligible: [], partial: [] };

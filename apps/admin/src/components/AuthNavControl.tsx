@@ -20,7 +20,7 @@ export function AuthNavControl(): ReactElement {
       });
     } finally {
       clearAuthToken();
-      navigate("/login");
+      void navigate("/login");
       setLoggingOut(false);
     }
   }

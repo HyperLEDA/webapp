@@ -49,9 +49,6 @@ async function fetchTablesList(): Promise<ListTapTablesResponse> {
   if (response.error) {
     throw new Error(formatApiError(response.error));
   }
-  if (!response.data?.data) {
-    throw new Error("No table list received from server");
-  }
   return response.data.data;
 }
 
@@ -64,9 +61,6 @@ async function fetchTableRows(tableName: string): Promise<TapSyncResponse> {
   });
   if (response.error) {
     throw new Error(formatApiError(response.error));
-  }
-  if (!response.data?.data) {
-    throw new Error("No table data received from server");
   }
   return response.data.data;
 }
@@ -177,7 +171,7 @@ function columnMetadataHint(column: TapColumnInfo): ReactElement {
       <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
         <Text as="dt">Type</Text>
         <Text as="dd" type="code">
-          {column.datatype ?? "—"}
+          {column.datatype}
         </Text>
         <Text as="dt">Unit</Text>
         <Text as="dd" type="code">
@@ -356,13 +350,13 @@ export function DataCatalogPage(): ReactElement {
   function openSqlEditor(sql?: string): void {
     if (sql) {
       setSqlDraft(sql);
-      navigate({
+      void navigate({
         pathname: "/data-catalog/query",
         search: `?q=${encodeURIComponent(sql)}`,
       });
       return;
     }
-    navigate({ pathname: "/data-catalog/query", search: "" });
+    void navigate({ pathname: "/data-catalog/query", search: "" });
   }
 
   function handleQueryRun(sql: string): void {
@@ -375,7 +369,7 @@ export function DataCatalogPage(): ReactElement {
       setSqlDraft(defaultSelectForTable(nextTable));
       return;
     }
-    navigate(
+    void navigate(
       `/data-catalog/${encodeURIComponent(nextSchema)}/${encodeURIComponent(nextTable)}`,
     );
   }

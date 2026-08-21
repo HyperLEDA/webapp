@@ -26,6 +26,7 @@ import {
 } from "@hyperleda/lib/ui";
 import { Button } from "@hyperleda/lib/ui";
 import { backendClient } from "@hyperleda/lib/clients";
+import { describeUnknownError } from "@hyperleda/lib/tap";
 import {
   resolveEligibleSearchTypes,
   SearchType,
@@ -36,7 +37,7 @@ const ALADIN_FOV_PADDING = 1.4;
 
 function searchHandler(navigate: NavigateFunction) {
   return function f(query: string) {
-    navigate(`/query?q=${encodeURIComponent(query)}`);
+    void navigate(`/query?q=${encodeURIComponent(query)}`);
   };
 }
 
@@ -46,7 +47,7 @@ function pageChangeHandler(
   pageSize: number,
   newPage: number,
 ) {
-  navigate(
+  void navigate(
     `/query?q=${encodeURIComponent(query)}&page=${newPage}&pagesize=${pageSize}`,
   );
 }
@@ -76,15 +77,15 @@ type MultiSearchResults = {
 
 function objectsToSkySources(objects: PgcObject[]): SkySource[] {
   return objects.flatMap((object) => {
-    const equatorial = object.catalogs.coordinates?.equatorial;
-    if (equatorial?.ra === undefined || equatorial?.dec === undefined) {
+    const coordinates = object.catalogs.coordinates;
+    if (coordinates === null || coordinates === undefined) {
       return [];
     }
 
     return [
       {
-        ra: equatorial.ra,
-        dec: equatorial.dec,
+        ra: coordinates.equatorial.ra,
+        dec: coordinates.equatorial.dec,
         label: object.catalogs.designation?.name || `PGC ${object.pgc}`,
         id: object.pgc,
       },
@@ -118,14 +119,23 @@ function skyViewForSources(sources: SkySource[]): SkyView | null {
   return { ra, dec, fov };
 }
 
+function isNumericCell(
+  value: React.ReactElement | string | number,
+): value is number {
+  return Number.isFinite(value);
+}
+
 function resultTableColumns(): Column[] {
   return [
     { name: "", width: "fit" },
     {
       name: "PGC",
-      renderCell: (value: React.ReactElement | string | number) => (
-        <Link href={`/object/${value}`}>{value}</Link>
-      ),
+      renderCell: (value: React.ReactElement | string | number) =>
+        isNumericCell(value) ? (
+          <Link href={`/object/${value}`}>{value}</Link>
+        ) : (
+          value
+        ),
     },
     { name: "Name" },
     { name: "Type" },
@@ -133,12 +143,12 @@ function resultTableColumns(): Column[] {
     {
       name: "RA",
       renderCell: (value: React.ReactElement | string | number) =>
-        typeof value === "number" ? <RightAscension value={value} /> : value,
+        isNumericCell(value) ? <RightAscension value={value} /> : value,
     },
     {
       name: "Dec",
       renderCell: (value: React.ReactElement | string | number) =>
-        typeof value === "number" ? <Declination value={value} /> : value,
+        isNumericCell(value) ? <Declination value={value} /> : value,
     },
   ];
 }
@@ -148,9 +158,8 @@ function objectsToTableData(
   onLocate: (ra: number, dec: number) => void,
 ) {
   return objects.map((object) => {
-    const equatorial = object.catalogs.coordinates?.equatorial;
-    const hasCoords =
-      equatorial?.ra !== undefined && equatorial?.dec !== undefined;
+    const coordinates = object.catalogs.coordinates;
+    const hasCoords = coordinates !== undefined && coordinates !== null;
 
     return {
       "": hasCoords ? (
@@ -160,7 +169,7 @@ function objectsToTableData(
           hoverText="Locate"
           onClick={(event) => {
             event.stopPropagation();
-            onLocate(equatorial.ra, equatorial.dec);
+            onLocate(coordinates.equatorial.ra, coordinates.equatorial.dec);
           }}
         >
           <MdMyLocation className="w-4 h-4 text-muted" />
@@ -172,11 +181,11 @@ function objectsToTableData(
       Name: object.catalogs.designation?.name || "N/A",
       Type: object.catalogs.nature?.type_name || "N/A",
       Velocity:
-        object.catalogs.velocity?.heliocentric?.v !== undefined
+        object.catalogs.velocity?.heliocentric !== undefined
           ? `${object.catalogs.velocity.heliocentric.v.toFixed(0)} km/s`
           : "N/A",
-      RA: hasCoords ? equatorial.ra : "N/A",
-      Dec: hasCoords ? equatorial.dec : "N/A",
+      RA: hasCoords ? coordinates.equatorial.ra : "N/A",
+      Dec: hasCoords ? coordinates.equatorial.dec : "N/A",
     };
   });
 }
@@ -273,10 +282,9 @@ async function fetchSearchType(
     },
   });
 
-  if (response.error || !response.data) {
-    const err = response.error;
+  if (response.error) {
     throw new Error(
-      `Error during ${type.title} query: ${typeof err === "object" ? JSON.stringify(err) : err}`,
+      `Error during ${type.title} query: ${describeUnknownError(response.error)}`,
     );
   }
 
@@ -319,6 +327,42 @@ async function fetcher(
   return { sections };
 }
 
+interface SearchPageContentProps {
+  results: MultiSearchResults | null;
+  loading: boolean;
+  error: string | null;
+  query: string;
+  page: number;
+  pageSize: number;
+  navigate: NavigateFunction;
+}
+
+function SearchPageContent({
+  results,
+  loading,
+  error,
+  query,
+  page,
+  pageSize,
+  navigate,
+}: SearchPageContentProps): ReactElement {
+  if (loading) return <Loading />;
+  if (error) return <ErrorPage message={error} />;
+  if (results) {
+    return (
+      <SearchResults
+        sections={results.sections}
+        query={query}
+        page={page}
+        pageSize={pageSize}
+        navigate={navigate}
+      />
+    );
+  }
+
+  return <ErrorPage message="Unknown error" />;
+}
+
 export function SearchResultsPage(): ReactElement {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -339,24 +383,6 @@ export function SearchResultsPage(): ReactElement {
     [query, page, pageSize],
   );
 
-  function Content(): ReactElement {
-    if (loading) return <Loading />;
-    if (error) return <ErrorPage message={error} />;
-    if (results) {
-      return (
-        <SearchResults
-          sections={results.sections}
-          query={query}
-          page={page}
-          pageSize={pageSize}
-          navigate={navigate}
-        />
-      );
-    }
-
-    return <ErrorPage message="Unknown error" />;
-  }
-
   return (
     <>
       <SearchBar
@@ -364,7 +390,15 @@ export function SearchResultsPage(): ReactElement {
         onSearch={searchHandler(navigate)}
         logoSize="small"
       />
-      <Content />
+      <SearchPageContent
+        results={results}
+        loading={loading}
+        error={error}
+        query={query}
+        page={page}
+        pageSize={pageSize}
+        navigate={navigate}
+      />
     </>
   );
 }

@@ -81,15 +81,11 @@ function yRangeWithErrors(
     if (yErrors) {
       for (let i = 0; i < y.length; i++) {
         const err = yErrors[i];
-        if (err === null || err === undefined || err <= 0) {
+        if (err === null || err <= 0) {
           continue;
         }
 
         const yVal = y[i];
-        if (yVal === null || yVal === undefined) {
-          continue;
-        }
-
         min = Math.min(min, yVal - err);
         max = Math.max(max, yVal + err);
       }
@@ -99,18 +95,34 @@ function yRangeWithErrors(
   };
 }
 
+interface PlotColors {
+  text: string;
+  subtle: string;
+  grid: string;
+  accent: string;
+}
+
+interface AxisStrokeOptions {
+  stroke: string;
+  font: string;
+  labelFont: string;
+  grid: uPlot.Axis.Grid;
+  ticks: uPlot.Axis.Ticks;
+  border: uPlot.Axis.Border;
+}
+
+interface PointTooltipPosition {
+  left: number;
+  top: number;
+}
+
 function readCssToken(name: string): string {
   return getComputedStyle(document.documentElement)
     .getPropertyValue(name)
     .trim();
 }
 
-function getPlotColors(): {
-  text: string;
-  subtle: string;
-  grid: string;
-  accent: string;
-} {
+function getPlotColors(): PlotColors {
   return {
     text: readCssToken("--token-primary"),
     subtle: readCssToken("--token-subtle"),
@@ -119,14 +131,7 @@ function getPlotColors(): {
   };
 }
 
-function axisStrokeOptions(colors: ReturnType<typeof getPlotColors>): {
-  stroke: string;
-  font: string;
-  labelFont: string;
-  grid: uPlot.Axis.Grid;
-  ticks: uPlot.Axis.Ticks;
-  border: uPlot.Axis.Border;
-} {
+function axisStrokeOptions(colors: PlotColors): AxisStrokeOptions {
   return {
     stroke: colors.text,
     font: AXIS_VALUE_FONT,
@@ -160,15 +165,8 @@ function findNearestPointIndex(
 
   for (let i = 0; i < xData.length; i++) {
     const xVal = xData[i];
-    const yVal = yData[i];
-    if (
-      xVal === null ||
-      xVal === undefined ||
-      yVal === null ||
-      yVal === undefined
-    ) {
-      continue;
-    }
+    // SAFETY: Plot series are built from numeric arrays without null entries.
+    const yVal = yData[i] as number;
 
     const pointLeft = u.valToPos(xVal, "x");
     const pointTop = u.valToPos(yVal, "y");
@@ -187,8 +185,10 @@ function getPointTooltipPosition(
   u: uPlot,
   wrapper: HTMLElement,
   index: number,
-): { left: number; top: number } {
-  const xVal = u.data[0][index] as number;
+): PointTooltipPosition {
+  // SAFETY: `index` comes from uPlot data aligned with numeric series values.
+  const xVal = u.data[0][index];
+  // SAFETY: `index` comes from uPlot data aligned with numeric series values.
   const yVal = u.data[1][index] as number;
   const overRect = u.over.getBoundingClientRect();
   const wrapperRect = wrapper.getBoundingClientRect();
@@ -218,20 +218,13 @@ function drawYErrorBars(
 
   for (let i = 0; i < xData.length; i++) {
     const err = yErrors[i];
-    if (err === null || err === undefined || err <= 0) {
+    if (err === null || err <= 0) {
       continue;
     }
 
     const xVal = xData[i];
-    const yVal = yData[i];
-    if (
-      xVal === null ||
-      xVal === undefined ||
-      yVal === null ||
-      yVal === undefined
-    ) {
-      continue;
-    }
+    // SAFETY: Plot series are built from numeric arrays without null entries.
+    const yVal = yData[i] as number;
 
     const xPos = u.valToPos(xVal, "x", true);
     const yTop = u.valToPos(yVal + err, "y", true);
@@ -337,6 +330,12 @@ export function PlotView({
     const axisStyle = axisStrokeOptions(colors);
 
     const topPadding = vlines.length > 0 ? VLINE_TOP_PADDING : 0;
+    const yScale: uPlot.Scale = {
+      range: yRangeWithErrors(aligned.y, aligned.yErrors),
+    };
+    if (invertY) {
+      yScale.dir = -1;
+    }
 
     const options: uPlot.Options = {
       width: container.clientWidth || container.offsetWidth,
@@ -353,10 +352,7 @@ export function PlotView({
               }
             : { range: paddedXRange }),
         },
-        y: {
-          range: yRangeWithErrors(aligned.y, aligned.yErrors),
-          ...(invertY ? { dir: -1 } : {}),
-        },
+        y: yScale,
       },
       axes: [
         {
@@ -433,13 +429,9 @@ export function PlotView({
     plotRef.current.over.addEventListener("mouseleave", handleMouseLeave);
 
     const resizeObserver = new ResizeObserver(() => {
-      if (!plotRef.current || !container) {
-        return;
-      }
-
       const width = container.clientWidth || container.offsetWidth;
       if (width > 0) {
-        plotRef.current.setSize({ width, height: PLOT_HEIGHT });
+        plotRef.current?.setSize({ width, height: PLOT_HEIGHT });
       }
     });
     resizeObserver.observe(container);
@@ -539,11 +531,8 @@ export class PlotBuilder {
     return this;
   }
 
-  toProps(className?: string): PlotViewProps | null {
+  toProps(className?: string): PlotViewProps {
     const primary = this.series[0];
-    if (!primary) {
-      return null;
-    }
 
     return {
       series: primary,

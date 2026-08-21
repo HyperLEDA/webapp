@@ -51,10 +51,6 @@ export function CommonTable({
       return column.renderCell(value);
     }
 
-    if (value === undefined || value === null) {
-      return <div />;
-    }
-
     if (React.isValidElement(value)) {
       return value;
     }

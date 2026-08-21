@@ -23,4 +23,5 @@ dist-ssr
 # code-generated files
 packages/lib/src/clients/backend
 apps/admin/src/clients/admin
+.oxlint-plugins
 

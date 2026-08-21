@@ -48,29 +48,23 @@ export function AstrometryCard({
   anchorId?: string;
   className?: string;
 }): ReactElement {
-  const equatorial = catalogs?.coordinates?.equatorial;
-  const galactic = catalogs?.coordinates?.galactic;
-  const supergalactic = catalogs?.coordinates?.supergalactic;
-  const hasEquatorial =
-    equatorial?.ra !== undefined || equatorial?.dec !== undefined;
-  const hasGalactic =
-    galactic?.lon !== undefined || galactic?.lat !== undefined;
-  const hasSupergalactic =
-    supergalactic?.lon !== undefined || supergalactic?.lat !== undefined;
-  const hasPrecision =
-    equatorial?.e_ra !== undefined || equatorial?.e_dec !== undefined;
-  const hasData = hasEquatorial || hasGalactic || hasSupergalactic;
+  const coordinates = catalogs.coordinates;
+  const hasData = coordinates !== null && coordinates !== undefined;
 
   const actions: CatalogCardAction[] = [];
 
-  if (equatorial?.ra !== undefined && equatorial?.dec !== undefined) {
+  if (coordinates !== null && coordinates !== undefined) {
     for (const { id, title } of EQUATORIAL_COPY_FORMATS) {
       actions.push({
         title: `Copy ICRS as ${title}`,
         icon: MdContentCopy,
         onClick: () => {
           void navigator.clipboard.writeText(
-            formatEquatorialForCopy(equatorial.ra, equatorial.dec, id),
+            formatEquatorialForCopy(
+              coordinates.equatorial.ra,
+              coordinates.equatorial.dec,
+              id,
+            ),
           );
         },
       });
@@ -79,27 +73,15 @@ export function AstrometryCard({
     actions.push({
       title: "Search in NED",
       icon: MdSearch,
-      href: buildNedPositionSearchUrl(equatorial.ra, equatorial.dec),
+      href: buildNedPositionSearchUrl(
+        coordinates.equatorial.ra,
+        coordinates.equatorial.dec,
+      ),
     });
   }
 
-  const raUnit = schema.units.coordinates?.equatorial?.ra || "deg";
-  const eRaUnit = schema.units.coordinates?.equatorial?.e_ra || raUnit;
-  const eDecUnit = schema.units.coordinates?.equatorial?.e_dec || raUnit;
-  const precisionErrors = [equatorial?.e_ra, equatorial?.e_dec].filter(
-    (value): value is number => value !== undefined,
-  );
-  const precision =
-    precisionErrors.length > 0
-      ? precisionErrors.reduce((sum, value) => sum + value, 0) /
-        precisionErrors.length
-      : undefined;
-  const precisionUnit =
-    equatorial?.e_ra !== undefined
-      ? eRaUnit
-      : equatorial?.e_dec !== undefined
-        ? eDecUnit
-        : eRaUnit;
+  const raUnit = schema.units.coordinates.equatorial.ra || "deg";
+  const eRaUnit = schema.units.coordinates.equatorial.e_ra || raUnit;
 
   return (
     <CatalogCard
@@ -110,72 +92,59 @@ export function AstrometryCard({
       className={className}
     >
       {!hasData && <CatalogNoData />}
-      {hasEquatorial && (
+      {coordinates !== null && coordinates !== undefined && (
         <>
           <Field label="ICRS">
             <span className="inline-flex flex-wrap items-center gap-x-2">
-              {equatorial?.ra !== undefined && (
-                <RightAscension value={equatorial.ra} />
-              )}
-              {equatorial?.dec !== undefined && (
-                <Declination value={equatorial.dec} />
-              )}
+              <RightAscension value={coordinates.equatorial.ra} />
+              <Declination value={coordinates.equatorial.dec} />
             </span>
           </Field>
-          {equatorial?.ra !== undefined && equatorial?.dec !== undefined && (
-            <Field label="ICRS">
-              <EquatorialDecimalDegrees
-                ra={equatorial.ra}
-                dec={equatorial.dec}
+          <Field label="ICRS">
+            <EquatorialDecimalDegrees
+              ra={coordinates.equatorial.ra}
+              dec={coordinates.equatorial.dec}
+            />
+          </Field>
+          <Field label="Galactic">
+            <span className="inline-flex flex-wrap items-center gap-x-2">
+              <Quantity
+                value={coordinates.galactic.lon.toFixed(4)}
+                unit="°"
+                spaced={false}
               />
-            </Field>
-          )}
+              <Quantity
+                value={coordinates.galactic.lat.toFixed(4)}
+                unit="°"
+                spaced={false}
+              />
+            </span>
+          </Field>
+          <Field label="Supergalactic">
+            <span className="inline-flex flex-wrap items-center gap-x-2">
+              <Quantity
+                value={coordinates.supergalactic.lon.toFixed(4)}
+                unit="°"
+                spaced={false}
+              />
+              <Quantity
+                value={coordinates.supergalactic.lat.toFixed(4)}
+                unit="°"
+                spaced={false}
+              />
+            </span>
+          </Field>
+          <Field label="Precision">
+            ±{" "}
+            <Quantity
+              value={(
+                (coordinates.equatorial.e_ra + coordinates.equatorial.e_dec) /
+                2
+              ).toFixed(2)}
+              unit={eRaUnit}
+            />
+          </Field>
         </>
-      )}
-      {hasGalactic && (
-        <Field label="Galactic">
-          <span className="inline-flex flex-wrap items-center gap-x-2">
-            {galactic?.lon !== undefined && (
-              <Quantity
-                value={galactic.lon.toFixed(4)}
-                unit="°"
-                spaced={false}
-              />
-            )}
-            {galactic?.lat !== undefined && (
-              <Quantity
-                value={galactic.lat.toFixed(4)}
-                unit="°"
-                spaced={false}
-              />
-            )}
-          </span>
-        </Field>
-      )}
-      {hasSupergalactic && (
-        <Field label="Supergalactic">
-          <span className="inline-flex flex-wrap items-center gap-x-2">
-            {supergalactic?.lon !== undefined && (
-              <Quantity
-                value={supergalactic.lon.toFixed(4)}
-                unit="°"
-                spaced={false}
-              />
-            )}
-            {supergalactic?.lat !== undefined && (
-              <Quantity
-                value={supergalactic.lat.toFixed(4)}
-                unit="°"
-                spaced={false}
-              />
-            )}
-          </span>
-        </Field>
-      )}
-      {hasPrecision && precision !== undefined && (
-        <Field label="Precision">
-          ± <Quantity value={precision.toFixed(2)} unit={precisionUnit} />
-        </Field>
       )}
     </CatalogCard>
   );

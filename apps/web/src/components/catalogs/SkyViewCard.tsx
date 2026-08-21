@@ -12,9 +12,8 @@ export function SkyViewCard({
   anchorId?: string;
   className?: string;
 }): ReactElement {
-  const equatorial = catalogs?.coordinates?.equatorial;
-  const hasCoordinates =
-    equatorial?.ra !== undefined && equatorial?.dec !== undefined;
+  const coordinates = catalogs.coordinates;
+  const hasCoordinates = coordinates !== null && coordinates !== undefined;
 
   return (
     <CatalogCard
@@ -25,8 +24,8 @@ export function SkyViewCard({
     >
       {hasCoordinates ? (
         <AladinViewer
-          ra={equatorial.ra}
-          dec={equatorial.dec}
+          ra={coordinates.equatorial.ra}
+          dec={coordinates.equatorial.dec}
           fov={0.02}
           className="w-full aspect-square border-0"
         />

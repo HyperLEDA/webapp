@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { setAuthToken } from "../auth/token";
 import { login } from "../clients/admin/sdk.gen";
 import { adminClient } from "../clients/index";
+import { formatCaughtError } from "@hyperleda/lib/tap";
 import { Button } from "@hyperleda/lib/ui";
 
 export function LoginPage(): ReactElement {
@@ -30,17 +31,16 @@ export function LoginPage(): ReactElement {
         client: adminClient,
         body: { username, password },
       });
-      const token = response.data?.data?.token;
-
-      if (response.error || !token) {
+      if (response.error) {
         throw new Error("Invalid username or password");
       }
 
+      const token = response.data.data.token;
       setAuthToken(token);
       setSuccess(true);
-      navigate("/tables");
+      void navigate("/tables");
     } catch (submitError) {
-      setError(`${submitError}`);
+      setError(formatCaughtError(submitError));
     } finally {
       setLoading(false);
     }

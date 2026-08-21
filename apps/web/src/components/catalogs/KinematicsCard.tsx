@@ -21,6 +21,37 @@ FROM cz.data AS c
 WHERE r.pgc = ${pgc}`;
 }
 
+type VelocityKey = "heliocentric" | "local_group" | "cmb_old" | "cmb";
+
+const VELOCITY_FIELDS: { key: VelocityKey; label: string }[] = [
+  { key: "heliocentric", label: "Heliocentric" },
+  { key: "local_group", label: "Local Group" },
+  { key: "cmb_old", label: "CMB (old)" },
+  { key: "cmb", label: "CMB" },
+];
+
+function velocityField(
+  key: VelocityKey,
+  label: string,
+  velocity: NonNullable<Catalogs["velocity"]>,
+  schema: Schema,
+): ReactElement | null {
+  if (!(key in velocity)) {
+    return null;
+  }
+
+  const measurement = velocity[key];
+
+  const units = schema.units.velocity[key];
+  return (
+    <Field key={key} label={label}>
+      <QuantityWithError error={measurement.e_v} unit={units.v}>
+        <Quantity value={measurement.v.toFixed(0)} unit={units.v} />
+      </QuantityWithError>
+    </Field>
+  );
+}
+
 export function KinematicsCard({
   catalogs,
   schema,
@@ -34,67 +65,16 @@ export function KinematicsCard({
   anchorId?: string;
   className?: string;
 }): ReactElement {
-  const redshift = catalogs?.redshift;
-  const velocity = catalogs?.velocity;
+  const redshift = catalogs.redshift;
+  const velocity = catalogs.velocity;
 
   const velocityFields = velocity
-    ? [
-        velocity.heliocentric?.v !== undefined && (
-          <Field key="heliocentric" label="Heliocentric">
-            <QuantityWithError
-              error={velocity.heliocentric.e_v}
-              unit={schema.units.velocity?.heliocentric?.v}
-            >
-              <Quantity
-                value={velocity.heliocentric.v.toFixed(0)}
-                unit={schema.units.velocity?.heliocentric?.v}
-              />
-            </QuantityWithError>
-          </Field>
-        ),
-        velocity.local_group?.v !== undefined && (
-          <Field key="local_group" label="Local Group">
-            <QuantityWithError
-              error={velocity.local_group.e_v}
-              unit={schema.units.velocity?.local_group?.v}
-            >
-              <Quantity
-                value={velocity.local_group.v.toFixed(0)}
-                unit={schema.units.velocity?.local_group?.v}
-              />
-            </QuantityWithError>
-          </Field>
-        ),
-        velocity.cmb_old?.v !== undefined && (
-          <Field key="cmb_old" label="CMB (old)">
-            <QuantityWithError
-              error={velocity.cmb_old.e_v}
-              unit={schema.units.velocity?.cmb_old?.v}
-            >
-              <Quantity
-                value={velocity.cmb_old.v.toFixed(0)}
-                unit={schema.units.velocity?.cmb_old?.v}
-              />
-            </QuantityWithError>
-          </Field>
-        ),
-        velocity.cmb?.v !== undefined && (
-          <Field key="cmb" label="CMB">
-            <QuantityWithError
-              error={velocity.cmb.e_v}
-              unit={schema.units.velocity?.cmb?.v}
-            >
-              <Quantity
-                value={velocity.cmb.v.toFixed(0)}
-                unit={schema.units.velocity?.cmb?.v}
-              />
-            </QuantityWithError>
-          </Field>
-        ),
-      ].filter(Boolean)
+    ? VELOCITY_FIELDS.map(({ key, label }) =>
+        velocityField(key, label, velocity, schema),
+      ).filter((field): field is ReactElement => field !== null)
     : [];
 
-  const hasRedshift = redshift?.z !== undefined;
+  const hasRedshift = redshift !== null && redshift !== undefined;
   const hasData = hasRedshift || velocityFields.length > 0;
 
   return (

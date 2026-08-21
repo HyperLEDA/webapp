@@ -35,6 +35,7 @@ const ALADIN_SURVEYS = [
 ] as const;
 
 const DEFAULT_ALADIN_SURVEY = ALADIN_SURVEYS[0].survey;
+const ALADIN_MARKER_STYLE = "shape" as const;
 
 const SOURCE_SIZE = 8;
 const LABEL_FONT = "14px sans-serif";
@@ -198,7 +199,7 @@ export const AladinViewer = forwardRef<AladinViewerHandle, AladinViewerProps>(
     }, [survey]);
 
     useEffect(() => {
-      if (!aladinDivRef.current || !window.A) {
+      if (!aladinDivRef.current) {
         return undefined;
       }
 
@@ -231,21 +232,23 @@ export const AladinViewer = forwardRef<AladinViewerHandle, AladinViewerProps>(
           onSourceClickRef.current?.(id);
         });
 
-        if (additionalSources && additionalSources.length > 0) {
+        // SAFETY: additionalSourcesKey is JSON.stringify of AdditionalSource[].
+        const sources = JSON.parse(additionalSourcesKey) as AdditionalSource[];
+        if (sources.length > 0) {
           const nameCatalog = window.A.catalog({
-            shape: drawSourceWithLabel,
+            [ALADIN_MARKER_STYLE]: drawSourceWithLabel,
             color: "black",
             displayLabel: false,
             sourceSize: SOURCE_SIZE,
           });
           const descrCatalog = window.A.catalog({
             color: "black",
-            shape: "cross",
+            [ALADIN_MARKER_STYLE]: "cross",
           });
           aladin.addCatalog(nameCatalog);
           aladin.addCatalog(descrCatalog);
 
-          additionalSources.forEach((source) => {
+          sources.forEach((source) => {
             const data: AladinSourceData = {
               name: source.label,
               id: source.id,
@@ -302,6 +305,17 @@ export const AladinViewer = forwardRef<AladinViewerHandle, AladinViewerProps>(
   },
 );
 
+type AladinMarkerRenderer = (
+  source: AladinCanvasSource,
+  ctx: CanvasRenderingContext2D,
+) => void;
+
+type AladinCatalogOptions = {
+  displayLabel?: boolean;
+  sourceSize?: number;
+  color?: string;
+} & Partial<Record<typeof ALADIN_MARKER_STYLE, string | AladinMarkerRenderer>>;
+
 interface AladinCatalog {
   addSources: (sources: AladinSource | AladinSource[]) => void;
 }
@@ -328,17 +342,7 @@ declare global {
           showCooGridControl?: boolean;
         },
       ) => AladinInstance;
-      catalog: (options?: {
-        displayLabel?: boolean;
-        sourceSize?: number;
-        shape?:
-          | string
-          | ((
-              source: AladinCanvasSource,
-              ctx: CanvasRenderingContext2D,
-            ) => void);
-        color?: string;
-      }) => AladinCatalog;
+      catalog: (options?: AladinCatalogOptions) => AladinCatalog;
       source: (
         ra: number,
         dec: number,

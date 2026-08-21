@@ -101,6 +101,19 @@ interface CrossmatchResultsProps {
   loading?: boolean;
 }
 
+function isRecordIndex(value: CellPrimitive): value is number {
+  return Number.isFinite(value) && Number.isInteger(value);
+}
+
+function parseCrossmatchTriageStatus(
+  param: string,
+): CrossmatchTriageStatus | null {
+  if (param === "pending" || param === "resolved" || param === "unprocessed") {
+    return param;
+  }
+  return null;
+}
+
 function CrossmatchResults({
   data,
   loading,
@@ -113,17 +126,24 @@ function CrossmatchResults({
   function getCandidatePgcs(record: ApiRecord): number[] {
     const fromCandidates = record.crossmatch.candidates
       .map((candidate) => candidate.pgc)
-      .filter((pgc): pgc is number => typeof pgc === "number");
+      .filter(
+        (pgc): pgc is number => Number.isFinite(pgc) && Number.isInteger(pgc),
+      );
 
-    if (typeof record.pgc !== "number") {
+    const recordPgc = record.pgc;
+    if (
+      recordPgc === null ||
+      !Number.isFinite(recordPgc) ||
+      !Number.isInteger(recordPgc)
+    ) {
       return fromCandidates;
     }
 
-    if (fromCandidates.includes(record.pgc)) {
+    if (fromCandidates.includes(recordPgc)) {
       return fromCandidates;
     }
 
-    return [record.pgc, ...fromCandidates];
+    return [recordPgc, ...fromCandidates];
   }
 
   function renderCandidates(record: ApiRecord): ReactElement {
@@ -159,7 +179,7 @@ function CrossmatchResults({
     {
       name: "Record name",
       renderCell: (recordIndex: CellPrimitive) => {
-        if (typeof recordIndex === "number" && data?.records[recordIndex]) {
+        if (isRecordIndex(recordIndex) && data?.records[recordIndex]) {
           return getRecordName(data.records[recordIndex]);
         }
         return <span>NULL</span>;
@@ -169,7 +189,7 @@ function CrossmatchResults({
     {
       name: "Candidates",
       renderCell: (recordIndex: CellPrimitive) => {
-        if (typeof recordIndex === "number" && data?.records[recordIndex]) {
+        if (isRecordIndex(recordIndex) && data?.records[recordIndex]) {
           return renderCandidates(data.records[recordIndex]);
         }
         return <span>NULL</span>;
@@ -217,11 +237,41 @@ async function fetcher(
     );
   }
 
-  if (!response.data) {
-    throw new Error("No data received from server");
-  }
-
   return response.data.data;
+}
+
+interface CrossmatchContentProps {
+  data: GetRecordsResponse | null;
+  loading: boolean;
+  error: string | null;
+  page: number;
+  pageSize: number;
+  onPageChange: (page: number) => void;
+}
+
+function CrossmatchContent({
+  data,
+  loading,
+  error,
+  page,
+  pageSize,
+  onPageChange,
+}: CrossmatchContentProps): ReactElement {
+  if (error && !data) return <ErrorPage title="Error" message={error} />;
+  if (!data?.records && loading) return <Loading />;
+  if (!data?.records) return <ErrorPage title="Error" message="No records" />;
+
+  return (
+    <>
+      <CrossmatchResults data={data} loading={loading} />
+      <Pagination
+        page={page}
+        pageSize={pageSize}
+        records={data.records}
+        handlePageChange={onPageChange}
+      />
+    </>
+  );
 }
 
 export function CrossmatchResultsPage(): ReactElement {
@@ -234,7 +284,7 @@ export function CrossmatchResultsPage(): ReactElement {
       ? "pending"
       : triageStatusParam === "all"
         ? null
-        : (triageStatusParam as CrossmatchTriageStatus);
+        : (parseCrossmatchTriageStatus(triageStatusParam) ?? "pending");
   const page = parseInt(searchParams.get("page") || "0");
   const pageSize = parseInt(searchParams.get("page_size") || "25");
 
@@ -278,24 +328,6 @@ export function CrossmatchResultsPage(): ReactElement {
     setSearchParams(newSearchParams);
   }
 
-  function Content(): ReactElement {
-    if (error && !data) return <ErrorPage title="Error" message={error} />;
-    if (!data?.records && loading) return <Loading />;
-    if (!data?.records) return <ErrorPage title="Error" message="No records" />;
-
-    return (
-      <>
-        <CrossmatchResults data={data} loading={loading} />
-        <Pagination
-          page={page}
-          pageSize={pageSize}
-          records={data?.records}
-          handlePageChange={handlePageChange}
-        />
-      </>
-    );
-  }
-
   return (
     <>
       <h2 className="text-3xl font-bold mb-4">Crossmatch results</h2>
@@ -305,7 +337,14 @@ export function CrossmatchResultsPage(): ReactElement {
         pageSize={pageSize}
         onApplyFilters={handleApplyFilters}
       />
-      <Content />
+      <CrossmatchContent
+        data={data}
+        loading={loading}
+        error={error}
+        page={page}
+        pageSize={pageSize}
+        onPageChange={handlePageChange}
+      />
     </>
   );
 }
