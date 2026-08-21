@@ -43,27 +43,37 @@ type Prefix = "J" | "B" | "G" | "S";
 
 function systemFromPrefix(prefix: Prefix | null): CoordinateSystem {
   switch (prefix) {
+    case "J":
+      return "j2000";
     case "B":
       return "b1950";
     case "G":
       return "galactic";
     case "S":
       return "supergalactic";
-    default:
+    case null:
       return "j2000";
+    default: {
+      const unreachable: never = prefix;
+      return unreachable;
+    }
   }
 }
 
 function systemLabel(system: CoordinateSystem): string {
   switch (system) {
+    case "j2000":
+      return "J2000";
     case "b1950":
       return "B1950";
     case "galactic":
       return "Galactic";
     case "supergalactic":
       return "Supergalactic";
-    default:
-      return "J2000";
+    default: {
+      const unreachable: never = system;
+      return unreachable;
+    }
   }
 }
 
@@ -74,12 +84,17 @@ interface CoordinateAxisLabels {
 
 function axisLabels(system: CoordinateSystem): CoordinateAxisLabels {
   switch (system) {
+    case "j2000":
+    case "b1950":
+      return { first: "RA", second: "Dec" };
     case "galactic":
       return { first: "l", second: "b" };
     case "supergalactic":
       return { first: "SGL", second: "SGB" };
-    default:
-      return { first: "RA", second: "Dec" };
+    default: {
+      const unreachable: never = system;
+      return unreachable;
+    }
   }
 }
 
@@ -294,6 +309,13 @@ function buildQuery(
     lat,
     toQueryParams(): CoordinateQueryParams {
       switch (system) {
+        case "j2000":
+          return {
+            ra: lon,
+            dec: lat,
+            eq_epoch: "J2000",
+            radius: ARCMINUTE_RADIUS_DEG,
+          };
         case "b1950":
           return {
             ra: lon,
@@ -305,13 +327,10 @@ function buildQuery(
           return { glon: lon, glat: lat, radius: ARCMINUTE_RADIUS_DEG };
         case "supergalactic":
           return { sgl: lon, sgb: lat, radius: ARCMINUTE_RADIUS_DEG };
-        default:
-          return {
-            ra: lon,
-            dec: lat,
-            eq_epoch: "J2000",
-            radius: ARCMINUTE_RADIUS_DEG,
-          };
+        default: {
+          const unreachable: never = system;
+          return unreachable;
+        }
       }
     },
   };

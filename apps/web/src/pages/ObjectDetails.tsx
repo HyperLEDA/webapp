@@ -17,12 +17,10 @@ import { describeUnknownError } from "@hyperleda/lib/tap";
 
 interface ObjectDetailsProps {
   object: PgcObject;
-  schema: Schema | null;
+  schema: Schema;
 }
 
 function ObjectDetails({ object, schema }: ObjectDetailsProps): ReactElement {
-  if (!object || !schema) return <div />;
-
   const catalogs = object.catalogs;
 
   return (
@@ -82,15 +80,16 @@ async function fetcher(
     },
   });
 
-  if (response.error || !response.data) {
-    const err = response.error;
-    throw new Error(`Error during query: ${describeUnknownError(err)}`);
+  if (response.error) {
+    throw new Error(
+      `Error during query: ${describeUnknownError(response.error)}`,
+    );
   }
 
   const objects = response.data.data.objects;
   const schema = response.data.data.schema;
 
-  if (!objects || objects.length === 0) {
+  if (objects.length === 0) {
     throw new Error(`Object ${pgcId} not found`);
   }
 
@@ -110,12 +109,12 @@ export function ObjectDetailsPage(): ReactElement {
     error,
   } = useDataFetching(() => fetcher(pgcId), [pgcId]);
 
-  const [object, schema] = payload || [null, null];
-
   if (loading) return <Loading />;
   if (error) return <ErrorPage message={error} />;
-  if (object && schema)
+  if (payload) {
+    const [object, schema] = payload;
     return <ObjectDetails object={object} schema={schema} />;
+  }
 
   return <ErrorPage message="Unknown error" />;
 }

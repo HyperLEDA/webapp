@@ -32,6 +32,7 @@ import {
 } from "../components/ui";
 import { useDataFetching } from "@hyperleda/lib/hooks";
 import { originalDataCatalogLink } from "@hyperleda/lib/astronomy";
+import { formatCaughtError } from "@hyperleda/lib/tap";
 
 const DATA_TYPES: DataType[] = [
   "regular",
@@ -201,7 +202,7 @@ function TableMeta(props: TableMetaProps): ReactElement {
       }
       onSuccess();
     } catch (err) {
-      setPatchError(`${err}`);
+      setPatchError(formatCaughtError(err));
       throw err;
     } finally {
       setSavingField(null);
@@ -218,7 +219,9 @@ function TableMeta(props: TableMetaProps): ReactElement {
         table_name: props.tableName,
         new_table_name: trimmed,
       },
-      () => navigate(`/table/${encodeURIComponent(trimmed)}`),
+      () => {
+        void navigate(`/table/${encodeURIComponent(trimmed)}`);
+      },
     );
   }
 
@@ -485,22 +488,17 @@ function CatalogProgressCard({
             );
           })}
         </nav>
-        {selectedProgress ? (
-          <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-base min-w-0 flex-1 content-start">
-            <Field label="Marked">
-              {formatProgressValue(selectedProgress.structured, totalRecords)}
-            </Field>
-            <Field label="Aggregated">
-              {formatProgressValue(selectedProgress.in_layer2, totalRecords)}
-            </Field>
-            <Field label="Waiting for aggregation">
-              {formatProgressValue(
-                selectedProgress.layer2_pending,
-                totalRecords,
-              )}
-            </Field>
-          </dl>
-        ) : null}
+        <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-base min-w-0 flex-1 content-start">
+          <Field label="Marked">
+            {formatProgressValue(selectedProgress.structured, totalRecords)}
+          </Field>
+          <Field label="Aggregated">
+            {formatProgressValue(selectedProgress.in_layer2, totalRecords)}
+          </Field>
+          <Field label="Waiting for aggregation">
+            {formatProgressValue(selectedProgress.layer2_pending, totalRecords)}
+          </Field>
+        </dl>
       </div>
     </Card>
   );
@@ -592,7 +590,7 @@ function ColumnInfo(props: ColumnInfoProps): ReactElement {
       }
       props.onAfterPatch();
     } catch (err) {
-      setPatchError(`${err}`);
+      setPatchError(formatCaughtError(err));
       throw err;
     } finally {
       setSaving(null);
@@ -640,7 +638,7 @@ function ColumnInfo(props: ColumnInfoProps): ReactElement {
     {
       title: "View table data",
       onClick: () => {
-        navigate(
+        void navigate(
           originalDataCatalogLink(
             selectAllColumnsFromRawdataTable(
               props.tableName,

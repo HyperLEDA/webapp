@@ -39,7 +39,7 @@ function formatPhotometryDetails(
   const lines = [
     `Band: ${measurement.band}`,
     `λ: ${measurement.wavelength} Å`,
-    `mag: ${measurement.mag}${measurement.e_mag !== null && measurement.e_mag !== undefined ? ` ± ${measurement.e_mag}` : ""}`,
+    `mag: ${measurement.mag}${measurement.e_mag !== null ? ` ± ${measurement.e_mag}` : ""}`,
     `Method: ${measurement.method}`,
   ];
 
@@ -86,7 +86,7 @@ export function PhotometryTotalCard({
       originalDataSql={hasData ? photometryTotalSqlQuery(pgc) : undefined}
       className={className}
     >
-      {hasData && plotProps ? <PlotView {...plotProps} /> : <CatalogNoData />}
+      {hasData ? <PlotView {...plotProps} /> : <CatalogNoData />}
     </CatalogCard>
   );
 }

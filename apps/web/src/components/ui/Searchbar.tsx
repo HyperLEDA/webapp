@@ -16,7 +16,7 @@ interface SearchBarProps {
 
 function searchHandler(navigate: NavigateFunction) {
   return function f(query: string) {
-    navigate(`/query?q=${encodeURIComponent(query)}`);
+    void navigate(`/query?q=${encodeURIComponent(query)}`);
   };
 }
 

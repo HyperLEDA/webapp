@@ -237,10 +237,6 @@ async function fetcher(
     );
   }
 
-  if (!response.data) {
-    throw new Error("No data received from server");
-  }
-
   return response.data.data;
 }
 

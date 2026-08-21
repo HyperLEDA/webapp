@@ -199,7 +199,7 @@ export const AladinViewer = forwardRef<AladinViewerHandle, AladinViewerProps>(
     }, [survey]);
 
     useEffect(() => {
-      if (!aladinDivRef.current || !window.A) {
+      if (!aladinDivRef.current) {
         return undefined;
       }
 

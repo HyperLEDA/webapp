@@ -178,7 +178,9 @@ function TableListCard({ table }: { table: TableListItem }): ReactElement {
   const actions: CardAction[] = [
     {
       title: "View crossmatch results",
-      onClick: () => navigate(crossmatchListHref(table.name)),
+      onClick: () => {
+        void navigate(crossmatchListHref(table.name));
+      },
     },
   ];
 
@@ -278,10 +280,6 @@ async function fetcher(
 
   if (response.error) {
     throw new Error(formatApiError(response.error) || "Failed to fetch tables");
-  }
-
-  if (!response.data) {
-    throw new Error("No data received from server");
   }
 
   return response.data.data;

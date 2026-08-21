@@ -23,9 +23,6 @@ export function Navbar() {
   const infoButtonRef = useRef<HTMLButtonElement>(null);
 
   const showOpenProductionButton = useMemo(() => {
-    if (!configuredProductionWeb) {
-      return false;
-    }
     try {
       return window.location.origin !== new URL(configuredProductionWeb).origin;
     } catch {
@@ -77,12 +74,7 @@ export function Navbar() {
         }
       >
         {navItems.map((item) => (
-          <NavItem
-            key={item.to}
-            to={item.to}
-            end={item.end ?? true}
-            label={item.label}
-          >
+          <NavItem key={item.to} to={item.to} end={item.end} label={item.label}>
             {item.icon}
           </NavItem>
         ))}

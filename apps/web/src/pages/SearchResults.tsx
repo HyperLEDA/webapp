@@ -37,7 +37,7 @@ const ALADIN_FOV_PADDING = 1.4;
 
 function searchHandler(navigate: NavigateFunction) {
   return function f(query: string) {
-    navigate(`/query?q=${encodeURIComponent(query)}`);
+    void navigate(`/query?q=${encodeURIComponent(query)}`);
   };
 }
 
@@ -47,7 +47,7 @@ function pageChangeHandler(
   pageSize: number,
   newPage: number,
 ) {
-  navigate(
+  void navigate(
     `/query?q=${encodeURIComponent(query)}&page=${newPage}&pagesize=${pageSize}`,
   );
 }
@@ -77,15 +77,15 @@ type MultiSearchResults = {
 
 function objectsToSkySources(objects: PgcObject[]): SkySource[] {
   return objects.flatMap((object) => {
-    const equatorial = object.catalogs.coordinates?.equatorial;
-    if (equatorial?.ra === undefined || equatorial?.dec === undefined) {
+    const coordinates = object.catalogs.coordinates;
+    if (coordinates === null || coordinates === undefined) {
       return [];
     }
 
     return [
       {
-        ra: equatorial.ra,
-        dec: equatorial.dec,
+        ra: coordinates.equatorial.ra,
+        dec: coordinates.equatorial.dec,
         label: object.catalogs.designation?.name || `PGC ${object.pgc}`,
         id: object.pgc,
       },
@@ -130,9 +130,12 @@ function resultTableColumns(): Column[] {
     { name: "", width: "fit" },
     {
       name: "PGC",
-      renderCell: (value: React.ReactElement | string | number) => (
-        <Link href={`/object/${value}`}>{value}</Link>
-      ),
+      renderCell: (value: React.ReactElement | string | number) =>
+        isNumericCell(value) ? (
+          <Link href={`/object/${value}`}>{value}</Link>
+        ) : (
+          value
+        ),
     },
     { name: "Name" },
     { name: "Type" },
@@ -155,9 +158,8 @@ function objectsToTableData(
   onLocate: (ra: number, dec: number) => void,
 ) {
   return objects.map((object) => {
-    const equatorial = object.catalogs.coordinates?.equatorial;
-    const hasCoords =
-      equatorial?.ra !== undefined && equatorial?.dec !== undefined;
+    const coordinates = object.catalogs.coordinates;
+    const hasCoords = coordinates !== undefined && coordinates !== null;
 
     return {
       "": hasCoords ? (
@@ -167,7 +169,7 @@ function objectsToTableData(
           hoverText="Locate"
           onClick={(event) => {
             event.stopPropagation();
-            onLocate(equatorial.ra, equatorial.dec);
+            onLocate(coordinates.equatorial.ra, coordinates.equatorial.dec);
           }}
         >
           <MdMyLocation className="w-4 h-4 text-muted" />
@@ -179,11 +181,11 @@ function objectsToTableData(
       Name: object.catalogs.designation?.name || "N/A",
       Type: object.catalogs.nature?.type_name || "N/A",
       Velocity:
-        object.catalogs.velocity?.heliocentric?.v !== undefined
+        object.catalogs.velocity?.heliocentric !== undefined
           ? `${object.catalogs.velocity.heliocentric.v.toFixed(0)} km/s`
           : "N/A",
-      RA: hasCoords ? equatorial.ra : "N/A",
-      Dec: hasCoords ? equatorial.dec : "N/A",
+      RA: hasCoords ? coordinates.equatorial.ra : "N/A",
+      Dec: hasCoords ? coordinates.equatorial.dec : "N/A",
     };
   });
 }
@@ -280,10 +282,9 @@ async function fetchSearchType(
     },
   });
 
-  if (response.error || !response.data) {
-    const err = response.error;
+  if (response.error) {
     throw new Error(
-      `Error during ${type.title} query: ${describeUnknownError(err)}`,
+      `Error during ${type.title} query: ${describeUnknownError(response.error)}`,
     );
   }
 

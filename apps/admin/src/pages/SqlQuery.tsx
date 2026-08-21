@@ -18,9 +18,6 @@ async function executeAdminSqlQuery(sql: string): Promise<TapSyncResponse> {
   if (response.error) {
     throw new Error(formatApiError(response.error));
   }
-  if (!response.data?.data) {
-    throw new Error("No data received from server");
-  }
   return response.data.data;
 }
 

@@ -23,6 +23,7 @@
     "@oxlint/plugins": "1.79.0",
     "oxlint": "1.79.0",
     "oxlint-plugin-anti-slop": "git+https://github.com/dmmulroy/anti-slop.git",
+    "oxlint-tsgolint": "7.0.2001",
     "prettier": "3.9.6"
   }
 }

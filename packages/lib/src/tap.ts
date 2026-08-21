@@ -23,6 +23,10 @@ interface ApiErrorPayload {
 export const DEFAULT_SQL_EXAMPLE =
   "SELECT * FROM layer2.designations WHERE pgc = 67872";
 
+export function formatCaughtError(cause: unknown): string {
+  return cause instanceof Error ? cause.message : String(cause);
+}
+
 export function describeUnknownError(
   error: string | ApiErrorPayload | ValidationError[] | null | undefined,
 ): string {
@@ -65,9 +69,6 @@ export async function executeSqlQuery(sql: string): Promise<TapSyncResponse> {
   if (response.error) {
     throw new Error(formatApiError(response.error));
   }
-  if (!response.data?.data) {
-    throw new Error("No data received from server");
-  }
   return response.data.data;
 }
 
@@ -93,7 +94,7 @@ export function syncPayloadToTable(payload: TapSyncResponse): TapTableData {
   const syncTable = payload.resource.table;
   const syncColumns = syncTable.columns;
   const columns: TapTableColumn[] = syncColumns.map((c) => ({ name: c.name }));
-  const rows = (syncTable.data ?? []).map((row) => {
+  const rows = syncTable.data.map((row) => {
     const out: Record<string, TapCellValue> = {};
     for (let i = 0; i < syncColumns.length; i++) {
       // SAFETY: TAP sync rows contain JSON scalar cell values.

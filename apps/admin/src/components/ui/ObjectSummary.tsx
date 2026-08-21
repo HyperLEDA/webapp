@@ -35,12 +35,12 @@ export function ObjectSummary({
   name: ReactNode;
   layout?: "rows" | "columnar";
 }): ReactElement {
-  const equatorial = catalogs?.coordinates?.equatorial;
-  const redshift = catalogs?.redshift;
-  const nature = catalogs?.nature;
-  const raUnit = schema.units.coordinates?.equatorial?.ra || "deg";
-  const eRaUnit = schema.units.coordinates?.equatorial?.e_ra || raUnit;
-  const eDecUnit = schema.units.coordinates?.equatorial?.e_dec || raUnit;
+  const equatorial = catalogs.coordinates?.equatorial;
+  const redshift = catalogs.redshift;
+  const nature = catalogs.nature;
+  const raUnit = schema.units.coordinates.equatorial.ra || "deg";
+  const eRaUnit = schema.units.coordinates.equatorial.e_ra || raUnit;
+  const eDecUnit = schema.units.coordinates.equatorial.e_dec || raUnit;
 
   const nameField = (
     <>

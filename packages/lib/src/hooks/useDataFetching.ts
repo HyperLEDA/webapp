@@ -25,7 +25,7 @@ export function useDataFetching<T>(
         const result = await fetcherRef.current();
         setData(result);
       } catch (err) {
-        setError(`${err}`);
+        setError(err instanceof Error ? err.message : String(err));
       } finally {
         setLoading(false);
       }
