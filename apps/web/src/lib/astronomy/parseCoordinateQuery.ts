@@ -383,6 +383,10 @@ function hoursMinutesSecondsToDegrees(
   return componentsToDegrees(hours, minutes, seconds) * 15;
 }
 
+function latitudeSign(sign: string | undefined): "+" | "-" {
+  return sign === "-" ? "-" : "+";
+}
+
 function degreesMinutesSecondsToDegrees(
   sign: "+" | "-",
   degrees: number,
@@ -427,10 +431,9 @@ function inspectSexagesimalHms(
   }
 
   const lat =
-    sign && deg !== undefined
+    deg !== undefined
       ? degreesMinutesSecondsToDegrees(
-          // SAFETY: The sexagesimal regex captures only "+" or "-" in this group.
-          sign as "+" | "-",
+          latitudeSign(sign),
           Number(deg),
           Number(arcmin ?? "0"),
           Number(arcsec ?? "0"),
@@ -453,7 +456,7 @@ function tryParseEquatorialCopyFormats(
     }
 
     const full =
-      /^(\d{1,2})h\s+(\d{1,2})m\s+(\d{1,2}(?:\.\d+)?)s\s+([+-])(\d{1,2})d\s+(\d{1,2})m\s+(\d{1,2}(?:\.\d+)?)"$/i.exec(
+      /^(\d{1,2})h\s+(\d{1,2})m\s+(\d{1,2}(?:\.\d+)?)s\s+([+-])?(\d{1,2})d\s+(\d{1,2})m\s+(\d{1,2}(?:\.\d+)?)"$/i.exec(
         trimmed,
       );
     if (full) {
@@ -470,7 +473,7 @@ function tryParseEquatorialCopyFormats(
     }
 
     const partial =
-      /^(\d{1,2})h(?:\s+(\d{1,2})(?:m(?:\s+(\d{1,2}(?:\.\d+)?)(?:s(?:\s+([+-])(?:(\d{1,2})(?:d(?:\s+(\d{1,2})(?:m(?:\s+(\d{1,2}(?:\.\d+)?)"?)?)?)?)?)?)?)?)?)?)?$/i.exec(
+      /^(\d{1,2})h(?:\s+(\d{1,2})(?:m(?:\s+(\d{1,2}(?:\.\d+)?)(?:s(?:\s+([+-])?(?:(\d{1,2})(?:d(?:\s+(\d{1,2})(?:m(?:\s+(\d{1,2}(?:\.\d+)?)"?)?)?)?)?)?)?)?)?)?)?$/i.exec(
         trimmed,
       );
     if (!partial) {
@@ -478,12 +481,7 @@ function tryParseEquatorialCopyFormats(
     }
 
     const complete = Boolean(
-      partial[2] &&
-      partial[3] &&
-      partial[4] &&
-      partial[5] &&
-      partial[6] &&
-      partial[7],
+      partial[2] && partial[3] && partial[5] && partial[6] && partial[7],
     );
 
     return inspectSexagesimalHms(
@@ -504,7 +502,7 @@ function tryParseEquatorialCopyFormats(
     }
 
     const full =
-      /^(\d{1,2}):(\d{2}):(\d{1,2}(?:\.\d+)?)\s+([+-])(\d{1,2}):(\d{2}):(\d{1,2}(?:\.\d+)?)$/.exec(
+      /^(\d{1,2}):(\d{2}):(\d{1,2}(?:\.\d+)?)\s+([+-])?(\d{1,2}):(\d{2}):(\d{1,2}(?:\.\d+)?)$/.exec(
         trimmed,
       );
     if (full) {
@@ -521,7 +519,7 @@ function tryParseEquatorialCopyFormats(
     }
 
     const partial =
-      /^(\d{1,2}):(\d{0,2})(?::(\d{0,2}(?:\.\d*)?)?(?:\s+([+-])(?:(\d{0,2})(?::(\d{0,2})(?::(\d{0,2}(?:\.\d*)?)?)?)?)?)?)?$/.exec(
+      /^(\d{1,2}):(\d{0,2})(?::(\d{0,2}(?:\.\d*)?)?(?:\s+([+-])?(?:(\d{0,2})(?::(\d{0,2})(?::(\d{0,2}(?:\.\d*)?)?)?)?)?)?)?$/.exec(
         trimmed,
       );
     if (!partial || partial[2] === "") {
@@ -535,12 +533,7 @@ function tryParseEquatorialCopyFormats(
         : undefined;
     const deg = partial[5] && partial[5].length > 0 ? partial[5] : undefined;
     const complete = Boolean(
-      minutes &&
-      seconds &&
-      partial[4] &&
-      deg &&
-      partial[6]?.length === 2 &&
-      partial[7],
+      minutes && seconds && deg && partial[6]?.length === 2 && partial[7],
     );
 
     return inspectSexagesimalHms(
@@ -556,7 +549,7 @@ function tryParseEquatorialCopyFormats(
   }
 
   const sexagesimalSpaceFull =
-    /^(\d{1,2})\s+(\d{1,2})\s+(\d{1,2}(?:\.\d+)?)\s+([+-])(\d{1,2})\s+(\d{1,2})\s+(\d{1,2}(?:\.\d+)?)$/.exec(
+    /^(\d{1,2})\s+(\d{1,2})\s+(\d{1,2}(?:\.\d+)?)\s+([+-])?(\d{1,2})\s+(\d{1,2})\s+(\d{1,2}(?:\.\d+)?)$/.exec(
       trimmed,
     );
   if (sexagesimalSpaceFull) {
@@ -573,7 +566,7 @@ function tryParseEquatorialCopyFormats(
   }
 
   const sexagesimalSpacePartial =
-    /^(\d{1,2})\s+(\d{1,2})\s+(\d{1,2}(?:\.\d+)?)(?:\s+([+-])(?:\s*(\d{1,2})(?:\s+(\d{1,2})(?:\s+(\d{1,2}(?:\.\d+)?))?)?)?)?$/.exec(
+    /^(\d{1,2})\s+(\d{1,2})\s+(\d{1,2}(?:\.\d+)?)(?:\s+([+-])?(?:\s*(\d{1,2})(?:\s+(\d{1,2})(?:\s+(\d{1,2}(?:\.\d+)?))?)?)?)?$/.exec(
       trimmed,
     );
   if (sexagesimalSpacePartial) {
@@ -594,10 +587,10 @@ function tryParseEquatorialCopyFormats(
       return null;
     }
 
-    const full = /^(\d+(?:\.\d+)?)d\s+([+-])(\d+(?:\.\d+)?)d$/i.exec(trimmed);
+    const full = /^(\d+(?:\.\d+)?)d\s+([+-])?(\d+(?:\.\d+)?)d$/i.exec(trimmed);
     if (full) {
       const lon = Number(full[1]);
-      const lat = Number(`${full[2]}${full[3]}`);
+      const lat = Number(`${latitudeSign(full[2])}${full[3]}`);
       if (Number.isFinite(lon) && Number.isFinite(lat)) {
         return equatorialInspect("valid", lon, lat);
       }
@@ -605,7 +598,7 @@ function tryParseEquatorialCopyFormats(
     }
 
     const partial =
-      /^(\d+(?:\.\d+)?)d(?:\s+([+-])(?:(\d+(?:\.\d+)?)d?)?)?$/i.exec(trimmed);
+      /^(\d+(?:\.\d+)?)d(?:\s+([+-])?(?:(\d+(?:\.\d+)?)d?)?)?$/i.exec(trimmed);
     if (!partial) {
       return null;
     }
@@ -615,8 +608,8 @@ function tryParseEquatorialCopyFormats(
       return null;
     }
 
-    if (partial[2] && partial[3]) {
-      const lat = Number(`${partial[2]}${partial[3]}`);
+    if (partial[3]) {
+      const lat = Number(`${latitudeSign(partial[2])}${partial[3]}`);
       if (Number.isFinite(lat)) {
         return equatorialInspect("partial", lon, lat);
       }
@@ -625,17 +618,23 @@ function tryParseEquatorialCopyFormats(
     return equatorialInspect("partial", lon, null);
   }
 
-  const decimalDegreesSpace = /^(\d+(?:\.\d+)?)\s+([+-])(\d+(?:\.\d+)?)?$/.exec(
-    trimmed,
-  );
+  const decimalDegreesSpace =
+    /^(\d+(?:\.\d+)?)\s+([+-])?(\d+(?:\.\d+)?)?$/.exec(trimmed);
   if (decimalDegreesSpace) {
-    const lon = Number(decimalDegreesSpace[1]);
+    const lonToken = decimalDegreesSpace[1];
+    const sign = decimalDegreesSpace[2];
+    const latToken = decimalDegreesSpace[3];
+    const lon = Number(lonToken);
     if (!Number.isFinite(lon)) {
       return null;
     }
 
-    if (decimalDegreesSpace[3]) {
-      const lat = Number(`${decimalDegreesSpace[2]}${decimalDegreesSpace[3]}`);
+    if (!sign && latToken && !lonToken.includes(".") && lon <= 24) {
+      return null;
+    }
+
+    if (latToken) {
+      const lat = Number(`${latitudeSign(sign)}${latToken}`);
       if (Number.isFinite(lat)) {
         return equatorialInspect("valid", lon, lat);
       }
@@ -655,6 +654,26 @@ type CoordinateInputParts = {
   secondToken: string;
   hasSeparator: boolean;
 };
+
+function splitUnsignedDeclination(
+  prefix: Prefix | null,
+  body: string,
+): { firstToken: string; secondToken: string } | null {
+  if (prefix === "G" || prefix === "S" || !/^\d+$/.test(body)) {
+    return null;
+  }
+
+  const length = body.length;
+  if (length <= 6) {
+    return null;
+  }
+
+  const firstLength = length === 8 ? 4 : 6;
+  return {
+    firstToken: body.slice(0, firstLength),
+    secondToken: body.slice(firstLength),
+  };
+}
 
 function splitInput(trimmed: string): CoordinateInputParts | null {
   if (!trimmed) {
@@ -692,6 +711,16 @@ function splitInput(trimmed: string): CoordinateInputParts | null {
 
   const sepIndex = body.search(/[+-]/);
   if (sepIndex === -1) {
+    const unsignedSplit = splitUnsignedDeclination(prefix, body);
+    if (unsignedSplit) {
+      return {
+        prefix,
+        firstToken: unsignedSplit.firstToken,
+        sign: "+",
+        secondToken: unsignedSplit.secondToken,
+        hasSeparator: true,
+      };
+    }
     return {
       prefix,
       firstToken: body,
