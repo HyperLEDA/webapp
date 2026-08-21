@@ -207,7 +207,16 @@
     "react/jsx-no-duplicate-props": "error",
     "react/no-unstable-nested-components": "error",
     "react/jsx-no-target-blank": "error",
-    "react/void-dom-elements-no-children": "error"
+    "react/void-dom-elements-no-children": "error",
+    "unicorn/error-message": "error",
+    "unicorn/no-abusive-eslint-disable": "error",
+    "unicorn/no-instanceof-builtins": "error",
+    "unicorn/no-invalid-remove-event-listener": "error",
+    "unicorn/no-thenable": "error",
+    "unicorn/no-useless-fallback-in-spread": "error",
+    "unicorn/no-useless-spread": "error",
+    "unicorn/prefer-node-protocol": "error",
+    "unicorn/throw-new-error": "error"
   },
   "overrides": [
     {
