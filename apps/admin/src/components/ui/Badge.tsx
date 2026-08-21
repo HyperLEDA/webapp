@@ -11,11 +11,11 @@ interface BadgeProps {
   type?: BadgeType;
 }
 
-const typeClasses: Record<BadgeType, string> = {
+const typeClasses = {
   info: "bg-surface-2 border-2 border-border text-primary",
   success: "bg-success/20 border-2 border-success/60 text-primary",
   warning: "bg-warning/20 border-2 border-warning/60 text-primary",
-};
+} satisfies Record<BadgeType, string>;
 
 export function Badge({
   children,

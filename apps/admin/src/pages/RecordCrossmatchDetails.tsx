@@ -34,6 +34,7 @@ import {
   ObjectSummary,
 } from "../components/ui";
 import { useDataFetching } from "@hyperleda/lib/hooks";
+import { describeUnknownError } from "@hyperleda/lib/tap";
 
 function convertAdminSchemaToBackendSchema(
   adminSchema: AdminSchema,
@@ -365,11 +366,10 @@ function ResolutionSelector({
   );
 }
 
-function OriginalData({
-  data,
-}: {
-  data: { [key: string]: unknown };
-}): ReactElement {
+type OriginalColumnValue = string | number | boolean | null;
+type OriginalDataFields = Record<string, OriginalColumnValue>;
+
+function OriginalData({ data }: { data: OriginalDataFields }): ReactElement {
   const columns: Column[] = [{ name: "Column" }, { name: "Value" }];
   const tableData: Record<string, CellPrimitive>[] = Object.entries(data).map(
     ([key, value]) => ({
@@ -423,9 +423,8 @@ function RecordCrossmatchDetails({
 
     if (response.error || !response.data?.data) {
       throw new Error(
-        typeof response.error === "object"
-          ? JSON.stringify(response.error)
-          : String(response.error || "Unknown error"),
+        describeUnknownError(response.error) ||
+          String(response.error || "Unknown error"),
       );
     }
 
@@ -495,6 +494,9 @@ function RecordCrossmatchDetails({
       await resolveCandidate(selected);
     }
   }
+
+  // SAFETY: Crossmatch original data is JSON scalar values keyed by column name.
+  const originalDataFields = originalData as OriginalDataFields | undefined;
 
   return (
     <div className="space-y-6 rounded-lg">
@@ -567,9 +569,9 @@ function RecordCrossmatchDetails({
         </p>
       )}
 
-      {originalData && (
+      {originalDataFields && (
         <Accordion title="Original Data">
-          <OriginalData data={originalData} />
+          <OriginalData data={originalDataFields} />
         </Accordion>
       )}
     </div>
@@ -592,7 +594,7 @@ async function fetcher(
 
   if (response.error || !response.data?.data) {
     throw new Error(
-      `Error fetching crossmatch details: ${typeof response.error === "object" ? JSON.stringify(response.error) : response.error || "Unknown error"}`,
+      `Error fetching crossmatch details: ${describeUnknownError(response.error) || "Unknown error"}`,
     );
   }
 

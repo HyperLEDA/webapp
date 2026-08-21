@@ -7,7 +7,6 @@ import type {
   TableListItem,
   TableProgress,
   TableStatus,
-  ValidationError,
 } from "../clients/admin";
 import { adminClient } from "../clients";
 import {
@@ -26,6 +25,7 @@ import {
   TextFilter,
 } from "../components/ui";
 import { useDataFetching } from "@hyperleda/lib/hooks";
+import { formatApiError } from "@hyperleda/lib/tap";
 import { getSourceLink } from "@hyperleda/lib/astronomy";
 
 const SEARCH_DEBOUNCE_MS = 300;
@@ -35,18 +35,19 @@ const TABLE_STATUS_OPTIONS: { value: TableStatus; label: string }[] = [
   { value: "archived", label: "Archived" },
 ];
 
+function isTableStatus(value: string): value is TableStatus {
+  return value === "initiated" || value === "archived";
+}
+
 function parseStatusesParam(param: string | null): TableStatus[] {
   if (!param) {
     return [];
   }
 
-  const validStatuses = new Set<TableStatus>(["initiated", "archived"]);
   return param
     .split(",")
     .map((value) => value.trim())
-    .filter((value): value is TableStatus =>
-      validStatuses.has(value as TableStatus),
-    );
+    .filter(isTableStatus);
 }
 
 function formatTableStatusLabel(status: TableStatus): string {
@@ -276,11 +277,7 @@ async function fetcher(
   });
 
   if (response.error) {
-    throw new Error(
-      (response.error as { detail?: ValidationError[] }).detail
-        ?.map((err: ValidationError) => err.msg)
-        .join(", ") || "Failed to fetch tables",
-    );
+    throw new Error(formatApiError(response.error) || "Failed to fetch tables");
   }
 
   if (!response.data) {

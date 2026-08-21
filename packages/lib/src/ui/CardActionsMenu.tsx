@@ -67,6 +67,7 @@ export function CardActionsMenu({
     function handlePointerDown(event: MouseEvent) {
       if (
         containerRef.current &&
+        // SAFETY: `contains` expects a DOM Node; event targets inside the document are Nodes.
         !containerRef.current.contains(event.target as Node)
       ) {
         setOpen(false);

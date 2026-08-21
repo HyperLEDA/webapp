@@ -22,6 +22,7 @@ interface PhotometricBandGroup {
   bands: PhotometricBandConstant[];
 }
 
+// SAFETY: `constants.json` is checked in at build time with this schema.
 const photometricBands = constants.photometricBands as Record<
   PhotometricMagsysGroup,
   PhotometricBandGroup

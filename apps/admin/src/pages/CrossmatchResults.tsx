@@ -101,6 +101,19 @@ interface CrossmatchResultsProps {
   loading?: boolean;
 }
 
+function isRecordIndex(value: CellPrimitive): value is number {
+  return Number.isFinite(value) && Number.isInteger(value);
+}
+
+function parseCrossmatchTriageStatus(
+  param: string,
+): CrossmatchTriageStatus | null {
+  if (param === "pending" || param === "resolved" || param === "unprocessed") {
+    return param;
+  }
+  return null;
+}
+
 function CrossmatchResults({
   data,
   loading,
@@ -113,17 +126,24 @@ function CrossmatchResults({
   function getCandidatePgcs(record: ApiRecord): number[] {
     const fromCandidates = record.crossmatch.candidates
       .map((candidate) => candidate.pgc)
-      .filter((pgc): pgc is number => typeof pgc === "number");
+      .filter(
+        (pgc): pgc is number => Number.isFinite(pgc) && Number.isInteger(pgc),
+      );
 
-    if (typeof record.pgc !== "number") {
+    const recordPgc = record.pgc;
+    if (
+      recordPgc === null ||
+      !Number.isFinite(recordPgc) ||
+      !Number.isInteger(recordPgc)
+    ) {
       return fromCandidates;
     }
 
-    if (fromCandidates.includes(record.pgc)) {
+    if (fromCandidates.includes(recordPgc)) {
       return fromCandidates;
     }
 
-    return [record.pgc, ...fromCandidates];
+    return [recordPgc, ...fromCandidates];
   }
 
   function renderCandidates(record: ApiRecord): ReactElement {
@@ -159,7 +179,7 @@ function CrossmatchResults({
     {
       name: "Record name",
       renderCell: (recordIndex: CellPrimitive) => {
-        if (typeof recordIndex === "number" && data?.records[recordIndex]) {
+        if (isRecordIndex(recordIndex) && data?.records[recordIndex]) {
           return getRecordName(data.records[recordIndex]);
         }
         return <span>NULL</span>;
@@ -169,7 +189,7 @@ function CrossmatchResults({
     {
       name: "Candidates",
       renderCell: (recordIndex: CellPrimitive) => {
-        if (typeof recordIndex === "number" && data?.records[recordIndex]) {
+        if (isRecordIndex(recordIndex) && data?.records[recordIndex]) {
           return renderCandidates(data.records[recordIndex]);
         }
         return <span>NULL</span>;
@@ -234,7 +254,7 @@ export function CrossmatchResultsPage(): ReactElement {
       ? "pending"
       : triageStatusParam === "all"
         ? null
-        : (triageStatusParam as CrossmatchTriageStatus);
+        : (parseCrossmatchTriageStatus(triageStatusParam) ?? "pending");
   const page = parseInt(searchParams.get("page") || "0");
   const pageSize = parseInt(searchParams.get("page_size") || "25");
 

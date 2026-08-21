@@ -31,6 +31,7 @@ export function MultiSelectFilter({
     function handlePointerDown(event: MouseEvent): void {
       if (
         containerRef.current &&
+        // SAFETY: `contains` expects a DOM Node; event targets inside the document are Nodes.
         !containerRef.current.contains(event.target as Node)
       ) {
         setOpen(false);

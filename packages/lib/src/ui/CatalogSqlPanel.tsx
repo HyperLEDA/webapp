@@ -10,7 +10,7 @@ import { SqlQueryEmbed } from "./SqlQueryEmbed";
 import { Text } from "./Text";
 
 function runQueryShortcutLabel(): string {
-  if (typeof navigator === "undefined") {
+  if (!("navigator" in globalThis)) {
     return "Ctrl+Enter";
   }
   return /Mac|iPod|iPhone|iPad/.test(navigator.platform) ? "⌘↵" : "Ctrl+Enter";

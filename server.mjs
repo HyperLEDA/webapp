@@ -13,13 +13,13 @@ function log(level, msg, fields = {}) {
 
 function headerValue(headers, name) {
   const value = headers[name];
-  if (typeof value === "string") {
-    return value;
+  if (value === undefined) {
+    return undefined;
   }
-  if (Array.isArray(value) && value.length > 0) {
-    return value[0];
+  if (Array.isArray(value)) {
+    return value.length > 0 ? value[0] : undefined;
   }
-  return undefined;
+  return value;
 }
 
 function normalizeIp(ip) {

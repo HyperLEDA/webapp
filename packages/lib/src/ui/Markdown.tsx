@@ -17,6 +17,7 @@ export function Markdown({ children }: { children: string }): ReactElement {
             );
           },
           p: ({ children: paragraphChildren }) => (
+            // SAFETY: ReactMarkdown always passes valid React children for paragraph nodes.
             <span>{paragraphChildren as ReactNode}</span>
           ),
         }}

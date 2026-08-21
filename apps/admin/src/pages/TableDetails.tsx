@@ -42,7 +42,7 @@ const DATA_TYPES: DataType[] = [
 
 const TABLE_STATUSES: TableStatus[] = ["initiated", "archived"];
 
-function asDataType(value: unknown): DataType {
+function asDataType(value: string): DataType {
   if (
     value === "regular" ||
     value === "reprocessing" ||
@@ -54,7 +54,7 @@ function asDataType(value: unknown): DataType {
   return "regular";
 }
 
-function asTableStatus(value: unknown): TableStatus {
+function asTableStatus(value: string): TableStatus {
   if (value === "initiated" || value === "archived") {
     return value;
   }
@@ -114,8 +114,12 @@ function renderTime(time: string): string {
   });
 }
 
+function isCellString(value: CellPrimitive): value is string {
+  return Object(value) !== value && !Number.isFinite(value);
+}
+
 function renderUCD(ucd: CellPrimitive): ReactElement {
-  if (!(typeof ucd === "string")) {
+  if (!isCellString(ucd)) {
     return <div></div>;
   }
 
@@ -230,7 +234,7 @@ function TableMeta(props: TableMetaProps): ReactElement {
   }
 
   async function commitDatatype(next: DataType): Promise<void> {
-    const current = asDataType(props.table.meta.datatype);
+    const current = asDataType(String(props.table.meta.datatype));
     if (next === current) {
       return;
     }
@@ -245,7 +249,7 @@ function TableMeta(props: TableMetaProps): ReactElement {
   }
 
   async function commitStatus(next: TableStatus): Promise<void> {
-    const current = asTableStatus(props.table.meta.status);
+    const current = asTableStatus(String(props.table.meta.status));
     if (next === current) {
       return;
     }
@@ -261,8 +265,8 @@ function TableMeta(props: TableMetaProps): ReactElement {
 
   const datatypeControl = canEdit ? (
     <select
-      value={asDataType(props.table.meta.datatype)}
-      onChange={(event) => void commitDatatype(event.target.value as DataType)}
+      value={asDataType(String(props.table.meta.datatype))}
+      onChange={(event) => void commitDatatype(asDataType(event.target.value))}
       disabled={savingField !== null}
       className="bg-surface-2 border border-border rounded px-2 py-1 text-primary max-w-xs"
     >
@@ -276,12 +280,12 @@ function TableMeta(props: TableMetaProps): ReactElement {
     String(props.table.meta.datatype)
   );
 
-  const tableStatus = asTableStatus(props.table.meta.status);
+  const tableStatus = asTableStatus(String(props.table.meta.status));
 
   const statusControl = canEdit ? (
     <select
       value={tableStatus}
-      onChange={(event) => void commitStatus(event.target.value as TableStatus)}
+      onChange={(event) => void commitStatus(asTableStatus(event.target.value))}
       disabled={savingField !== null}
       className="bg-surface-2 border border-border rounded px-2 py-1 text-primary max-w-xs"
     >
@@ -330,7 +334,7 @@ function TableMeta(props: TableMetaProps): ReactElement {
       <Field label="Type of data">{datatypeControl}</Field>
       <Field label="Status">{statusControl}</Field>
       <Field label="Modification time">
-        {renderTime(props.table.meta.modification_dt as string)}
+        {renderTime(String(props.table.meta.modification_dt))}
       </Field>
       {patchError ? (
         <>
@@ -522,7 +526,9 @@ function columnMatchesSearch(
   const fields = [col.name, col.description, col.ucd];
   return fields.some(
     (value) =>
-      typeof value === "string" && value.toLowerCase().includes(needle),
+      value !== null &&
+      value !== undefined &&
+      value.toLowerCase().includes(needle),
   );
 }
 

@@ -2,11 +2,20 @@ export function pad2(value: number): string {
   return String(value).padStart(2, "0");
 }
 
-export function decomposeRa(degrees: number): {
+export interface RaComponents {
   h: number;
   m: number;
   s: number;
-} {
+}
+
+export interface DecComponents {
+  sign: string;
+  d: number;
+  m: number;
+  s: number;
+}
+
+export function decomposeRa(degrees: number): RaComponents {
   const totalSeconds = degrees * 240;
   return {
     h: Math.floor(totalSeconds / 3600),
@@ -15,12 +24,7 @@ export function decomposeRa(degrees: number): {
   };
 }
 
-export function decomposeDec(degrees: number): {
-  sign: string;
-  d: number;
-  m: number;
-  s: number;
-} {
+export function decomposeDec(degrees: number): DecComponents {
   const sign = degrees < 0 ? "-" : "+";
   const absDec = Math.abs(degrees);
   const d = Math.floor(absDec);

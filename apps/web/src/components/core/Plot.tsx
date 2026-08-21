@@ -99,18 +99,34 @@ function yRangeWithErrors(
   };
 }
 
+interface PlotColors {
+  text: string;
+  subtle: string;
+  grid: string;
+  accent: string;
+}
+
+interface AxisStrokeOptions {
+  stroke: string;
+  font: string;
+  labelFont: string;
+  grid: uPlot.Axis.Grid;
+  ticks: uPlot.Axis.Ticks;
+  border: uPlot.Axis.Border;
+}
+
+interface PointTooltipPosition {
+  left: number;
+  top: number;
+}
+
 function readCssToken(name: string): string {
   return getComputedStyle(document.documentElement)
     .getPropertyValue(name)
     .trim();
 }
 
-function getPlotColors(): {
-  text: string;
-  subtle: string;
-  grid: string;
-  accent: string;
-} {
+function getPlotColors(): PlotColors {
   return {
     text: readCssToken("--token-primary"),
     subtle: readCssToken("--token-subtle"),
@@ -119,14 +135,7 @@ function getPlotColors(): {
   };
 }
 
-function axisStrokeOptions(colors: ReturnType<typeof getPlotColors>): {
-  stroke: string;
-  font: string;
-  labelFont: string;
-  grid: uPlot.Axis.Grid;
-  ticks: uPlot.Axis.Ticks;
-  border: uPlot.Axis.Border;
-} {
+function axisStrokeOptions(colors: PlotColors): AxisStrokeOptions {
   return {
     stroke: colors.text,
     font: AXIS_VALUE_FONT,
@@ -187,8 +196,10 @@ function getPointTooltipPosition(
   u: uPlot,
   wrapper: HTMLElement,
   index: number,
-): { left: number; top: number } {
+): PointTooltipPosition {
+  // SAFETY: `index` comes from uPlot data aligned with numeric series values.
   const xVal = u.data[0][index] as number;
+  // SAFETY: `index` comes from uPlot data aligned with numeric series values.
   const yVal = u.data[1][index] as number;
   const overRect = u.over.getBoundingClientRect();
   const wrapperRect = wrapper.getBoundingClientRect();
@@ -337,6 +348,12 @@ export function PlotView({
     const axisStyle = axisStrokeOptions(colors);
 
     const topPadding = vlines.length > 0 ? VLINE_TOP_PADDING : 0;
+    const yScale: uPlot.Scale = {
+      range: yRangeWithErrors(aligned.y, aligned.yErrors),
+    };
+    if (invertY) {
+      yScale.dir = -1;
+    }
 
     const options: uPlot.Options = {
       width: container.clientWidth || container.offsetWidth,
@@ -353,10 +370,7 @@ export function PlotView({
               }
             : { range: paddedXRange }),
         },
-        y: {
-          range: yRangeWithErrors(aligned.y, aligned.yErrors),
-          ...(invertY ? { dir: -1 } : {}),
-        },
+        y: yScale,
       },
       axes: [
         {

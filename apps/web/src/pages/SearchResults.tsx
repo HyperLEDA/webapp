@@ -26,6 +26,7 @@ import {
 } from "@hyperleda/lib/ui";
 import { Button } from "@hyperleda/lib/ui";
 import { backendClient } from "@hyperleda/lib/clients";
+import { describeUnknownError } from "@hyperleda/lib/tap";
 import {
   resolveEligibleSearchTypes,
   SearchType,
@@ -118,6 +119,12 @@ function skyViewForSources(sources: SkySource[]): SkyView | null {
   return { ra, dec, fov };
 }
 
+function isNumericCell(
+  value: React.ReactElement | string | number,
+): value is number {
+  return Number.isFinite(value);
+}
+
 function resultTableColumns(): Column[] {
   return [
     { name: "", width: "fit" },
@@ -133,12 +140,12 @@ function resultTableColumns(): Column[] {
     {
       name: "RA",
       renderCell: (value: React.ReactElement | string | number) =>
-        typeof value === "number" ? <RightAscension value={value} /> : value,
+        isNumericCell(value) ? <RightAscension value={value} /> : value,
     },
     {
       name: "Dec",
       renderCell: (value: React.ReactElement | string | number) =>
-        typeof value === "number" ? <Declination value={value} /> : value,
+        isNumericCell(value) ? <Declination value={value} /> : value,
     },
   ];
 }
@@ -276,7 +283,7 @@ async function fetchSearchType(
   if (response.error || !response.data) {
     const err = response.error;
     throw new Error(
-      `Error during ${type.title} query: ${typeof err === "object" ? JSON.stringify(err) : err}`,
+      `Error during ${type.title} query: ${describeUnknownError(err)}`,
     );
   }
 

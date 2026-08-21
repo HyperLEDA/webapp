@@ -5,17 +5,17 @@ export type TextStyle = "header" | "info";
 export type TextSize = "small" | "medium" | "large";
 export type TextType = "code" | "normal";
 
-const headerBySize: Record<TextSize, string> = {
+const headerBySize = {
   small: "text-sm font-medium text-primary leading-snug",
   medium: "text-2xl font-semibold text-primary leading-snug max-w-3xl",
   large: "text-3xl font-semibold text-primary leading-snug",
-};
+} satisfies Record<TextSize, string>;
 
-const infoBySize: Record<TextSize, string> = {
+const infoBySize = {
   small: "text-xs text-muted leading-snug",
   medium: "text-sm text-muted leading-relaxed",
   large: "text-lg text-subtle",
-};
+} satisfies Record<TextSize, string>;
 
 interface TextProps {
   style?: TextStyle;

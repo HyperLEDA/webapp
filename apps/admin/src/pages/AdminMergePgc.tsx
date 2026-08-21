@@ -4,6 +4,7 @@ import { querySimple } from "@hyperleda/lib/clients/backend";
 import { PgcObject, Schema } from "@hyperleda/lib/clients/backend";
 import { adminClient } from "../clients";
 import { backendClient } from "@hyperleda/lib/clients";
+import { describeUnknownError } from "@hyperleda/lib/tap";
 import { publicObjectUrl } from "../origins";
 import {
   AladinViewer,
@@ -89,9 +90,7 @@ async function fetchPgc(
 
   if (response.error || !response.data) {
     const err = response.error;
-    throw new Error(
-      `Error during query: ${typeof err === "object" ? JSON.stringify(err) : err}`,
-    );
+    throw new Error(`Error during query: ${describeUnknownError(err)}`);
   }
 
   const objects = response.data.data.objects;
@@ -120,9 +119,7 @@ async function fetchByName(
 
   if (response.error || !response.data) {
     const err = response.error;
-    throw new Error(
-      `Error during query: ${typeof err === "object" ? JSON.stringify(err) : err}`,
-    );
+    throw new Error(`Error during query: ${describeUnknownError(err)}`);
   }
 
   return {
@@ -428,9 +425,8 @@ export function AdminMergePgcPage(): ReactElement {
 
       if (response.error || !response.data?.data) {
         throw new Error(
-          typeof response.error === "object"
-            ? JSON.stringify(response.error)
-            : String(response.error || "Unknown error"),
+          describeUnknownError(response.error) ||
+            String(response.error || "Unknown error"),
         );
       }
 

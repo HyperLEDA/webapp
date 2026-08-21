@@ -36,7 +36,9 @@ export function Navbar() {
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       const clickedInside =
+        // SAFETY: `contains` expects a DOM Node; event targets inside the document are Nodes.
         infoPanelRef.current?.contains(e.target as Node) ||
+        // SAFETY: `contains` expects a DOM Node; event targets inside the document are Nodes.
         infoButtonRef.current?.contains(e.target as Node);
       if (!clickedInside) {
         setFooterOpen(false);
