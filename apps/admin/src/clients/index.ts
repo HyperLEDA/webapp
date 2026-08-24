@@ -1,22 +1,9 @@
+import { config } from "@leda/lib/config";
 import { createClient as createAdminClient } from "./admin/client";
 import { getAuthToken } from "../auth/token";
 
-function getAdminBaseUrl(): string {
-  if (import.meta.env.DEV) {
-    return "https://leda.kraysent.dev";
-  }
-
-  if (!window.__APP_CONFIG__) {
-    throw new Error(
-      "App configuration is required. Please set window.__APP_CONFIG__",
-    );
-  }
-
-  return window.__APP_CONFIG__.adminBaseUrl;
-}
-
 export const adminClient = createAdminClient({
-  baseUrl: getAdminBaseUrl(),
+  baseUrl: config.adminBaseUrl,
 });
 
 function addAuthHeader(request: Request): Request {

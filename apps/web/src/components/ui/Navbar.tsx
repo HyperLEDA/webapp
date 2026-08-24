@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MdCode, MdInfo, MdOpenInNew, MdSearch } from "react-icons/md";
-import { NavRail, NavButton, NavItem, ThemeSwitcher } from "@leda/lib/ui";
+import {
+  NavRail,
+  NavButton,
+  NavItem,
+  ThemeSwitcher,
+  BackendSwitcher,
+} from "@leda/lib/ui";
 import { Link } from "@leda/lib/ui";
 
 const navItems = [
@@ -61,6 +67,7 @@ export function Navbar() {
                 <MdOpenInNew size={20} />
               </NavButton>
             ) : null}
+            {import.meta.env.DEV ? <BackendSwitcher /> : null}
             <ThemeSwitcher />
             <NavButton
               ref={infoButtonRef}

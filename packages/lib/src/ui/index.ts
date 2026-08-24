@@ -13,6 +13,7 @@ export {
   EquatorialDecimalDegrees,
 } from "./Astronomy";
 export { ThemeSwitcher } from "./ThemeSwitcher";
+export { BackendSwitcher } from "./BackendSwitcher";
 export {
   ThemeProvider,
   useTheme,
