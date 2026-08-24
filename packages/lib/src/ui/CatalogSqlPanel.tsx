@@ -6,7 +6,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { useLocation } from "react-router-dom";
 import type {
   TapSchemaEntry,
   TapSyncResponse,
@@ -45,18 +44,20 @@ export function CatalogSqlPanel({
   const [validationError, setValidationError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const runShortcut = runQueryShortcutLabel();
-  const location = useLocation();
-  const didAutoRun = useRef(false);
+  const lastAutoRunKey = useRef<string | null>(null);
 
   const triggerRun = useCallback(
     (trimmed: string): void => {
+      lastAutoRunKey.current = trimmed;
       setValidationError(null);
       setExecutedSql(trimmed);
       setRunId((id) => id + 1);
       setLoading(true);
-      onQueryRun?.(trimmed);
+      if (permalinkRunKey?.trim() !== trimmed) {
+        onQueryRun?.(trimmed);
+      }
     },
-    [onQueryRun],
+    [onQueryRun, permalinkRunKey],
   );
 
   function runQuery(): void {
@@ -79,18 +80,17 @@ export function CatalogSqlPanel({
   }
 
   useEffect(() => {
-    didAutoRun.current = false;
-  }, [location.key]);
-
-  useEffect(() => {
-    if (!permalinkRunKey || didAutoRun.current) {
+    if (!permalinkRunKey) {
       return;
     }
-    if (sql.trim() !== permalinkRunKey.trim()) {
+    const trimmedPermalink = permalinkRunKey.trim();
+    if (sql.trim() !== trimmedPermalink) {
       return;
     }
-    didAutoRun.current = true;
-    triggerRun(sql.trim());
+    if (lastAutoRunKey.current === trimmedPermalink) {
+      return;
+    }
+    triggerRun(trimmedPermalink);
   }, [permalinkRunKey, sql, triggerRun]);
 
   return (
