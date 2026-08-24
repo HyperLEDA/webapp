@@ -8,6 +8,7 @@
     "./clients": "./src/clients/index.ts",
     "./clients/backend": "./src/clients/backend/index.ts",
     "./clients/backend/*": "./src/clients/backend/*",
+    "./config": "./src/config.ts",
     "./hooks": "./src/hooks/index.ts",
     "./origins": "./src/origins.ts",
     "./tap": "./src/tap.ts",

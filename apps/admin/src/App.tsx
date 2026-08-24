@@ -26,7 +26,7 @@ import {
   TableDetailsPage,
   TablesPage,
 } from "./pages";
-import { isLoggedIn, useIsLoggedIn } from "./auth";
+import { isLoggedIn, useIsLoggedIn, clearAuthToken } from "./auth";
 import { AuthNavControl } from "./components/AuthNavControl";
 import { sameEnvWebOrigin } from "@leda/lib/origins";
 import {
@@ -35,6 +35,7 @@ import {
   NavButton,
   NavItem,
   ThemeSwitcher,
+  BackendSwitcher,
 } from "@leda/lib/ui";
 
 const productionAdmin = "https://admin.leda.sao.ru";
@@ -94,6 +95,9 @@ function Layout() {
                 </NavButton>
               ) : null}
               <AuthNavControl />
+              {import.meta.env.DEV ? (
+                <BackendSwitcher onBeforeSwitch={clearAuthToken} />
+              ) : null}
               <ThemeSwitcher />
             </>
           }
