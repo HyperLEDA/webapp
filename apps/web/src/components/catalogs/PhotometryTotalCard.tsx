@@ -36,10 +36,11 @@ WHERE r.pgc = ${pgc}`;
 function formatPhotometryDetails(
   measurement: PhotometryTotalMeasurement,
 ): string {
+  const error = measurement.e_mag ?? null;
   const lines = [
     `Band: ${measurement.band}`,
     `λ: ${measurement.wavelength} Å`,
-    `mag: ${measurement.mag}${measurement.e_mag !== null ? ` ± ${measurement.e_mag}` : ""}`,
+    `mag: ${measurement.mag}${error === null ? "" : ` ± ${error}`}`,
     `Method: ${measurement.method}`,
   ];
 
@@ -66,7 +67,7 @@ export function PhotometryTotalCard({
   const sorted = [...measurements].sort((a, b) => a.wavelength - b.wavelength);
   const x = sorted.map((m) => m.wavelength);
   const y = sorted.map((m) => m.mag);
-  const yErrors = sorted.map((m) => m.e_mag);
+  const yErrors = sorted.map((m) => m.e_mag ?? null);
   const details = sorted.map(formatPhotometryDetails);
   const magsysGroup = magsysGroupFromMeasurements(sorted.map((m) => m.magsys));
   const plotProps = createPlot()

@@ -376,6 +376,9 @@ export function PlotView({
           },
         },
       ],
+      legend: {
+        show: false,
+      },
       cursor: {
         drag: { x: true, y: true, setScale: true },
       },
