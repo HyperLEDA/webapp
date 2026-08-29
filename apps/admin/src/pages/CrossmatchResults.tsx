@@ -177,7 +177,7 @@ function CrossmatchResults({
 
   const columns: Column[] = [
     {
-      name: "Record name",
+      slug: "Record name",
       renderCell: (recordIndex: CellPrimitive) => {
         if (isRecordIndex(recordIndex) && data?.records[recordIndex]) {
           return getRecordName(data.records[recordIndex]);
@@ -185,9 +185,9 @@ function CrossmatchResults({
         return <span>NULL</span>;
       },
     },
-    { name: "Manual check status" },
+    { slug: "Manual check status" },
     {
-      name: "Candidates",
+      slug: "Candidates",
       renderCell: (recordIndex: CellPrimitive) => {
         if (isRecordIndex(recordIndex) && data?.records[recordIndex]) {
           return renderCandidates(data.records[recordIndex]);

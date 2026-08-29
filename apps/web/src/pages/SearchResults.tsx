@@ -127,9 +127,9 @@ function isNumericCell(
 
 function resultTableColumns(): Column[] {
   return [
-    { name: "", width: "fit" },
+    { slug: "", width: "fit" },
     {
-      name: "PGC",
+      slug: "PGC",
       renderCell: (value: React.ReactElement | string | number) =>
         isNumericCell(value) ? (
           <Link href={`/object/${value}`}>{value}</Link>
@@ -137,16 +137,16 @@ function resultTableColumns(): Column[] {
           value
         ),
     },
-    { name: "Name" },
-    { name: "Type" },
-    { name: "Velocity" },
+    { slug: "Name" },
+    { slug: "Type" },
+    { slug: "Velocity" },
     {
-      name: "RA",
+      slug: "RA",
       renderCell: (value: React.ReactElement | string | number) =>
         isNumericCell(value) ? <RightAscension value={value} /> : value,
     },
     {
-      name: "Dec",
+      slug: "Dec",
       renderCell: (value: React.ReactElement | string | number) =>
         isNumericCell(value) ? <Declination value={value} /> : value,
     },

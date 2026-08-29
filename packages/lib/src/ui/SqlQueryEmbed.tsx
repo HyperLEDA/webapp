@@ -1,6 +1,11 @@
 import React, { ReactElement, ReactNode, useEffect, useState } from "react";
 import type { TapSyncResponse } from "@leda/lib/clients/backend";
-import { executeSqlQuery, formatCaughtError, syncPayloadToTable } from "../tap";
+import {
+  executeSqlQuery,
+  formatCaughtError,
+  syncPayloadToTable,
+  type TapTableColumn,
+} from "../tap";
 import { type CellPrimitive, type Column, CommonTable } from "./CommonTable";
 import { Loading } from "./Loading";
 import { Markdown } from "./Markdown";
@@ -13,9 +18,9 @@ function renderMarkdownCell(value: CellPrimitive): ReactNode {
   return <Markdown>{String(value)}</Markdown>;
 }
 
-function markdownColumns(columns: Column[]): Column[] {
+function markdownColumns(columns: TapTableColumn[]): Column[] {
   return columns.map((column) => ({
-    ...column,
+    slug: column.name,
     renderCell: renderMarkdownCell,
   }));
 }

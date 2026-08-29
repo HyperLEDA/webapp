@@ -147,10 +147,8 @@ export function ReddeningCalculatorPage(): ReactElement {
       <div>
         <h2 className="text-3xl font-bold mb-4">Reddening calculator</h2>
         <p className="text-sm text-muted">
-          Enter J2000 equatorial coordinates in any supported format (packed
-          J-prefix, sexagesimal, or decimal degrees). E(B-V) comes from the
-          Schlegel, Finkbeiner &amp; Davis (1998) map; Aλ uses Fitzpatrick
-          (1999) coefficients for the selected photometric system (Rv = 3.1).
+          Calculator for extinctions based on Schlegel, Finkbeiner &amp; Davis
+          (1998) map.
         </p>
       </div>
 
@@ -224,9 +222,40 @@ export function ReddeningCalculatorPage(): ReactElement {
           </div>
           <CommonTable
             columns={[
-              { name: "filter", width: "fit" },
-              { name: "wavelength", width: "fit" },
-              { name: "a", width: "fit" },
+              {
+                slug: "filter",
+                label: "Filter",
+                width: "fit",
+                hint: (
+                  <p>
+                    Common filter designation in the selected photometric
+                    system.
+                  </p>
+                ),
+              },
+              {
+                slug: "wavelength",
+                label: "λ_eff (Å)",
+                width: "fit",
+                hint: (
+                  <p>
+                    Throughput-weighted mean wavelength of the bandpass, in
+                    ångströms.
+                  </p>
+                ),
+              },
+              {
+                slug: "a",
+                label: "A_λ (mag)",
+                width: "fit",
+                hint: (
+                  <p>
+                    Galactic extinction in this band, in magnitudes. A_λ = a_EBV
+                    × E(B−V), using Fitzpatrick (1999) coefficients with R_V =
+                    3.1.
+                  </p>
+                ),
+              },
             ]}
             data={filterRows}
           />
