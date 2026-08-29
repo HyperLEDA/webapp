@@ -10,6 +10,7 @@ export interface PlotSeries {
   y: number[];
   yErrors?: (number | null)[];
   details?: string[];
+  color?: string;
 }
 
 export interface PlotVLine {
@@ -18,7 +19,7 @@ export interface PlotVLine {
 }
 
 export interface PlotViewProps {
-  series: PlotSeries;
+  series: PlotSeries[];
   xLabel: string;
   yLabel: string;
   invertY: boolean;
@@ -27,8 +28,21 @@ export interface PlotViewProps {
   className?: string;
 }
 
+interface AlignedSeries {
+  y: (number | null)[];
+  yErrors?: (number | null)[];
+  details?: (string | null)[];
+  color: string;
+}
+
+interface AlignedPlotData {
+  x: number[];
+  series: AlignedSeries[];
+}
+
 interface ActivePoint {
-  index: number;
+  seriesIdx: number;
+  xIdx: number;
   left: number;
   top: number;
 }
@@ -70,24 +84,28 @@ function logXRange(
   return uPlot.rangeLog(dataMin, dataMax, 10, true);
 }
 
-function yRangeWithErrors(
-  y: number[],
-  yErrors?: (number | null)[],
+function yRangeWithMultipleSeries(
+  aligned: AlignedPlotData,
 ): (_u: uPlot, dataMin: number, dataMax: number) => uPlot.Range.MinMax {
   return (_u, dataMin, dataMax) => {
     let min = dataMin;
     let max = dataMax;
 
-    if (yErrors) {
-      for (let i = 0; i < y.length; i++) {
-        const err = yErrors[i];
-        if (err === null || err <= 0) {
+    for (const series of aligned.series) {
+      for (let i = 0; i < series.y.length; i++) {
+        const yVal = series.y[i];
+        if (yVal === null) {
           continue;
         }
 
-        const yVal = y[i];
-        min = Math.min(min, yVal - err);
-        max = Math.max(max, yVal + err);
+        min = Math.min(min, yVal);
+        max = Math.max(max, yVal);
+
+        const err = series.yErrors?.[i];
+        if (err !== null && err !== undefined && err > 0) {
+          min = Math.min(min, yVal - err);
+          max = Math.max(max, yVal + err);
+        }
       }
     }
 
@@ -142,54 +160,113 @@ function axisStrokeOptions(colors: PlotColors): AxisStrokeOptions {
   };
 }
 
-function alignSeriesData(series: PlotSeries): PlotSeries {
-  const { x, y, yErrors, details } = series;
+function trimSeries(series: PlotSeries): PlotSeries {
+  const { x, y, yErrors, details, color } = series;
   const length = Math.min(x.length, y.length);
   return {
     x: x.slice(0, length),
     y: y.slice(0, length),
     yErrors: yErrors ? yErrors.slice(0, length) : undefined,
     details: details ? details.slice(0, length) : undefined,
+    color,
   };
 }
 
-function findNearestPointIndex(
-  u: uPlot,
-  mouseLeft: number,
-  mouseTop: number,
-): number | null {
-  const xData = u.data[0];
-  const yData = u.data[1];
-  let nearestIndex: number | null = null;
-  let nearestDistance = HIT_RADIUS;
+function alignMultipleSeries(
+  seriesList: PlotSeries[],
+  defaultColor: string,
+): AlignedPlotData {
+  const trimmed = seriesList.map(trimSeries).filter((s) => s.x.length > 0);
+  const allX = new Set<number>();
 
-  for (let i = 0; i < xData.length; i++) {
-    const xVal = xData[i];
-    // SAFETY: Plot series are built from numeric arrays without null entries.
-    const yVal = yData[i] as number;
-
-    const pointLeft = u.valToPos(xVal, "x");
-    const pointTop = u.valToPos(yVal, "y");
-    const distance = Math.hypot(pointLeft - mouseLeft, pointTop - mouseTop);
-
-    if (distance <= nearestDistance) {
-      nearestDistance = distance;
-      nearestIndex = i;
+  for (const series of trimmed) {
+    for (const xVal of series.x) {
+      allX.add(xVal);
     }
   }
 
-  return nearestIndex;
+  const x = [...allX].sort((a, b) => a - b);
+  const alignedSeries = trimmed.map((series) => {
+    const xToIndex = new Map(series.x.map((xVal, index) => [xVal, index]));
+
+    return {
+      y: x.map((xVal) => {
+        const index = xToIndex.get(xVal);
+        return index === undefined ? null : series.y[index];
+      }),
+      yErrors: series.yErrors
+        ? x.map((xVal) => {
+            const index = xToIndex.get(xVal);
+            if (index === undefined) {
+              return null;
+            }
+            return series.yErrors?.[index] ?? null;
+          })
+        : undefined,
+      details: series.details
+        ? x.map((xVal) => {
+            const index = xToIndex.get(xVal);
+            if (index === undefined) {
+              return null;
+            }
+            return series.details?.[index] ?? null;
+          })
+        : undefined,
+      color: series.color ?? defaultColor,
+    };
+  });
+
+  return { x, series: alignedSeries };
+}
+
+function findNearestPoint(
+  u: uPlot,
+  mouseLeft: number,
+  mouseTop: number,
+): { seriesIdx: number; xIdx: number } | null {
+  const xData = u.data[0];
+  let nearestSeriesIdx: number | null = null;
+  let nearestXIdx: number | null = null;
+  let nearestDistance = HIT_RADIUS;
+
+  for (let seriesIdx = 1; seriesIdx < u.data.length; seriesIdx++) {
+    const yData = u.data[seriesIdx];
+
+    for (let i = 0; i < xData.length; i++) {
+      const yVal = yData[i];
+      if (yVal === null || yVal === undefined) {
+        continue;
+      }
+
+      const xVal = xData[i];
+      const pointLeft = u.valToPos(xVal, "x");
+      const pointTop = u.valToPos(yVal, "y");
+      const distance = Math.hypot(pointLeft - mouseLeft, pointTop - mouseTop);
+
+      if (distance <= nearestDistance) {
+        nearestDistance = distance;
+        nearestSeriesIdx = seriesIdx - 1;
+        nearestXIdx = i;
+      }
+    }
+  }
+
+  if (nearestSeriesIdx === null || nearestXIdx === null) {
+    return null;
+  }
+
+  return { seriesIdx: nearestSeriesIdx, xIdx: nearestXIdx };
 }
 
 function getPointTooltipPosition(
   u: uPlot,
   wrapper: HTMLElement,
-  index: number,
+  uPlotSeriesIdx: number,
+  xIdx: number,
 ): PointTooltipPosition {
-  // SAFETY: `index` comes from uPlot data aligned with numeric series values.
-  const xVal = u.data[0][index];
-  // SAFETY: `index` comes from uPlot data aligned with numeric series values.
-  const yVal = u.data[1][index] as number;
+  const xVal = u.data[0][xIdx];
+  // SAFETY: Only called after hit-testing confirmed a non-null y value at this index.
+  const yVal = u.data[uPlotSeriesIdx][xIdx] as number;
   const overRect = u.over.getBoundingClientRect();
   const wrapperRect = wrapper.getBoundingClientRect();
 
@@ -205,27 +282,25 @@ function drawYErrorBars(
   yErrors: (number | null)[] | undefined,
   color: string,
 ): void {
-  if (seriesIdx !== 1 || !yErrors) {
+  if (seriesIdx < 1 || !yErrors) {
     return;
   }
 
   const { ctx } = u;
   const xData = u.data[0];
-  const yData = u.data[1];
+  const yData = u.data[seriesIdx];
 
   ctx.strokeStyle = color;
   ctx.lineWidth = 1.5;
 
   for (let i = 0; i < xData.length; i++) {
     const err = yErrors[i];
-    if (err === null || err <= 0) {
+    const yVal = yData[i];
+    if (err === null || err <= 0 || yVal === null || yVal === undefined) {
       continue;
     }
 
     const xVal = xData[i];
-    // SAFETY: Plot series are built from numeric arrays without null entries.
-    const yVal = yData[i] as number;
-
     const xPos = u.valToPos(xVal, "x", true);
     const yTop = u.valToPos(yVal + err, "y", true);
     const yBottom = u.valToPos(yVal - err, "y", true);
@@ -310,13 +385,16 @@ export function PlotView({
   const wrapperRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const plotRef = useRef<uPlot | null>(null);
-  const detailsRef = useRef(series.details);
+  const alignedRef = useRef<AlignedPlotData>({ x: [], series: [] });
   const { effectiveTheme } = useTheme();
   const [activePoint, setActivePoint] = useState<ActivePoint | null>(null);
 
-  const aligned = useMemo(() => alignSeriesData(series), [series]);
+  const aligned = useMemo(
+    () => alignMultipleSeries(series, getPlotColors().accent),
+    [series],
+  );
 
-  detailsRef.current = aligned.details;
+  alignedRef.current = aligned;
 
   useEffect(() => {
     const container = containerRef.current;
@@ -326,12 +404,15 @@ export function PlotView({
     }
 
     const colors = getPlotColors();
-    const data: uPlot.AlignedData = [aligned.x, aligned.y];
+    const data: uPlot.AlignedData = [
+      aligned.x,
+      ...aligned.series.map((s) => s.y),
+    ];
     const axisStyle = axisStrokeOptions(colors);
 
     const topPadding = vlines.length > 0 ? VLINE_TOP_PADDING : 0;
     const yScale: uPlot.Scale = {
-      range: yRangeWithErrors(aligned.y, aligned.yErrors),
+      range: yRangeWithMultipleSeries(aligned),
     };
     if (invertY) {
       yScale.dir = -1;
@@ -366,15 +447,15 @@ export function PlotView({
       ],
       series: [
         {},
-        {
+        ...aligned.series.map((s) => ({
           paths: () => null,
           points: {
             show: true,
             size: MARKER_SIZE,
-            stroke: colors.accent,
-            fill: colors.accent,
+            stroke: s.color,
+            fill: s.color,
           },
-        },
+        })),
       ],
       legend: {
         show: false,
@@ -392,7 +473,16 @@ export function PlotView({
         ],
         drawSeries: [
           (u, seriesIdx) => {
-            drawYErrorBars(u, seriesIdx, aligned.yErrors, colors.accent);
+            if (seriesIdx < 1) {
+              return;
+            }
+            const alignedSeries = alignedRef.current.series[seriesIdx - 1];
+            drawYErrorBars(
+              u,
+              seriesIdx,
+              alignedSeries.yErrors,
+              alignedSeries.color,
+            );
           },
         ],
       },
@@ -401,11 +491,11 @@ export function PlotView({
     plotRef.current = new uPlot(options, data, container);
 
     function handleMouseMove(event: MouseEvent): void {
-      const plotDetails = detailsRef.current;
+      const plotAligned = alignedRef.current;
       const u = plotRef.current;
       const plotWrapper = wrapperRef.current;
 
-      if (!plotDetails?.length || !u || !plotWrapper) {
+      if (!u || !plotWrapper) {
         setActivePoint(null);
         return;
       }
@@ -414,14 +504,25 @@ export function PlotView({
       const mouseLeft = event.clientX - overRect.left;
       const mouseTop = event.clientY - overRect.top;
 
-      const index = findNearestPointIndex(u, mouseLeft, mouseTop);
-      if (index === null || !plotDetails[index]) {
+      const hit = findNearestPoint(u, mouseLeft, mouseTop);
+      if (hit === null) {
         setActivePoint(null);
         return;
       }
 
-      const position = getPointTooltipPosition(u, plotWrapper, index);
-      setActivePoint({ index, ...position });
+      const details = plotAligned.series[hit.seriesIdx]?.details?.[hit.xIdx];
+      if (!details) {
+        setActivePoint(null);
+        return;
+      }
+
+      const position = getPointTooltipPosition(
+        u,
+        plotWrapper,
+        hit.seriesIdx + 1,
+        hit.xIdx,
+      );
+      setActivePoint({ seriesIdx: hit.seriesIdx, xIdx: hit.xIdx, ...position });
     }
 
     function handleMouseLeave(): void {
@@ -454,7 +555,9 @@ export function PlotView({
   }
 
   const activeDetails =
-    activePoint !== null ? aligned.details?.[activePoint.index] : undefined;
+    activePoint !== null
+      ? aligned.series[activePoint.seriesIdx]?.details?.[activePoint.xIdx]
+      : undefined;
 
   return (
     <div ref={wrapperRef} className={`relative ${className}`.trim()}>
@@ -491,7 +594,7 @@ export function PlotView({
 }
 
 export class PlotBuilder {
-  private series: PlotSeries[] = [];
+  private seriesList: PlotSeries[] = [];
   private vlinesList: PlotVLine[] = [];
   private invertYFlag = false;
   private logXFlag = false;
@@ -504,8 +607,9 @@ export class PlotBuilder {
     y: number[],
     yErrors?: (number | null)[],
     details?: string[],
+    color?: string,
   ): this {
-    this.series.push({ x, y, yErrors, details });
+    this.seriesList.push({ x, y, yErrors, details, color });
     return this;
   }
 
@@ -535,10 +639,8 @@ export class PlotBuilder {
   }
 
   toProps(className?: string): PlotViewProps {
-    const primary = this.series[0];
-
     return {
-      series: primary,
+      series: this.seriesList,
       xLabel: this.xLabelText,
       yLabel: this.yLabelText,
       invertY: this.invertYFlag,
@@ -551,4 +653,8 @@ export class PlotBuilder {
 
 export function createPlot(): PlotBuilder {
   return new PlotBuilder();
+}
+
+export function readPlotCssToken(name: string): string {
+  return readCssToken(name);
 }
