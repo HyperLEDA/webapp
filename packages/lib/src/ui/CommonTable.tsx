@@ -8,7 +8,8 @@ export type CellPrimitive = ReactElement | string | number;
 export type ColumnWidth = "auto" | "fit";
 
 export interface Column {
-  name: string;
+  slug: string;
+  label?: string;
   renderCell?: (value: CellPrimitive) => ReactNode;
   hint?: ReactElement;
   width?: ColumnWidth;
@@ -82,24 +83,27 @@ export function CommonTable({
           <table className="w-full border-collapse border border-border rounded-sm">
             <thead>
               <tr className="bg-surface-2">
-                {columns.map((column) => (
-                  <th
-                    key={column.name}
-                    className={classNames(
-                      "border border-border px-2 py-1 text-center font-semibold text-primary",
-                      columnHeaderClassName,
-                      columnWidthClassName(column.width),
-                    )}
-                  >
-                    {column.hint ? (
-                      <Hint hintContent={column.hint}>
-                        <span>{column.name}</span>
-                      </Hint>
-                    ) : (
-                      column.name
-                    )}
-                  </th>
-                ))}
+                {columns.map((column) => {
+                  const header = column.label ?? column.slug;
+                  return (
+                    <th
+                      key={column.slug}
+                      className={classNames(
+                        "border border-border px-2 py-1 text-center font-semibold text-primary",
+                        columnHeaderClassName,
+                        columnWidthClassName(column.width),
+                      )}
+                    >
+                      {column.hint ? (
+                        <Hint hintContent={column.hint}>
+                          <span>{header}</span>
+                        </Hint>
+                      ) : (
+                        header
+                      )}
+                    </th>
+                  );
+                })}
               </tr>
             </thead>
 
@@ -114,10 +118,10 @@ export function CommonTable({
                   onClick={() => onRowClick?.(row, rowIndex)}
                 >
                   {columns.map((column) => {
-                    const cellValue = row[column.name];
+                    const cellValue = row[column.slug];
                     return (
                       <td
-                        key={column.name}
+                        key={column.slug}
                         className={classNames(
                           "border border-border px-2 py-1",
                           cellClassName,

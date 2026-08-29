@@ -370,7 +370,7 @@ type OriginalColumnValue = string | number | boolean | null;
 type OriginalDataFields = Record<string, OriginalColumnValue>;
 
 function OriginalData({ data }: { data: OriginalDataFields }): ReactElement {
-  const columns: Column[] = [{ name: "Column" }, { name: "Value" }];
+  const columns: Column[] = [{ slug: "Column" }, { slug: "Value" }];
   const tableData: Record<string, CellPrimitive>[] = Object.entries(data).map(
     ([key, value]) => ({
       Column: key,

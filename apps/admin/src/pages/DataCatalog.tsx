@@ -232,7 +232,7 @@ function TableDetail({
       }));
 
   const columnDefs: Column[] = columnsForHints.map((c) => ({
-    name: c.name,
+    slug: c.name,
     hint: columnMetadataHint(c),
   }));
 

@@ -653,7 +653,7 @@ function ColumnInfo(props: ColumnInfoProps): ReactElement {
   const columns: Column[] = useMemo(
     () => [
       {
-        name: COLUMN_SELECT_KEY,
+        slug: COLUMN_SELECT_KEY,
         renderCell: (value: CellPrimitive) => {
           const columnName = String(value);
           return (
@@ -670,11 +670,11 @@ function ColumnInfo(props: ColumnInfoProps): ReactElement {
           );
         },
       },
-      { name: "Name", renderCell: renderColumnName },
-      { name: "Description" },
-      { name: "Unit" },
+      { slug: "Name", renderCell: renderColumnName },
+      { slug: "Description" },
+      { slug: "Unit" },
       {
-        name: "UCD",
+        slug: "UCD",
         hint: (
           <p>
             Unified Content Descriptor. Describes astronomical quantities in a

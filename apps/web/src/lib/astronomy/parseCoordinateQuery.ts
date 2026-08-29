@@ -821,7 +821,7 @@ export function parseCoordinateQuery(input: string): CoordinateQuery | null {
   return inspected.query;
 }
 
-export function formatCoordinateInspectHint(
+export function formatCoordinateInspectSummary(
   inspected: CoordinateInspect,
 ): string | null {
   if (inspected.status === "none") {
@@ -830,5 +830,15 @@ export function formatCoordinateInspectHint(
 
   const first = inspected.firstAxis.display ?? "—";
   const second = inspected.secondAxis.display ?? "—";
-  return `${inspected.systemLabel} · ${inspected.firstAxis.label} ${first} · ${inspected.secondAxis.label} ${second} · radius ${COORDINATE_SEARCH_RADIUS_ARCMIN}′`;
+  return `${inspected.systemLabel} · ${inspected.firstAxis.label} ${first} · ${inspected.secondAxis.label} ${second}`;
+}
+
+export function formatCoordinateInspectHint(
+  inspected: CoordinateInspect,
+): string | null {
+  const summary = formatCoordinateInspectSummary(inspected);
+  if (!summary) {
+    return null;
+  }
+  return `${summary} · radius ${COORDINATE_SEARCH_RADIUS_ARCMIN}′`;
 }

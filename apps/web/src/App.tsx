@@ -7,6 +7,8 @@ import { SearchResultsPage } from "./pages/SearchResults";
 import { ObjectDetailsPage } from "./pages/ObjectDetails";
 import { NotFoundPage } from "./pages/NotFound";
 import { SqlQueryPage } from "./pages/SqlQuery";
+import { CalculatorsPage } from "./pages/Calculators";
+import { ReddeningCalculatorPage } from "./pages/ReddeningCalculator";
 import { Navbar } from "./components/ui/Navbar";
 import { SearchBar } from "./components/ui/Searchbar";
 
@@ -55,6 +57,11 @@ function App() {
           />
           <Route path="/query" element={<SearchResultsPage />} />
           <Route path="/sql" element={<SqlQueryPage />} />
+          <Route path="/calculators" element={<CalculatorsPage />} />
+          <Route
+            path="/calculators/reddening"
+            element={<ReddeningCalculatorPage />}
+          />
           <Route
             path="/object/:pgcId"
             element={
