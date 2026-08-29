@@ -69,37 +69,8 @@ function seriesFromMeasurements(
     y: sorted.map((m) => m.mag),
     yErrors: sorted.map((m) => m.e_mag ?? null),
     details: sorted.map((m) => formatPhotometryDetails(m, label)),
+    label,
   };
-}
-
-function PhotometryLegend({
-  showCorrected,
-}: {
-  showCorrected: boolean;
-}): ReactElement {
-  const observedColor = readPlotCssToken("--token-accent");
-  const correctedColor = readPlotCssToken("--token-success");
-
-  return (
-    <div className="mb-2 flex flex-wrap items-center gap-4 text-sm text-muted">
-      <span className="inline-flex items-center gap-1.5">
-        <span
-          className="inline-block h-2.5 w-2.5 rounded-full"
-          style={{ backgroundColor: observedColor }}
-        />
-        Observed
-      </span>
-      {showCorrected && (
-        <span className="inline-flex items-center gap-1.5">
-          <span
-            className="inline-block h-2.5 w-2.5 rounded-full"
-            style={{ backgroundColor: correctedColor }}
-          />
-          Corrected
-        </span>
-      )}
-    </div>
-  );
 }
 
 export function PhotometryTotalCard({
@@ -132,7 +103,7 @@ export function PhotometryTotalCard({
     .logX();
 
   if (hasObserved) {
-    const { x, y, yErrors, details } = seriesFromMeasurements(
+    const { x, y, yErrors, details, label } = seriesFromMeasurements(
       observed,
       "Observed",
     );
@@ -142,11 +113,12 @@ export function PhotometryTotalCard({
       yErrors,
       details,
       readPlotCssToken("--token-accent"),
+      label,
     );
   }
 
   if (hasCorrected) {
-    const { x, y, yErrors, details } = seriesFromMeasurements(
+    const { x, y, yErrors, details, label } = seriesFromMeasurements(
       corrected,
       "Corrected",
     );
@@ -156,6 +128,7 @@ export function PhotometryTotalCard({
       yErrors,
       details,
       readPlotCssToken("--token-success"),
+      label,
     );
   }
 
@@ -169,14 +142,7 @@ export function PhotometryTotalCard({
       originalDataSql={hasData ? photometryTotalSqlQuery(pgc) : undefined}
       className={className}
     >
-      {hasData ? (
-        <>
-          <PhotometryLegend showCorrected={hasCorrected} />
-          <PlotView {...plotProps} />
-        </>
-      ) : (
-        <CatalogNoData />
-      )}
+      {hasData ? <PlotView {...plotProps} /> : <CatalogNoData />}
     </CatalogCard>
   );
 }

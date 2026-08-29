@@ -11,6 +11,7 @@ export interface PlotSeries {
   yErrors?: (number | null)[];
   details?: string[];
   color?: string;
+  label?: string;
 }
 
 export interface PlotVLine {
@@ -33,6 +34,7 @@ interface AlignedSeries {
   yErrors?: (number | null)[];
   details?: (string | null)[];
   color: string;
+  label?: string;
 }
 
 interface AlignedPlotData {
@@ -161,7 +163,7 @@ function axisStrokeOptions(colors: PlotColors): AxisStrokeOptions {
 }
 
 function trimSeries(series: PlotSeries): PlotSeries {
-  const { x, y, yErrors, details, color } = series;
+  const { x, y, yErrors, details, color, label } = series;
   const length = Math.min(x.length, y.length);
   return {
     x: x.slice(0, length),
@@ -169,6 +171,7 @@ function trimSeries(series: PlotSeries): PlotSeries {
     yErrors: yErrors ? yErrors.slice(0, length) : undefined,
     details: details ? details.slice(0, length) : undefined,
     color,
+    label,
   };
 }
 
@@ -213,6 +216,7 @@ function alignMultipleSeries(
           })
         : undefined,
       color: series.color ?? defaultColor,
+      label: series.label,
     };
   });
 
@@ -230,6 +234,10 @@ function findNearestPoint(
   let nearestDistance = HIT_RADIUS;
 
   for (let seriesIdx = 1; seriesIdx < u.data.length; seriesIdx++) {
+    if (u.series[seriesIdx].show === false) {
+      continue;
+    }
+
     const yData = u.data[seriesIdx];
 
     for (let i = 0; i < xData.length; i++) {
@@ -386,8 +394,10 @@ export function PlotView({
   const containerRef = useRef<HTMLDivElement>(null);
   const plotRef = useRef<uPlot | null>(null);
   const alignedRef = useRef<AlignedPlotData>({ x: [], series: [] });
+  const hiddenSeriesRef = useRef<boolean[]>([]);
   const { effectiveTheme } = useTheme();
   const [activePoint, setActivePoint] = useState<ActivePoint | null>(null);
+  const [hiddenSeries, setHiddenSeries] = useState<boolean[]>([]);
 
   const aligned = useMemo(
     () => alignMultipleSeries(series, getPlotColors().accent),
@@ -395,6 +405,17 @@ export function PlotView({
   );
 
   alignedRef.current = aligned;
+  hiddenSeriesRef.current = hiddenSeries;
+
+  useEffect(() => {
+    setHiddenSeries((prev) => {
+      const count = aligned.series.length;
+      if (prev.length === count) {
+        return prev;
+      }
+      return Array<boolean>(count).fill(false);
+    });
+  }, [aligned.series.length]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -473,7 +494,7 @@ export function PlotView({
         ],
         drawSeries: [
           (u, seriesIdx) => {
-            if (seriesIdx < 1) {
+            if (seriesIdx < 1 || u.series[seriesIdx].show === false) {
               return;
             }
             const alignedSeries = alignedRef.current.series[seriesIdx - 1];
@@ -489,6 +510,12 @@ export function PlotView({
     };
 
     plotRef.current = new uPlot(options, data, container);
+
+    for (let i = 0; i < hiddenSeriesRef.current.length; i++) {
+      if (hiddenSeriesRef.current[i]) {
+        plotRef.current.setSeries(i + 1, { show: false });
+      }
+    }
 
     function handleMouseMove(event: MouseEvent): void {
       const plotAligned = alignedRef.current;
@@ -559,8 +586,41 @@ export function PlotView({
       ? aligned.series[activePoint.seriesIdx]?.details?.[activePoint.xIdx]
       : undefined;
 
+  const hasLegend = aligned.series.some((s) => s.label);
+
+  function toggleSeriesVisibility(seriesIdx: number): void {
+    setHiddenSeries((prev) => {
+      const next = [...prev];
+      next[seriesIdx] = !next[seriesIdx];
+      plotRef.current?.setSeries(seriesIdx + 1, { show: !next[seriesIdx] });
+      return next;
+    });
+  }
+
   return (
     <div ref={wrapperRef} className={`relative ${className}`.trim()}>
+      {hasLegend && (
+        <div className="mb-2 flex flex-wrap items-center gap-4 text-sm text-muted">
+          {aligned.series.map((s, seriesIdx) =>
+            s.label ? (
+              <button
+                key={s.label}
+                type="button"
+                onClick={() => toggleSeriesVisibility(seriesIdx)}
+                className={`inline-flex items-center gap-1.5 transition-opacity hover:text-primary ${
+                  hiddenSeries[seriesIdx] ? "opacity-50 line-through" : ""
+                }`}
+              >
+                <span
+                  className="inline-block h-2.5 w-2.5 rounded-full"
+                  style={{ backgroundColor: s.color }}
+                />
+                {s.label}
+              </button>
+            ) : null,
+          )}
+        </div>
+      )}
       <div ref={containerRef} />
       <div className="absolute top-2 right-2 z-10">
         <AppTooltip
@@ -608,8 +668,9 @@ export class PlotBuilder {
     yErrors?: (number | null)[],
     details?: string[],
     color?: string,
+    label?: string,
   ): this {
-    this.seriesList.push({ x, y, yErrors, details, color });
+    this.seriesList.push({ x, y, yErrors, details, color, label });
     return this;
   }
 
