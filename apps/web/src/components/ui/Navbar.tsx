@@ -1,5 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { MdCode, MdInfo, MdOpenInNew, MdSearch } from "react-icons/md";
+import {
+  MdCalculate,
+  MdCode,
+  MdInfo,
+  MdOpenInNew,
+  MdSearch,
+} from "react-icons/md";
 import {
   NavRail,
   NavButton,
@@ -12,6 +18,12 @@ import { Link } from "@leda/lib/ui";
 const navItems = [
   { to: "/", icon: <MdSearch size={20} />, label: "Object search", end: true },
   { to: "/sql", icon: <MdCode size={20} />, label: "SQL", end: true },
+  {
+    to: "/calculators",
+    icon: <MdCalculate size={20} />,
+    label: "Calculators",
+    end: true,
+  },
 ];
 
 const configuredProductionWeb = "https://leda.sao.ru";
