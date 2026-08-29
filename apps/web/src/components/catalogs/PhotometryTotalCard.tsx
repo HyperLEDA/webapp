@@ -7,7 +7,7 @@ import {
   magsysGroupFromMeasurements,
   photometryFilterVlines,
 } from "../../lib/astronomy/photometryFilters";
-import { createPlot, PlotView } from "../core/Plot";
+import { createPlot, PlotView, readPlotCssToken } from "../core/Plot";
 import {
   bibcodeMarkdownSelect,
   CatalogCard,
@@ -35,9 +35,11 @@ WHERE r.pgc = ${pgc}`;
 
 function formatPhotometryDetails(
   measurement: PhotometryTotalMeasurement,
+  label: string,
 ): string {
   const error = measurement.e_mag ?? null;
   const lines = [
+    label,
     `Band: ${measurement.band}`,
     `λ: ${measurement.wavelength} Å`,
     `mag: ${measurement.mag}${error === null ? "" : ` ± ${error}`}`,
@@ -51,6 +53,26 @@ function formatPhotometryDetails(
   return lines.join("\n");
 }
 
+function sortMeasurements(
+  measurements: PhotometryTotalMeasurement[],
+): PhotometryTotalMeasurement[] {
+  return [...measurements].sort((a, b) => a.wavelength - b.wavelength);
+}
+
+function seriesFromMeasurements(
+  measurements: PhotometryTotalMeasurement[],
+  label: string,
+) {
+  const sorted = sortMeasurements(measurements);
+  return {
+    x: sorted.map((m) => m.wavelength),
+    y: sorted.map((m) => m.mag),
+    yErrors: sorted.map((m) => m.e_mag ?? null),
+    details: sorted.map((m) => formatPhotometryDetails(m, label)),
+    label,
+  };
+}
+
 export function PhotometryTotalCard({
   catalogs,
   pgc,
@@ -62,22 +84,55 @@ export function PhotometryTotalCard({
   anchorId?: string;
   className?: string;
 }): ReactElement {
-  const measurements = catalogs.photometry_total ?? [];
-  const hasData = measurements.length > 0;
-  const sorted = [...measurements].sort((a, b) => a.wavelength - b.wavelength);
-  const x = sorted.map((m) => m.wavelength);
-  const y = sorted.map((m) => m.mag);
-  const yErrors = sorted.map((m) => m.e_mag ?? null);
-  const details = sorted.map(formatPhotometryDetails);
-  const magsysGroup = magsysGroupFromMeasurements(sorted.map((m) => m.magsys));
-  const plotProps = createPlot()
-    .plot(x, y, yErrors, details)
+  const observed = catalogs.photometry_total ?? [];
+  const corrected = catalogs.photometry_total_corrected ?? [];
+  const hasObserved = observed.length > 0;
+  const hasCorrected = corrected.length > 0;
+  const hasData = hasObserved || hasCorrected;
+
+  const magsysSource = hasObserved ? observed : corrected;
+  const magsysGroup = magsysGroupFromMeasurements(
+    magsysSource.map((m) => m.magsys),
+  );
+
+  const plotBuilder = createPlot()
     .vlines(photometryFilterVlines(magsysGroup))
     .xlabel("λ (Å)")
     .ylabel("mag")
     .invertY()
-    .logX()
-    .toProps();
+    .logX();
+
+  if (hasObserved) {
+    const { x, y, yErrors, details, label } = seriesFromMeasurements(
+      observed,
+      "Observed",
+    );
+    plotBuilder.plot(
+      x,
+      y,
+      yErrors,
+      details,
+      readPlotCssToken("--token-accent"),
+      label,
+    );
+  }
+
+  if (hasCorrected) {
+    const { x, y, yErrors, details, label } = seriesFromMeasurements(
+      corrected,
+      "Corrected",
+    );
+    plotBuilder.plot(
+      x,
+      y,
+      yErrors,
+      details,
+      readPlotCssToken("--token-success"),
+      label,
+    );
+  }
+
+  const plotProps = plotBuilder.toProps();
 
   return (
     <CatalogCard
