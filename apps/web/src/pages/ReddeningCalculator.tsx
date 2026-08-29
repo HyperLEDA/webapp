@@ -8,35 +8,14 @@ import {
 import { backendClient } from "@leda/lib/clients";
 import { formatApiError, formatCaughtError } from "@leda/lib/tap";
 import { Button, CommonTable, Loading } from "@leda/lib/ui";
+import {
+  formatCoordinateInspectSummary,
+  inspectCoordinateQuery,
+  parseCoordinateQuery,
+} from "../lib/astronomy/parseCoordinateQuery";
 
 const inputClassName =
   "w-full bg-surface-2 border border-border rounded px-3 py-2 text-primary placeholder:text-muted";
-
-function parseCoordinate(value: string): number | null {
-  const trimmed = value.trim();
-  if (!trimmed) {
-    return null;
-  }
-  const num = Number(trimmed);
-  if (!Number.isFinite(num)) {
-    return null;
-  }
-  return num;
-}
-
-function validateRa(ra: number): string | null {
-  if (ra < 0 || ra >= 360) {
-    return "RA must be in [0, 360) degrees";
-  }
-  return null;
-}
-
-function validateDec(dec: number): string | null {
-  if (dec < -90 || dec > 90) {
-    return "Dec must be in [-90, 90] degrees";
-  }
-  return null;
-}
 
 function formatNumber(value: number): string {
   return value.toLocaleString(undefined, { maximumFractionDigits: 6 });
@@ -47,11 +26,14 @@ export function ReddeningCalculatorPage(): ReactElement {
   const [systemsLoading, setSystemsLoading] = useState(true);
   const [systemsError, setSystemsError] = useState<string | null>(null);
   const [photsys, setPhotsys] = useState("");
-  const [raInput, setRaInput] = useState("");
-  const [decInput, setDecInput] = useState("");
+  const [coordinatesInput, setCoordinatesInput] = useState("");
   const [calculating, setCalculating] = useState(false);
   const [calculateError, setCalculateError] = useState<string | null>(null);
   const [result, setResult] = useState<ReddeningAtPosition | null>(null);
+
+  const coordinateHint = formatCoordinateInspectSummary(
+    inspectCoordinateQuery(coordinatesInput),
+  );
 
   useEffect(() => {
     document.title = "Reddening calculator | LEDA";
@@ -108,23 +90,18 @@ export function ReddeningCalculatorPage(): ReactElement {
     event.preventDefault();
     setCalculateError(null);
 
-    const ra = parseCoordinate(raInput);
-    const dec = parseCoordinate(decInput);
-
-    if (ra === null || dec === null) {
-      setCalculateError("Enter valid numeric RA and Dec values in degrees.");
+    const coordinateQuery = parseCoordinateQuery(coordinatesInput);
+    if (!coordinateQuery) {
+      setCalculateError(
+        'Enter valid J2000 equatorial coordinates (e.g. J123049.42+122328.0, 12h 30m 49.42s +12d 23m 28.0", or 189.0866 +25.9875).',
+      );
       return;
     }
 
-    const raError = validateRa(ra);
-    if (raError) {
-      setCalculateError(raError);
-      return;
-    }
-
-    const decError = validateDec(dec);
-    if (decError) {
-      setCalculateError(decError);
+    if (coordinateQuery.system !== "j2000") {
+      setCalculateError(
+        "Reddening calculation requires J2000 equatorial coordinates.",
+      );
       return;
     }
 
@@ -132,6 +109,9 @@ export function ReddeningCalculatorPage(): ReactElement {
       setCalculateError("Select a photometric system.");
       return;
     }
+
+    const ra = coordinateQuery.lon;
+    const dec = coordinateQuery.lat;
 
     setCalculating(true);
 
@@ -167,10 +147,10 @@ export function ReddeningCalculatorPage(): ReactElement {
       <div>
         <h2 className="text-3xl font-bold mb-4">Reddening calculator</h2>
         <p className="text-sm text-muted">
-          Enter J2000 equatorial coordinates in decimal degrees. E(B-V) comes
-          from the Schlegel, Finkbeiner &amp; Davis (1998) map; Aλ uses
-          Fitzpatrick (1999) coefficients for the selected photometric system
-          (Rv = 3.1).
+          Enter J2000 equatorial coordinates in any supported format (packed
+          J-prefix, sexagesimal, or decimal degrees). E(B-V) comes from the
+          Schlegel, Finkbeiner &amp; Davis (1998) map; Aλ uses Fitzpatrick
+          (1999) coefficients for the selected photometric system (Rv = 3.1).
         </p>
       </div>
 
@@ -205,39 +185,23 @@ export function ReddeningCalculatorPage(): ReactElement {
             </select>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="ra" className="block mb-1 text-subtle">
-                RA (degrees, J2000)
-              </label>
-              <input
-                id="ra"
-                type="text"
-                inputMode="decimal"
-                required
-                value={raInput}
-                onChange={(event) => setRaInput(event.target.value)}
-                placeholder="187.6"
-                className={inputClassName}
-                disabled={calculating}
-              />
-            </div>
-            <div>
-              <label htmlFor="dec" className="block mb-1 text-subtle">
-                Dec (degrees, J2000)
-              </label>
-              <input
-                id="dec"
-                type="text"
-                inputMode="decimal"
-                required
-                value={decInput}
-                onChange={(event) => setDecInput(event.target.value)}
-                placeholder="15.26"
-                className={inputClassName}
-                disabled={calculating}
-              />
-            </div>
+          <div>
+            <label htmlFor="coordinates" className="block mb-1 text-subtle">
+              Coordinates (J2000)
+            </label>
+            <input
+              id="coordinates"
+              type="text"
+              required
+              value={coordinatesInput}
+              onChange={(event) => setCoordinatesInput(event.target.value)}
+              placeholder="189.0866 +25.9875"
+              className={inputClassName}
+              disabled={calculating}
+            />
+            {coordinateHint ? (
+              <p className="mt-1 text-sm text-muted">{coordinateHint}</p>
+            ) : null}
           </div>
 
           <Button type="submit" disabled={calculating}>
