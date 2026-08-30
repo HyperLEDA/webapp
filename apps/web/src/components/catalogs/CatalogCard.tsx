@@ -10,7 +10,7 @@ import {
   Field,
   SqlQueryEmbed,
 } from "@leda/lib/ui";
-import { getSourceLink, originalDataCatalogLink } from "@leda/lib/astronomy";
+import { getSourceLink, sqlQueryLink } from "@leda/lib/astronomy";
 
 export type { CardAction as CatalogCardAction };
 export { Field, getSourceLink };
@@ -89,14 +89,12 @@ export function CatalogCard({
             <div className="mt-3 flex flex-col gap-3 border-t border-border pt-3">
               <SqlQueryEmbed key={originalDataSql} sql={originalDataSql} />
               <div className="flex justify-end">
-                <AppTooltip content="Open in data catalog">
+                <AppTooltip content="Open in SQL">
                   <Button
                     type="button"
                     className="!p-1.5 cursor-pointer"
-                    onClick={() =>
-                      navigate(originalDataCatalogLink(originalDataSql))
-                    }
-                    hoverText="Open in data catalog"
+                    onClick={() => navigate(sqlQueryLink(originalDataSql))}
+                    hoverText="Open in SQL"
                   >
                     <MdCode className="size-5 text-muted" aria-hidden />
                   </Button>

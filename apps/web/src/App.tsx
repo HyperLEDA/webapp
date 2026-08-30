@@ -80,12 +80,6 @@ function App() {
             path="/records/:recordId/crossmatch"
             element={<RedirectToAdminPage />}
           />
-          <Route path="/data-catalog" element={<RedirectToAdminPage />} />
-          <Route path="/data-catalog/query" element={<RedirectToAdminPage />} />
-          <Route
-            path="/data-catalog/:schemaName/:tableName"
-            element={<RedirectToAdminPage />}
-          />
           <Route
             path="*"
             element={
