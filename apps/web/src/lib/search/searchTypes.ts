@@ -101,8 +101,8 @@ const coordinatesSearchType: SearchType = {
 
 export const SEARCH_TYPES: SearchType[] = [
   pgcSearchType,
-  designationSearchType,
   coordinatesSearchType,
+  designationSearchType,
 ];
 
 export function resolveEligibleSearchTypes(query: string): SearchType[] {

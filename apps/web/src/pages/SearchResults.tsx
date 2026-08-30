@@ -10,13 +10,10 @@ import {
   CommonTable,
   Column,
   ErrorPage,
-  ErrorPageHomeButton,
   Loading,
   Pagination,
 } from "@leda/lib/ui";
-import { useDataFetching } from "@leda/lib/hooks";
-import { querySimple } from "@leda/lib/clients/backend";
-import { PgcObject, QuerySimpleResponse } from "@leda/lib/clients/backend";
+import { PgcObject } from "@leda/lib/clients/backend";
 import {
   AladinViewer,
   Declination,
@@ -25,12 +22,10 @@ import {
   type AladinViewerHandle,
 } from "@leda/lib/ui";
 import { Button } from "@leda/lib/ui";
-import { backendClient } from "@leda/lib/clients";
-import { describeUnknownError } from "@leda/lib/tap";
 import {
-  resolveEligibleSearchTypes,
-  SearchType,
-} from "../lib/search/searchTypes";
+  SearchSectionState,
+  useMultiSearch,
+} from "../lib/search/useMultiSearch";
 
 const MIN_ALADIN_FOV_DEG = 0.05;
 const ALADIN_FOV_PADDING = 1.4;
@@ -63,16 +58,6 @@ type SkyView = {
   ra: number;
   dec: number;
   fov: number;
-};
-
-type SearchSection = {
-  id: string;
-  title: string;
-  results: QuerySimpleResponse;
-};
-
-type MultiSearchResults = {
-  sections: SearchSection[];
 };
 
 function objectsToSkySources(objects: PgcObject[]): SkySource[] {
@@ -190,8 +175,54 @@ function objectsToTableData(
   });
 }
 
+interface SearchSectionContentProps {
+  section: SearchSectionState;
+  columns: Column[];
+  page: number;
+  pageSize: number;
+  onLocate: (ra: number, dec: number) => void;
+  onPageChange: (newPage: number) => void;
+}
+
+function SearchSectionContent({
+  section,
+  columns,
+  page,
+  pageSize,
+  onLocate,
+  onPageChange,
+}: SearchSectionContentProps): ReactElement {
+  if (section.status === "loading") {
+    return <Loading className="py-4" />;
+  }
+
+  if (section.status === "empty") {
+    return <p className="text-subtle">No objects found for this search.</p>;
+  }
+
+  if (section.status === "error") {
+    return <p className="text-error">{section.message}</p>;
+  }
+
+  return (
+    <>
+      <CommonTable
+        columns={columns}
+        data={objectsToTableData(section.results.objects, onLocate)}
+        className="w-full"
+      />
+      <Pagination
+        page={page}
+        pageSize={pageSize}
+        records={section.results.objects}
+        handlePageChange={onPageChange}
+      />
+    </>
+  );
+}
+
 interface SearchResultsProps {
-  sections: SearchSection[];
+  sections: SearchSectionState[];
   query: string;
   page: number;
   pageSize: number;
@@ -208,8 +239,10 @@ function SearchResults({
   const columns = resultTableColumns();
   const aladinRef = useRef<AladinViewerHandle>(null);
 
-  const allObjects = sections.flatMap((section) => section.results.objects);
-  const skySources = objectsToSkySources(allObjects);
+  const loadedObjects = sections.flatMap((section) =>
+    section.status === "success" ? section.results.objects : [],
+  );
+  const skySources = objectsToSkySources(loadedObjects);
   const skyView = skyViewForSources(skySources);
 
   function handlePageChange(newPage: number): void {
@@ -218,18 +251,6 @@ function SearchResults({
 
   function handleLocate(ra: number, dec: number): void {
     aladinRef.current?.locate(ra, dec, MIN_ALADIN_FOV_DEG);
-  }
-
-  if (sections.length === 0) {
-    return (
-      <ErrorPage
-        title="No Results Found"
-        message={`No results found for "${query}"`}
-        className="p-4"
-      >
-        <ErrorPageHomeButton onClick={() => navigate("/")} />
-      </ErrorPage>
-    );
   }
 
   return (
@@ -250,16 +271,13 @@ function SearchResults({
       {sections.map((section) => (
         <section key={section.id} className="space-y-3">
           <h2 className="text-xl font-semibold">{section.title}</h2>
-          <CommonTable
+          <SearchSectionContent
+            section={section}
             columns={columns}
-            data={objectsToTableData(section.results.objects, handleLocate)}
-            className="w-full"
-          />
-          <Pagination
             page={page}
             pageSize={pageSize}
-            records={section.results.objects}
-            handlePageChange={handlePageChange}
+            onLocate={handleLocate}
+            onPageChange={handlePageChange}
           />
         </section>
       ))}
@@ -267,70 +285,9 @@ function SearchResults({
   );
 }
 
-async function fetchSearchType(
-  type: SearchType,
-  query: string,
-  page: number,
-  pageSize: number,
-): Promise<SearchSection | null> {
-  const response = await querySimple({
-    client: backendClient,
-    query: {
-      ...type.toQueryParams(query.trim()),
-      page,
-      page_size: pageSize,
-    },
-  });
-
-  if (response.error) {
-    throw new Error(
-      `Error during ${type.title} query: ${describeUnknownError(response.error)}`,
-    );
-  }
-
-  const results = response.data.data;
-  if (results.objects.length === 0) {
-    return null;
-  }
-
-  return {
-    id: type.id,
-    title: type.title,
-    results,
-  };
-}
-
-async function fetcher(
-  query: string,
-  page: number,
-  pageSize: number,
-): Promise<MultiSearchResults> {
-  if (!query.trim()) {
-    throw new Error("Empty query");
-  }
-
-  const eligibleTypes = resolveEligibleSearchTypes(query);
-  if (eligibleTypes.length === 0) {
-    throw new Error(`No search types matched query ${query}`);
-  }
-
-  const sections = (
-    await Promise.all(
-      eligibleTypes.map((type) => fetchSearchType(type, query, page, pageSize)),
-    )
-  ).filter((section): section is SearchSection => section !== null);
-
-  if (sections.length === 0) {
-    throw new Error(`No objects found for query ${query}`);
-  }
-
-  return { sections };
-}
-
 interface SearchPageContentProps {
-  results: MultiSearchResults | null;
-  loading: boolean;
-  error: string | null;
+  sections: SearchSectionState[];
+  pageError: string | null;
   query: string;
   page: number;
   pageSize: number;
@@ -338,29 +295,26 @@ interface SearchPageContentProps {
 }
 
 function SearchPageContent({
-  results,
-  loading,
-  error,
+  sections,
+  pageError,
   query,
   page,
   pageSize,
   navigate,
 }: SearchPageContentProps): ReactElement {
-  if (loading) return <Loading />;
-  if (error) return <ErrorPage message={error} />;
-  if (results) {
-    return (
-      <SearchResults
-        sections={results.sections}
-        query={query}
-        page={page}
-        pageSize={pageSize}
-        navigate={navigate}
-      />
-    );
+  if (pageError) {
+    return <ErrorPage message={pageError} />;
   }
 
-  return <ErrorPage message="Unknown error" />;
+  return (
+    <SearchResults
+      sections={sections}
+      query={query}
+      page={page}
+      pageSize={pageSize}
+      navigate={navigate}
+    />
+  );
 }
 
 export function SearchResultsPage(): ReactElement {
@@ -374,14 +328,7 @@ export function SearchResultsPage(): ReactElement {
     document.title = `${query} | LEDA`;
   }, [query]);
 
-  const {
-    data: results,
-    loading,
-    error,
-  } = useDataFetching(
-    () => fetcher(query, page, pageSize),
-    [query, page, pageSize],
-  );
+  const { sections, pageError } = useMultiSearch(query, page, pageSize);
 
   return (
     <>
@@ -391,9 +338,8 @@ export function SearchResultsPage(): ReactElement {
         logoSize="small"
       />
       <SearchPageContent
-        results={results}
-        loading={loading}
-        error={error}
+        sections={sections}
+        pageError={pageError}
         query={query}
         page={page}
         pageSize={pageSize}
