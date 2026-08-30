@@ -9,7 +9,6 @@ import {
 } from "react-router-dom";
 import {
   MdAdminPanelSettings,
-  MdAccountTree,
   MdCode,
   MdOpenInNew,
   MdPublic,
@@ -19,7 +18,6 @@ import {
   AdminMergePgcPage,
   AdminPage,
   CrossmatchResultsPage,
-  DataCatalogPage,
   LoginPage,
   RecordCrossmatchDetailsPage,
   SqlQueryPage,
@@ -107,9 +105,6 @@ function Layout() {
               <NavItem to="/tables" label="Tables">
                 <MdTableChart size={20} />
               </NavItem>
-              <NavItem to="/data-catalog" label="Data catalog">
-                <MdAccountTree size={20} />
-              </NavItem>
               <NavItem to="/sql" label="SQL">
                 <MdCode size={20} />
               </NavItem>
@@ -138,12 +133,6 @@ function App() {
             <Route path="/merge-pgc" element={<AdminMergePgcPage />} />
             <Route path="/tables" element={<TablesPage />} />
             <Route path="/sql" element={<SqlQueryPage />} />
-            <Route path="/data-catalog" element={<DataCatalogPage />} />
-            <Route path="/data-catalog/query" element={<DataCatalogPage />} />
-            <Route
-              path="/data-catalog/:schemaName/:tableName"
-              element={<DataCatalogPage />}
-            />
             <Route path="/table/:tableName" element={<TableDetailsPage />} />
             <Route path="/crossmatch" element={<CrossmatchResultsPage />} />
             <Route

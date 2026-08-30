@@ -31,7 +31,7 @@ import {
   TextFilter,
 } from "../components/ui";
 import { useDataFetching } from "@leda/lib/hooks";
-import { originalDataCatalogLink } from "@leda/lib/astronomy";
+import { sqlQueryLink } from "@leda/lib/astronomy";
 import { formatCaughtError } from "@leda/lib/tap";
 
 const DATA_TYPES: DataType[] = [
@@ -639,7 +639,7 @@ function ColumnInfo(props: ColumnInfoProps): ReactElement {
       title: "View table data",
       onClick: () => {
         void navigate(
-          originalDataCatalogLink(
+          sqlQueryLink(
             selectAllColumnsFromRawdataTable(
               props.tableName,
               selectedColumnInfo,

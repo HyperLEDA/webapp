@@ -106,10 +106,6 @@ export function syncPayloadToTable(payload: TapSyncResponse): TapTableData {
   return { columns, rows };
 }
 
-export function defaultSelectForTable(tableName: string, limit = 25): string {
-  return `SELECT * FROM ${tableName} LIMIT ${limit}`;
-}
-
 export function parseSqlPermalink(raw: string): string {
   const trimmed = raw.trim();
   if (
