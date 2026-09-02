@@ -158,7 +158,6 @@ function renderMetadataDisplay(
 interface TableMetaProps {
   tableName: string;
   table: GetTableResponse;
-  onAfterPatch: () => void;
   className?: string;
 }
 
@@ -169,6 +168,17 @@ function TableMeta(props: TableMetaProps): ReactElement {
     "name" | "description" | "datatype" | "status" | null
   >(null);
   const [patchError, setPatchError] = useState<string | null>(null);
+  const [datatype, setDatatype] = useState(() =>
+    asDataType(String(props.table.meta.datatype)),
+  );
+  const [status, setStatus] = useState(() =>
+    asTableStatus(String(props.table.meta.status)),
+  );
+
+  useEffect(() => {
+    setDatatype(asDataType(String(props.table.meta.datatype)));
+    setStatus(asTableStatus(String(props.table.meta.status)));
+  }, [props.table.meta.datatype, props.table.meta.status]);
 
   async function runTablePatch(
     field: "name" | "description" | "datatype" | "status",
@@ -179,7 +189,7 @@ function TableMeta(props: TableMetaProps): ReactElement {
       datatype?: DataType;
       status?: TableStatus;
     },
-    onSuccess: () => void,
+    onSuccess?: () => void,
   ): Promise<void> {
     setPatchError(null);
     setSavingField(field);
@@ -191,7 +201,7 @@ function TableMeta(props: TableMetaProps): ReactElement {
       if (response.error) {
         throw new Error(JSON.stringify(response.error));
       }
-      onSuccess();
+      onSuccess?.();
     } catch (err) {
       setPatchError(formatCaughtError(err));
       throw err;
@@ -217,19 +227,14 @@ function TableMeta(props: TableMetaProps): ReactElement {
   }
 
   async function commitDescription(trimmed: string): Promise<void> {
-    await runTablePatch(
-      "description",
-      {
-        table_name: props.tableName,
-        description: trimmed,
-      },
-      () => props.onAfterPatch(),
-    );
+    await runTablePatch("description", {
+      table_name: props.tableName,
+      description: trimmed,
+    });
   }
 
   async function commitDatatype(next: DataType): Promise<void> {
-    const current = asDataType(String(props.table.meta.datatype));
-    if (next === current) {
+    if (next === datatype) {
       return;
     }
     await runTablePatch(
@@ -238,13 +243,12 @@ function TableMeta(props: TableMetaProps): ReactElement {
         table_name: props.tableName,
         datatype: next,
       },
-      () => props.onAfterPatch(),
+      () => setDatatype(next),
     );
   }
 
   async function commitStatus(next: TableStatus): Promise<void> {
-    const current = asTableStatus(String(props.table.meta.status));
-    if (next === current) {
+    if (next === status) {
       return;
     }
     await runTablePatch(
@@ -253,13 +257,13 @@ function TableMeta(props: TableMetaProps): ReactElement {
         table_name: props.tableName,
         status: next,
       },
-      () => props.onAfterPatch(),
+      () => setStatus(next),
     );
   }
 
   const datatypeControl = canEdit ? (
     <select
-      value={asDataType(String(props.table.meta.datatype))}
+      value={datatype}
       onChange={(event) => void commitDatatype(asDataType(event.target.value))}
       disabled={savingField !== null}
       className="bg-surface-2 border border-border rounded px-2 py-1 text-primary max-w-xs"
@@ -271,14 +275,12 @@ function TableMeta(props: TableMetaProps): ReactElement {
       ))}
     </select>
   ) : (
-    String(props.table.meta.datatype)
+    datatype.charAt(0).toUpperCase() + datatype.slice(1)
   );
-
-  const tableStatus = asTableStatus(String(props.table.meta.status));
 
   const statusControl = canEdit ? (
     <select
-      value={tableStatus}
+      value={status}
       onChange={(event) => void commitStatus(asTableStatus(event.target.value))}
       disabled={savingField !== null}
       className="bg-surface-2 border border-border rounded px-2 py-1 text-primary max-w-xs"
@@ -290,7 +292,7 @@ function TableMeta(props: TableMetaProps): ReactElement {
       ))}
     </select>
   ) : (
-    tableStatus.charAt(0).toUpperCase() + tableStatus.slice(1)
+    status.charAt(0).toUpperCase() + status.slice(1)
   );
 
   return (
@@ -498,7 +500,6 @@ function CatalogProgressCard({
 interface ColumnInfoProps {
   tableName: string;
   table: GetTableResponse;
-  onAfterPatch: () => void;
 }
 
 const COLUMN_SELECT_KEY = "";
@@ -579,7 +580,6 @@ function ColumnInfo(props: ColumnInfoProps): ReactElement {
       if (response.error) {
         throw new Error(JSON.stringify(response.error));
       }
-      props.onAfterPatch();
     } catch (err) {
       setPatchError(formatCaughtError(err));
       throw err;
@@ -736,57 +736,47 @@ async function fetcher(
 
 export function TableDetailsPage(): ReactElement {
   const { tableName } = useParams<{ tableName: string }>();
-  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     document.title = tableName ? `${tableName} | LEDA` : "Table | LEDA";
   }, [tableName]);
 
   const {
-    data: payload,
+    data: table,
     loading,
     error,
-  } = useDataFetching(() => fetcher(tableName), [tableName, refreshKey]);
-
-  function onAfterPatch(): void {
-    setRefreshKey((key) => key + 1);
-  }
+  } = useDataFetching(() => fetcher(tableName), [tableName]);
 
   if (loading) return <Loading />;
   if (error) return <ErrorPage message={error} />;
-  if (!payload) return <ErrorPage message="Unknown error" />;
+  if (!table) return <ErrorPage message="Unknown error" />;
 
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-1 lg:grid-cols-6 gap-5">
         <TableMeta
           tableName={tableName ?? ""}
-          table={payload}
-          onAfterPatch={onAfterPatch}
+          table={table}
           className="lg:col-span-6"
         />
         <TableProgressSummaryCard
-          progress={payload.progress}
+          progress={table.progress}
           tableName={tableName ?? ""}
           className={
-            Object.keys(payload.progress.catalogs).length > 0
+            Object.keys(table.progress.catalogs).length > 0
               ? "lg:col-span-3"
               : "lg:col-span-6"
           }
         />
-        {Object.keys(payload.progress.catalogs).length > 0 ? (
+        {Object.keys(table.progress.catalogs).length > 0 ? (
           <CatalogProgressCard
-            catalogs={payload.progress.catalogs}
-            totalRecords={payload.progress.total_records}
+            catalogs={table.progress.catalogs}
+            totalRecords={table.progress.total_records}
             className="lg:col-span-3"
           />
         ) : null}
       </div>
-      <ColumnInfo
-        tableName={tableName ?? ""}
-        table={payload}
-        onAfterPatch={onAfterPatch}
-      />
+      <ColumnInfo tableName={tableName ?? ""} table={table} />
     </div>
   );
 }

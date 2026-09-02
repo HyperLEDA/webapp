@@ -228,7 +228,6 @@ export function ReferenceDetailsPage(): ReactElement {
       if (response.error) {
         throw new Error(formatApiError(response.error));
       }
-      setRefreshKey((key) => key + 1);
     } catch (err) {
       setPatchError(formatCaughtError(err));
       throw err;
