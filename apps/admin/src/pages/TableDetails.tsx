@@ -24,12 +24,7 @@ import {
   Link,
   Loading,
 } from "@leda/lib/ui";
-import {
-  Badge,
-  CopyButton,
-  EditableTextField,
-  TextFilter,
-} from "../components/ui";
+import { Badge, CopyButton, EditableField, TextFilter } from "../components/ui";
 import { useDataFetching } from "@leda/lib/hooks";
 import { originalDataCatalogLink } from "@leda/lib/astronomy";
 import { formatCaughtError } from "@leda/lib/tap";
@@ -302,11 +297,11 @@ function TableMeta(props: TableMetaProps): ReactElement {
     <Card title="Overview" variant="fields" className={props.className}>
       <Field label="Table name">
         {canEdit ? (
-          <EditableTextField
+          <EditableField
             value={props.table.description}
             editLabel="Edit table name"
             saving={savingField === "description"}
-            onCommit={commitDescription}
+            onSave={commitDescription}
           />
         ) : (
           <span className="min-w-0">{props.table.description}</span>
@@ -314,13 +309,13 @@ function TableMeta(props: TableMetaProps): ReactElement {
       </Field>
       <Field label="Slug">
         {canEdit ? (
-          <EditableTextField
+          <EditableField
             value={props.tableName}
             editLabel="Edit table slug"
             saving={savingField === "name"}
             inputClassName="font-mono"
             displayClassName="font-mono min-w-0 break-all"
-            onCommit={commitSlug}
+            onSave={commitSlug}
           />
         ) : (
           <span className="font-mono min-w-0 break-all">{props.tableName}</span>
@@ -607,7 +602,7 @@ function ColumnInfo(props: ColumnInfoProps): ReactElement {
       saving?.columnName === columnName && saving.field === field;
 
     return (
-      <EditableTextField
+      <EditableField
         value={value ?? ""}
         editLabel={`Edit ${field} for column ${columnName}`}
         saving={isSaving}
@@ -618,7 +613,7 @@ function ColumnInfo(props: ColumnInfoProps): ReactElement {
             ? (displayValue) => renderDisplay(displayValue)
             : undefined
         }
-        onCommit={(trimmed) => commitColumnMetadata(columnName, field, trimmed)}
+        onSave={(trimmed) => commitColumnMetadata(columnName, field, trimmed)}
       />
     );
   }

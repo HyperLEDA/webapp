@@ -2,23 +2,21 @@ export { Accordion } from "./Accordion";
 export { Badge, type BadgeType } from "./Badge";
 export { CopyButton } from "./CopyButton";
 export { DropdownFilter } from "./DropdownFilter";
+export { EditableField, type EditableFieldProps } from "./EditableField";
 export {
-  EditableFieldInput,
-  inputConfigForReferenceField,
-  type EditableInputConfig,
-} from "./editableFieldInputs";
-export {
-  EditableReferenceField,
-  EditableTextField,
-  inputFieldType,
-  referenceFieldType,
-  stringFieldType,
-  type EditableFieldType,
-  type EditableInputProps,
-} from "./EditableTextField";
+  FieldInput,
+  LabeledFieldInput,
+  type FieldInputConfig,
+  type FieldInputProps,
+  type FieldOption,
+} from "./FieldInput";
 export { MultiSelectFilter } from "./MultiSelectFilter";
 export { ObjectSummary } from "./ObjectSummary";
 export { TextFilter } from "./TextFilter";
+export {
+  fieldInputForReferenceField,
+  referenceFieldProps,
+} from "./referenceFieldConfig";
 export {
   buildCreateRowPayload,
   formatReferenceDisplay,

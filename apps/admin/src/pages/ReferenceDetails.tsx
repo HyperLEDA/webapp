@@ -3,6 +3,7 @@ import { ReactElement, useEffect, useRef, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import {
   createReferenceRow,
+  listReferenceFieldOptions,
   listReferenceRows,
   listReferences,
   patchReferenceRow,
@@ -25,12 +26,13 @@ import {
 } from "@leda/lib/ui";
 import {
   DropdownFilter,
-  EditableFieldInput,
-  EditableReferenceField,
+  EditableField,
+  LabeledFieldInput,
   TextFilter,
   buildCreateRowPayload,
+  fieldInputForReferenceField,
   fieldRequirementPlaceholder,
-  inputConfigForReferenceField,
+  referenceFieldProps,
   referenceTableKey,
   type ReferenceValue,
 } from "../components/ui";
@@ -38,6 +40,7 @@ import { useDataFetching } from "@leda/lib/hooks";
 import { formatApiError, formatCaughtError } from "@leda/lib/tap";
 
 const SEARCH_DEBOUNCE_MS = 300;
+const OPTION_PAGE_SIZE = 10;
 
 interface ReferenceContext {
   descriptor: ReferenceResourceDescriptor;
@@ -228,6 +231,40 @@ export function ReferenceDetailsPage(): ReactElement {
     setSearchParams(nextParams);
   }
 
+  function loadReferenceFieldOptions(
+    fieldName: string,
+  ): (
+    query: string,
+  ) => Promise<
+    { value: string; label: string; description?: string | null }[]
+  > {
+    return async (query) => {
+      if (!schema || !table) {
+        return [];
+      }
+
+      const response = await listReferenceFieldOptions({
+        client: adminClient,
+        path: { schema, table, field: fieldName },
+        query: {
+          query: query.trim() || undefined,
+          page: 0,
+          page_size: OPTION_PAGE_SIZE,
+        },
+      });
+
+      if (response.error) {
+        throw new Error(formatApiError(response.error));
+      }
+
+      return response.data.data.items.map((item) => ({
+        value: String(item.value ?? ""),
+        label: item.label,
+        description: item.description,
+      }));
+    };
+  }
+
   async function commitFieldChange(
     item: ReferenceRowItem,
     field: ReferenceFieldDescriptor,
@@ -305,13 +342,16 @@ export function ReferenceDetailsPage(): ReactElement {
       saving?.rowKey === rowKey && saving.fieldName === field.name;
 
     return (
-      <EditableReferenceField
-        field={field}
-        value={merged[field.name]}
-        schema={schema ?? ""}
-        table={table ?? ""}
-        saving={isSaving}
-        onCommit={(nextValue) => commitFieldChange(item, field, nextValue)}
+      <EditableField
+        {...referenceFieldProps(
+          field,
+          merged[field.name],
+          field.input.kind === "reference"
+            ? loadReferenceFieldOptions(field.name)
+            : undefined,
+          (nextValue) => commitFieldChange(item, field, nextValue),
+          { saving: isSaving },
+        )}
       />
     );
   }
@@ -319,11 +359,16 @@ export function ReferenceDetailsPage(): ReactElement {
   function renderCreateFieldCell(
     field: ReferenceFieldDescriptor,
   ): ReactElement {
+    const loadOptions =
+      field.input.kind === "reference"
+        ? loadReferenceFieldOptions(field.name)
+        : undefined;
+
     return (
-      <EditableFieldInput
-        input={inputConfigForReferenceField(field, schema ?? "", table ?? "")}
+      <LabeledFieldInput
+        input={fieldInputForReferenceField(field, loadOptions)}
         value={createDrafts[field.name] ?? ""}
-        requirementLabel={fieldRequirementPlaceholder(field)}
+        label={fieldRequirementPlaceholder(field)}
         required={field.required}
         onChange={(nextValue) => {
           setCreateDrafts((prev) => ({ ...prev, [field.name]: nextValue }));
