@@ -6,6 +6,7 @@ type PaginationProps = {
   pageSize: number;
   records: unknown[];
   handlePageChange: (newPage: number) => void;
+  total?: number;
 };
 
 export function Pagination({
@@ -13,18 +14,27 @@ export function Pagination({
   pageSize,
   records,
   handlePageChange,
+  total,
 }: PaginationProps): ReactElement {
+  const hasNextPage =
+    total !== undefined
+      ? (page + 1) * pageSize < total
+      : (records.length || 0) >= pageSize;
+
   return (
     <div className="flex justify-between items-center mt-4">
       <Button onClick={() => handlePageChange(page - 1)} disabled={page === 0}>
         Previous
       </Button>
       <span>
-        Page {page + 1} (showing {records.length} records)
+        Page {page + 1}
+        {total !== undefined
+          ? ` (${records.length} of ${total} records)`
+          : ` (showing ${records.length} records)`}
       </span>
       <Button
         onClick={() => handlePageChange(page + 1)}
-        disabled={(records.length || 0) < pageSize}
+        disabled={!hasNextPage}
       >
         Next
       </Button>

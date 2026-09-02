@@ -13,26 +13,31 @@ JSON should have strictly the following form:
 
 ```json
 [
-  {
-    "name": "typos",
-    "file": "path/from/the/root/of/the/repo/file.py",
-    "line_from": 10,
-    "line_to": 20,
-    "description": "Word 'asembly' is written with a typo, you likely meant 'assembly'"
-  },
-  {
-    "name": "incorrect-comments",
-    "file": "path/from/the/root/of/the/repo/another.py",
-    "line_from": 15,
-    "line_to": 21,
-    "description": "The comment says that this algorithm works in O(N) but most common path according to numpy documentation is O(N^2)"
-  }
+    {
+        "name": "typos",
+        "file": "path/from/the/root/of/the/repo/file.py",
+        "line_from": 10,
+        "line_to": 20,
+        "description": "Word 'asembly' is written with a typo, you likely meant 'assembly'"
+    },
+    {
+        "name": "incorrect-comments",
+        "file": "path/from/the/root/of/the/repo/another.py",
+        "line_from": 15,
+        "line_to": 21,
+        "description": "The comment says that this algorithm works in O(N) but most common path according to numpy documentation is O(N^2)"
+    }
 ]
 ```
 
 You MUST adhere to this form because it will be later used by automation to create a user-friendly UI.
 
 If the rule asks for a citation, put it in the `description` field.
+
+To fetch the full diff use
+```shell
+git fetch origin && git diff origin/master...HEAD
+```
 
 Below are rules you should check when reviewing the code.
 
@@ -46,7 +51,7 @@ The comment used for a function, variable, or expression contradicts the content
 
 ### misleading-name
 
-The name of a function, method, variable, parameter, or class contradicts what it actually does. Examples of contradictions: a get_* or fetch_* function that mutates state, an is__/has__ name that does not return a boolean, a singular name bound to a collection, a boolean flag whose name implies the opposite polarity of the behavior it controls, or a verb that names a different operation than the one performed. Only flag when the mismatch is visible in the body of the token in the diff or in the code the diff calls. Do not flag names that are merely vague, short, or abbreviated.
+The name of a function, method, variable, parameter, or class contradicts what it actually does. Examples of contradictions: a get_* or fetch_* function that mutates state, an is_*/has_* name that does not return a boolean, a singular name bound to a collection, a boolean flag whose name implies the opposite polarity of the behavior it controls, or a verb that names a different operation than the one performed. Only flag when the mismatch is visible in the body of the token in the diff or in the code the diff calls. Do not flag names that are merely vague, short, or abbreviated.
 
 ### typos
 
@@ -123,3 +128,7 @@ subprocess/os.system/os.popen runs a shell with concatenated or formatted user/e
 ### pointless-wrapper
 
 A new or changed function or method only forwards to another callable with the same arguments and return value, adding no conversion, validation, defaulting, error handling, or other logic. Only flag when call sites could invoke the inner callable directly, the wrapper does not implement an interface, protocol, or abstract method, and it is not a public re-export of a private or third-party symbol.
+
+### redundant-parameter
+
+All callers of a new or changed function, method or class pass the same value for the parameter such that a parameter can be deleted without affecting any behaviour of all callers.

@@ -1,4 +1,4 @@
-import { ReactElement, useEffect, useState, useRef } from "react";
+import { ReactElement, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import classNames from "classnames";
 import { getTableList } from "../clients/admin";
@@ -20,15 +20,13 @@ import {
 } from "@leda/lib/ui";
 import {
   Badge,
-  DropdownFilter,
   MultiSelectFilter,
-  TextFilter,
+  PageSizeFilter,
+  SearchFilter,
 } from "../components/ui";
 import { useDataFetching } from "@leda/lib/hooks";
 import { formatApiError } from "@leda/lib/tap";
 import { getSourceLink } from "@leda/lib/astronomy";
-
-const SEARCH_DEBOUNCE_MS = 300;
 
 const TABLE_STATUS_OPTIONS: { value: TableStatus; label: string }[] = [
   { value: "initiated", label: "Initiated" },
@@ -71,35 +69,11 @@ function TablesFilters({
   onPageSizeChange,
   onStatusesChange,
 }: TablesFiltersProps): ReactElement {
-  const [localQuery, setLocalQuery] = useState<string>(query || "");
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    setLocalQuery(query ?? "");
-  }, [query]);
-
-  useEffect(
-    () => () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    },
-    [],
-  );
-
-  function handleQueryChange(value: string): void {
-    setLocalQuery(value);
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      debounceRef.current = null;
-      onQueryChange(value);
-    }, SEARCH_DEBOUNCE_MS);
-  }
-
   return (
-    <div className="flex gap-4 mb-4">
-      <TextFilter
-        title="Search"
-        value={localQuery}
-        onChange={handleQueryChange}
+    <div className="flex flex-wrap gap-4 mb-4">
+      <SearchFilter
+        query={query}
+        onQueryChange={onQueryChange}
         placeholder="Search by name or description"
       />
       <MultiSelectFilter
@@ -110,17 +84,7 @@ function TablesFilters({
           onStatusesChange(parseStatusesParam(values.join(",")))
         }
       />
-      <DropdownFilter
-        title="Page size"
-        options={[
-          { value: "10" },
-          { value: "25" },
-          { value: "50" },
-          { value: "100" },
-        ]}
-        value={pageSize.toString()}
-        onChange={(value) => onPageSizeChange(parseInt(value))}
-      />
+      <PageSizeFilter pageSize={pageSize} onPageSizeChange={onPageSizeChange} />
     </div>
   );
 }

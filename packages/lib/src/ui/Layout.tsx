@@ -10,8 +10,10 @@ export function Layout({
   return (
     <div className="min-h-screen flex">
       {navbar}
-      <div className="ml-12 flex flex-col flex-grow min-h-screen">
-        <div className="flex-grow p-8">{children}</div>
+      <div className="ml-12 flex flex-col flex-grow min-h-screen min-w-0">
+        <div className="flex-grow p-8 min-w-0 overflow-x-hidden">
+          {children}
+        </div>
       </div>
     </div>
   );
