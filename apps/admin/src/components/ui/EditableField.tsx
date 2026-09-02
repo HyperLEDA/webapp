@@ -30,6 +30,13 @@ export interface StringEditableFieldProps extends Omit<
   input?: FieldInputConfig;
 }
 
+function multilineSaveShortcutLabel(): string {
+  if (!("navigator" in globalThis)) {
+    return "Ctrl+Enter";
+  }
+  return /Mac|iPod|iPhone|iPad/.test(navigator.platform) ? "⌘↵" : "Ctrl+Enter";
+}
+
 function EditableFieldInner<T>({
   value,
   formatValue,
@@ -51,6 +58,7 @@ function EditableFieldInner<T>({
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(() => formatValue(value));
   const [error, setError] = useState<string | null>(null);
+  const multilineSaveShortcut = multilineSaveShortcutLabel();
 
   function valueIsEmpty(nextValue: T): boolean {
     if (isEmpty) {
@@ -134,7 +142,9 @@ function EditableFieldInner<T>({
 
   if (editing) {
     const saveShortcut =
-      input.kind === "textarea" || input.kind === "json" ? "⌘↵" : "↵";
+      input.kind === "textarea" || input.kind === "json"
+        ? multilineSaveShortcut
+        : "↵";
 
     return (
       <div className="min-w-0">

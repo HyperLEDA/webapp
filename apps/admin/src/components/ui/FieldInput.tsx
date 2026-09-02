@@ -99,7 +99,7 @@ function handleMultilineKeyDown(
     onCancel();
     return;
   }
-  if (event.key === "Enter" && event.metaKey && onSave) {
+  if (event.key === "Enter" && (event.metaKey || event.ctrlKey) && onSave) {
     event.preventDefault();
     onSave();
   }
