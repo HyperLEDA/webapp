@@ -95,7 +95,6 @@ export function CommonTable({
           {children}
         </div>
       )}
-
       <div className="relative min-w-0 max-w-full">
         <div
           className={classNames(
@@ -104,7 +103,7 @@ export function CommonTable({
             loading && "opacity-50 pointer-events-none",
           )}
         >
-          <table className="w-max min-w-full border-collapse border border-border rounded-sm">
+          <table className="w-full table-auto border-collapse border border-border rounded-sm">
             <thead>
               <tr className="bg-surface-2">
                 {columns.map((column) => {
@@ -113,7 +112,7 @@ export function CommonTable({
                     <th
                       key={column.slug}
                       className={classNames(
-                        "border border-border px-2 py-1 text-center font-semibold text-primary",
+                        "border border-border px-2 py-1 text-center font-semibold text-primary whitespace-nowrap",
                         columnHeaderClassName,
                         columnWidthClassName(column.width),
                       )}
@@ -147,7 +146,7 @@ export function CommonTable({
                       <td
                         key={column.slug}
                         className={classNames(
-                          "border border-border px-2 py-1 align-top",
+                          "min-w-0 border border-border px-2 py-1 align-top [overflow-wrap:anywhere]",
                           cellClassName,
                           columnWidthClassName(column.width),
                         )}

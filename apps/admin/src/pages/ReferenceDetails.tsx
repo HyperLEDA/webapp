@@ -359,7 +359,7 @@ export function ReferenceDetailsPage(): ReactElement {
   const selectedKey = referenceTableKey(schema, table);
 
   return (
-    <div className="min-w-0 w-full max-w-full overflow-x-hidden">
+    <div className="min-w-0 w-full max-w-full">
       <div className="mb-4">
         <h2 className="text-3xl font-bold">
           {data.descriptor.description || selectedKey}
