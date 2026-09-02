@@ -74,7 +74,7 @@ export function CollapsibleCell({
         onFocusCapture={handleFocusIn}
         className={classNames(
           "min-w-0 text-sm break-words whitespace-pre-wrap",
-          !expanded && "line-clamp-5",
+          !expanded && "max-h-[6.25rem] overflow-hidden",
         )}
       >
         {children}

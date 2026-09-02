@@ -101,6 +101,13 @@ export function EditableReferenceField({
       fieldType={fieldType}
       editLabel={`Edit ${field.name}`}
       saving={saving}
+      displayClassName={
+        field.input.kind === "json"
+          ? "font-mono whitespace-pre-wrap"
+          : field.input.kind === "textarea"
+            ? "whitespace-pre-wrap"
+            : undefined
+      }
       onCommit={onCommit}
     />
   );

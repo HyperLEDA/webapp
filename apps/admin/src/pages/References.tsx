@@ -38,15 +38,13 @@ function ReferenceTableCard({
         </Link>
       }
       className="w-full"
-      variant="responsive-fields"
+      variant="fields"
     >
-      <Field label="Schema">
-        <span className="font-mono break-all">{reference.schema}</span>
-      </Field>
       <Field label="Table">
-        <span className="font-mono break-all">{reference.table}</span>
+        <span className="font-mono break-all">
+          {referenceTableKey(reference.schema, reference.table)}
+        </span>
       </Field>
-      <Field label="Fields">{reference.fields.length}</Field>
     </Card>
   );
 }
