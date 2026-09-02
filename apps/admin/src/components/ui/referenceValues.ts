@@ -71,7 +71,11 @@ export function parseDraftValue(
     throw new Error(`Field '${field.name}' cannot be empty`);
   }
 
-  if (field.input.kind === "number") {
+  if (
+    field.input.kind === "number" ||
+    (field.input.kind === "reference" &&
+      ["float", "int", "long"].includes(field.data_type))
+  ) {
     return parseNumberValue(field, trimmed);
   }
 
