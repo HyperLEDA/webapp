@@ -12,6 +12,8 @@ import type * as Monaco from "monaco-editor";
 import { SuggestibleInput, useTheme } from "@leda/lib/ui";
 
 const SEARCH_DEBOUNCE_MS = 300;
+const JSON_EDITOR_LIGHT_THEME = "leda-json-light";
+const JSON_EDITOR_DARK_THEME = "leda-json-dark";
 
 export interface FieldOption {
   value: string;
@@ -128,6 +130,11 @@ function JsonEditor({
   const onSaveRef = useRef(onSave);
   const onCancelRef = useRef(onCancel);
   const height = `${(value.split("\n").length + 1) * 20 + 8}px`;
+  const widestLineLength = Math.max(
+    1,
+    ...value.split("\n").map((line) => line.length),
+  );
+  const minWidth = `calc(${widestLineLength}ch + 16px)`;
 
   onSaveRef.current = onSave;
   onCancelRef.current = onCancel;
@@ -135,15 +142,33 @@ function JsonEditor({
   return (
     <div
       className={classNames(className, "overflow-hidden p-0")}
-      style={{ height }}
+      style={{ height, minWidth }}
       onClick={(event) => event.stopPropagation()}
     >
       <Editor
         height="100%"
         language="json"
-        theme={effectiveTheme === "dark" ? "vs-dark" : "vs"}
+        theme={
+          effectiveTheme === "dark"
+            ? JSON_EDITOR_DARK_THEME
+            : JSON_EDITOR_LIGHT_THEME
+        }
         value={value}
         onChange={(nextValue) => onChange(nextValue ?? "")}
+        beforeMount={(monaco: typeof Monaco) => {
+          monaco.editor.defineTheme(JSON_EDITOR_LIGHT_THEME, {
+            base: "vs",
+            inherit: true,
+            colors: { "editor.background": "#00000000" },
+            rules: [],
+          });
+          monaco.editor.defineTheme(JSON_EDITOR_DARK_THEME, {
+            base: "vs-dark",
+            inherit: true,
+            colors: { "editor.background": "#00000000" },
+            rules: [],
+          });
+        }}
         onMount={(editor, monaco: typeof Monaco) => {
           if (autoFocus) {
             editor.focus();
@@ -165,7 +190,7 @@ function JsonEditor({
           overviewRulerLanes: 0,
           renderLineHighlight: "none",
           scrollBeyondLastLine: false,
-          wordWrap: "on",
+          wordWrap: "off",
           automaticLayout: true,
           tabSize: 2,
           padding: { top: 4, bottom: 4 },
