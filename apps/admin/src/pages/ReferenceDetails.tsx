@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { ReactElement, useEffect, useRef, useState } from "react";
+import { ReactElement, useEffect, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import {
   createReferenceRow,
@@ -25,13 +25,12 @@ import {
   Pagination,
 } from "@leda/lib/ui";
 import {
-  DropdownFilter,
   EditableField,
   LabeledFieldInput,
-  TextFilter,
+  SearchPageSizeFilters,
   buildCreateRowPayload,
   fieldInputForReferenceField,
-  fieldRequirementPlaceholder,
+  fieldRequirementLabel,
   referenceFieldProps,
   referenceTableKey,
   type ReferenceValue,
@@ -39,7 +38,6 @@ import {
 import { useDataFetching } from "@leda/lib/hooks";
 import { formatApiError, formatCaughtError } from "@leda/lib/tap";
 
-const SEARCH_DEBOUNCE_MS = 300;
 const OPTION_PAGE_SIZE = 10;
 
 interface ReferenceContext {
@@ -92,69 +90,6 @@ async function fetchReferenceContext(
 
 function mergeRowValues(item: ReferenceRowItem) {
   return { ...item.key, ...item.row };
-}
-
-interface ReferenceFiltersProps {
-  query: string | null;
-  pageSize: number;
-  onQueryChange: (query: string) => void;
-  onPageSizeChange: (pageSize: number) => void;
-}
-
-function ReferenceFilters({
-  query,
-  pageSize,
-  onQueryChange,
-  onPageSizeChange,
-}: ReferenceFiltersProps): ReactElement {
-  const [localQuery, setLocalQuery] = useState<string>(query || "");
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    setLocalQuery(query ?? "");
-  }, [query]);
-
-  useEffect(
-    () => () => {
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
-      }
-    },
-    [],
-  );
-
-  function handleQueryChange(value: string): void {
-    setLocalQuery(value);
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-    }
-    debounceRef.current = setTimeout(() => {
-      debounceRef.current = null;
-      onQueryChange(value);
-    }, SEARCH_DEBOUNCE_MS);
-  }
-
-  return (
-    <div className="flex flex-wrap gap-4 mb-4">
-      <TextFilter
-        title="Search"
-        value={localQuery}
-        onChange={handleQueryChange}
-        placeholder="Search rows"
-      />
-      <DropdownFilter
-        title="Page size"
-        options={[
-          { value: "10" },
-          { value: "25" },
-          { value: "50" },
-          { value: "100" },
-        ]}
-        value={pageSize.toString()}
-        onChange={(value) => onPageSizeChange(Number.parseInt(value, 10))}
-      />
-    </div>
-  );
 }
 
 interface SavingState {
@@ -368,7 +303,7 @@ export function ReferenceDetailsPage(): ReactElement {
       <LabeledFieldInput
         input={fieldInputForReferenceField(field, loadOptions)}
         value={createDrafts[field.name] ?? ""}
-        label={fieldRequirementPlaceholder(field)}
+        label={fieldRequirementLabel(field)}
         required={field.required}
         onChange={(nextValue) => {
           setCreateDrafts((prev) => ({ ...prev, [field.name]: nextValue }));
@@ -431,13 +366,14 @@ export function ReferenceDetailsPage(): ReactElement {
         <p className="text-muted font-mono text-sm mt-1">{selectedKey}</p>
       </div>
 
-      <ReferenceFilters
+      <SearchPageSizeFilters
         query={query}
         pageSize={pageSize}
         onQueryChange={(nextQuery) => updateParams({ q: nextQuery })}
         onPageSizeChange={(nextPageSize) =>
           updateParams({ page_size: nextPageSize })
         }
+        searchPlaceholder="Search rows"
       />
 
       <div className="mb-4 flex flex-wrap items-center gap-3">

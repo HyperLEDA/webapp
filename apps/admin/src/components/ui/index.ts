@@ -12,6 +12,7 @@ export {
 } from "./FieldInput";
 export { MultiSelectFilter } from "./MultiSelectFilter";
 export { ObjectSummary } from "./ObjectSummary";
+export { SearchPageSizeFilters } from "./SearchPageSizeFilters";
 export { TextFilter } from "./TextFilter";
 export {
   fieldInputForReferenceField,
@@ -23,6 +24,6 @@ export {
   formatReferenceValue,
   parseDraftValue,
   referenceTableKey,
-  fieldRequirementPlaceholder,
+  fieldRequirementLabel,
   type ReferenceValue,
 } from "./referenceValues";

@@ -52,10 +52,6 @@ function EditableFieldInner<T>({
   const [draft, setDraft] = useState(() => formatValue(value));
   const [error, setError] = useState<string | null>(null);
 
-  function toDraft(nextValue: T): string {
-    return formatValue(nextValue);
-  }
-
   function valueIsEmpty(nextValue: T): boolean {
     if (isEmpty) {
       return isEmpty(nextValue);
@@ -78,13 +74,13 @@ function EditableFieldInner<T>({
   }, [value, editing, formatValue]);
 
   function startEdit(): void {
-    setDraft(toDraft(value));
+    setDraft(formatValue(value));
     setError(null);
     setEditing(true);
   }
 
   function cancelEdit(): void {
-    setDraft(toDraft(value));
+    setDraft(formatValue(value));
     setError(null);
     setEditing(false);
   }
@@ -108,7 +104,7 @@ function EditableFieldInner<T>({
     } catch (err) {
       setError(formatCaughtError(err));
       if (revertOnError) {
-        setDraft(toDraft(value));
+        setDraft(formatValue(value));
       }
     }
   }

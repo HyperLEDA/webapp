@@ -608,11 +608,7 @@ function ColumnInfo(props: ColumnInfoProps): ReactElement {
         saving={isSaving}
         align="start"
         emptyDisplayValue="—"
-        renderDisplay={
-          renderDisplay
-            ? (displayValue) => renderDisplay(displayValue)
-            : undefined
-        }
+        renderDisplay={renderDisplay}
         onSave={(trimmed) => commitColumnMetadata(columnName, field, trimmed)}
       />
     );

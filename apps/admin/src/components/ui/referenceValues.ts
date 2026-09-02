@@ -48,7 +48,7 @@ function parseNumberValue(
 
 function parseJsonDraft(trimmed: string, fieldName: string): ReferenceValue {
   try {
-    // SAFETY: JSON.parse only returns values accepted by the reference row API.
+    // SAFETY: JSON.parse is typed as any; ReferenceValue is the JSON-compatible cell union on reference row payloads.
     return JSON.parse(trimmed) as ReferenceValue;
   } catch {
     throw new Error(`Field '${fieldName}' must contain valid JSON`);
@@ -117,8 +117,6 @@ export function referenceTableKey(schema: string, table: string): string {
   return `${schema}.${table}`;
 }
 
-export function fieldRequirementPlaceholder(
-  field: ReferenceFieldDescriptor,
-): string {
+export function fieldRequirementLabel(field: ReferenceFieldDescriptor): string {
   return field.required ? "Required" : "Optional";
 }
