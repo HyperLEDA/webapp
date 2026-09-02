@@ -11,6 +11,7 @@ import {
   MdAdminPanelSettings,
   MdAccountTree,
   MdCode,
+  MdLibraryBooks,
   MdOpenInNew,
   MdPublic,
   MdTableChart,
@@ -22,6 +23,8 @@ import {
   DataCatalogPage,
   LoginPage,
   RecordCrossmatchDetailsPage,
+  ReferenceDetailsPage,
+  ReferencesPage,
   SqlQueryPage,
   TableDetailsPage,
   TablesPage,
@@ -110,6 +113,9 @@ function Layout() {
               <NavItem to="/data-catalog" label="Data catalog">
                 <MdAccountTree size={20} />
               </NavItem>
+              <NavItem to="/references" label="References">
+                <MdLibraryBooks size={20} />
+              </NavItem>
               <NavItem to="/sql" label="SQL">
                 <MdCode size={20} />
               </NavItem>
@@ -137,6 +143,11 @@ function App() {
             <Route path="/tasks" element={<AdminPage />} />
             <Route path="/merge-pgc" element={<AdminMergePgcPage />} />
             <Route path="/tables" element={<TablesPage />} />
+            <Route path="/references" element={<ReferencesPage />} />
+            <Route
+              path="/references/:schema/:table"
+              element={<ReferenceDetailsPage />}
+            />
             <Route path="/sql" element={<SqlQueryPage />} />
             <Route path="/data-catalog" element={<DataCatalogPage />} />
             <Route path="/data-catalog/query" element={<DataCatalogPage />} />
