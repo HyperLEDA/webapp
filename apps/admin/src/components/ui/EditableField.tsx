@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import { ReactElement, useEffect, useState } from "react";
-import { MdEdit } from "react-icons/md";
+import { MdClose, MdEdit, MdKeyboardReturn } from "react-icons/md";
 import { formatCaughtError } from "@leda/lib/tap";
 import { FieldInput, type FieldInputConfig } from "./FieldInput";
 
@@ -133,6 +133,9 @@ function EditableFieldInner<T>({
   }
 
   if (editing) {
+    const saveShortcut =
+      input.kind === "textarea" || input.kind === "json" ? "⌘↵" : "↵";
+
     return (
       <div className="min-w-0">
         <FieldInput
@@ -147,6 +150,16 @@ function EditableFieldInner<T>({
           onCancel={cancelEdit}
           commitOnChange={input.kind === "select"}
         />
+        {input.kind !== "select" ? (
+          <div className="mt-1 flex gap-2 text-xs text-muted">
+            <span className="flex items-center gap-0.5">
+              {saveShortcut} save
+            </span>
+            <span className="flex items-center gap-0.5">
+              Esc cancel
+            </span>
+          </div>
+        ) : null}
         {error ? <p className="mt-1 text-xs text-danger">{error}</p> : null}
       </div>
     );
