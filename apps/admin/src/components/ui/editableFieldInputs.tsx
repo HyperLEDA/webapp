@@ -16,18 +16,57 @@ import { formatApiError } from "@leda/lib/tap";
 const SEARCH_DEBOUNCE_MS = 300;
 const OPTION_PAGE_SIZE = 10;
 
-interface ReferenceFieldInputProps {
-  field: ReferenceFieldDescriptor;
+export interface EditableInputProps {
+  draft: string;
+  setDraft: (value: string) => void;
+  commit: () => void;
+  cancel: () => void;
+  saving: boolean;
+  inputClassName?: string;
+}
+
+export type EditableInputConfig =
+  | { kind: "text" }
+  | { kind: "number" }
+  | { kind: "textarea"; rows?: number }
+  | { kind: "json"; rows?: number }
+  | { kind: "select"; options: { value: unknown; label: string }[] }
+  | {
+      kind: "reference";
+      schema: string;
+      table: string;
+      fieldName: string;
+    };
+
+type KeyboardEventHandler = (
+  event: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>,
+) => void;
+
+interface EditableFieldInputProps {
+  input: EditableInputConfig;
   value: string;
   onChange: (value: string) => void;
-  schema: string;
-  table: string;
   disabled?: boolean;
   autoFocus?: boolean;
   className?: string;
   requirementLabel?: string;
-  rows?: number;
+  required?: boolean;
   onCommit?: () => void;
+  onCancel?: () => void;
+}
+
+function inputClassName(className?: string): string {
+  return classNames(
+    "bg-surface-2 border border-border rounded px-2 py-1 text-primary w-full min-w-0 text-sm",
+    className,
+  );
+}
+
+function editableInputClassName(className?: string): string {
+  return classNames(
+    "w-full bg-transparent border border-border rounded px-2 py-0.5 text-primary flex-1 min-w-0",
+    className,
+  );
 }
 
 function RequirementFieldShell({
@@ -54,11 +93,14 @@ function RequirementFieldShell({
   );
 }
 
-function inputClassName(className?: string): string {
-  return classNames(
-    "bg-surface-2 border border-border rounded px-2 py-1 text-primary w-full min-w-0 text-sm",
-    className,
-  );
+function handleCommitKeyDown(
+  event: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>,
+  onCommit?: () => void,
+): void {
+  if (event.key === "Enter" && onCommit) {
+    event.preventDefault();
+    onCommit();
+  }
 }
 
 interface ReferenceAutocompleteInputProps {
@@ -73,10 +115,6 @@ interface ReferenceAutocompleteInputProps {
   onCommit?: () => void;
   onKeyDown?: KeyboardEventHandler;
 }
-
-type KeyboardEventHandler = (
-  event: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>,
-) => void;
 
 function ReferenceAutocompleteInput({
   fieldName,
@@ -203,44 +241,45 @@ function ReferenceAutocompleteInput({
   );
 }
 
-export function ReferenceFieldInput({
-  field,
+function renderInputControl({
+  input,
   value,
   onChange,
-  schema,
-  table,
   disabled = false,
   autoFocus = false,
   className,
-  requirementLabel,
-  rows,
   onCommit,
-}: ReferenceFieldInputProps): ReactElement {
-  function wrapWithRequirementLabel(control: ReactElement): ReactElement {
-    if (!requirementLabel) {
-      return control;
-    }
-
-    return (
-      <RequirementFieldShell label={requirementLabel} required={field.required}>
-        {control}
-      </RequirementFieldShell>
-    );
-  }
+  onCancel,
+  variant = "form",
+}: {
+  input: EditableInputConfig;
+  value: string;
+  onChange: (value: string) => void;
+  disabled?: boolean;
+  autoFocus?: boolean;
+  className?: string;
+  onCommit?: () => void;
+  onCancel?: () => void;
+  variant?: "form" | "editable";
+}): ReactElement {
+  const resolvedClassName =
+    variant === "editable"
+      ? editableInputClassName(className)
+      : inputClassName(className);
 
   function handleKeyDown(
     event: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>,
   ): void {
-    if (event.key === "Enter" && onCommit) {
+    if (event.key === "Escape" && onCancel) {
       event.preventDefault();
-      onCommit();
+      onCancel();
+      return;
     }
+    handleCommitKeyDown(event, onCommit);
   }
 
-  if (field.input.kind === "select") {
-    const selectOptions = field.input.options ?? [];
-
-    return wrapWithRequirementLabel(
+  if (input.kind === "select") {
+    return (
       <select
         value={value}
         disabled={disabled}
@@ -249,65 +288,203 @@ export function ReferenceFieldInput({
           onChange(event.target.value);
           onCommit?.();
         }}
-        className={inputClassName(className)}
+        className={resolvedClassName}
+        onClick={(event) => event.stopPropagation()}
       >
         <option value="">Select…</option>
-        {selectOptions.map((option) => (
+        {input.options.map((option) => (
           <option key={String(option.value)} value={String(option.value ?? "")}>
             {option.label}
           </option>
         ))}
-      </select>,
+      </select>
     );
   }
 
-  if (field.input.kind === "reference") {
-    return wrapWithRequirementLabel(
+  if (input.kind === "reference") {
+    return (
       <ReferenceAutocompleteInput
-        fieldName={field.name}
+        fieldName={input.fieldName}
         value={value}
         onChange={onChange}
-        schema={schema}
-        table={table}
+        schema={input.schema}
+        table={input.table}
         disabled={disabled}
         autoFocus={autoFocus}
-        className={className}
+        className={resolvedClassName}
         onCommit={onCommit}
         onKeyDown={handleKeyDown}
-      />,
+      />
     );
   }
 
-  if (field.input.kind === "textarea" || field.input.kind === "json") {
-    const textareaRows = rows ?? (field.input.kind === "json" ? 4 : 3);
+  if (input.kind === "textarea" || input.kind === "json") {
+    const rows = input.rows ?? (input.kind === "json" ? 4 : 3);
 
-    return wrapWithRequirementLabel(
+    return (
       <textarea
         value={value}
         disabled={disabled}
         autoFocus={autoFocus}
-        rows={textareaRows}
+        rows={rows}
         onChange={(event) => onChange(event.target.value)}
         onKeyDown={(event) => {
+          if (event.key === "Escape" && onCancel) {
+            event.preventDefault();
+            onCancel();
+            return;
+          }
           if (event.key === "Enter" && event.metaKey && onCommit) {
             event.preventDefault();
             onCommit();
           }
         }}
-        className={classNames(inputClassName(className), "font-mono resize-y")}
-      />,
+        className={classNames(resolvedClassName, "font-mono resize-y")}
+        onClick={(event) => event.stopPropagation()}
+      />
     );
   }
 
-  return wrapWithRequirementLabel(
+  return (
     <input
-      type={field.input.kind === "number" ? "number" : "text"}
+      type={input.kind === "number" ? "number" : "text"}
       value={value}
       disabled={disabled}
       autoFocus={autoFocus}
       onChange={(event) => onChange(event.target.value)}
       onKeyDown={handleKeyDown}
-      className={inputClassName(className)}
-    />,
+      className={resolvedClassName}
+      onClick={(event) => event.stopPropagation()}
+    />
   );
+}
+
+export function EditableFieldInput({
+  input,
+  value,
+  onChange,
+  disabled = false,
+  autoFocus = false,
+  className,
+  requirementLabel,
+  required = false,
+  onCommit,
+  onCancel,
+}: EditableFieldInputProps): ReactElement {
+  const control = renderInputControl({
+    input,
+    value,
+    onChange,
+    disabled,
+    autoFocus,
+    className,
+    onCommit,
+    onCancel,
+    variant: "form",
+  });
+
+  if (!requirementLabel) {
+    return control;
+  }
+
+  return (
+    <RequirementFieldShell label={requirementLabel} required={required}>
+      {control}
+    </RequirementFieldShell>
+  );
+}
+
+export function inputConfigForReferenceField(
+  field: ReferenceFieldDescriptor,
+  schema: string,
+  table: string,
+  rows?: number,
+): EditableInputConfig {
+  if (field.input.kind === "select") {
+    return {
+      kind: "select",
+      options: field.input.options ?? [],
+    };
+  }
+
+  if (field.input.kind === "reference") {
+    return {
+      kind: "reference",
+      schema,
+      table,
+      fieldName: field.name,
+    };
+  }
+
+  if (field.input.kind === "textarea") {
+    return { kind: "textarea", rows };
+  }
+
+  if (field.input.kind === "json") {
+    return { kind: "json", rows };
+  }
+
+  if (field.input.kind === "number") {
+    return { kind: "number" };
+  }
+
+  return { kind: "text" };
+}
+
+function defaultTextareaRows(input: EditableInputConfig): number | undefined {
+  if (input.kind === "json") {
+    return 4;
+  }
+  if (input.kind === "textarea") {
+    return 3;
+  }
+  return undefined;
+}
+
+function textareaRowsForDraft(
+  input: EditableInputConfig,
+  draft: string,
+): number | undefined {
+  if (input.kind !== "textarea" && input.kind !== "json") {
+    return undefined;
+  }
+
+  const lineCount = draft.split("\n").length;
+  return Math.max(defaultTextareaRows(input) ?? 3, lineCount);
+}
+
+export function renderEditableInput(
+  input: EditableInputConfig,
+  props: EditableInputProps,
+): ReactElement {
+  const resolvedInput =
+    input.kind === "textarea" || input.kind === "json"
+      ? { ...input, rows: textareaRowsForDraft(input, props.draft) }
+      : input;
+
+  return renderInputControl({
+    input: resolvedInput,
+    value: props.draft,
+    onChange: props.setDraft,
+    disabled: props.saving,
+    autoFocus: true,
+    className: props.inputClassName,
+    onCommit: props.commit,
+    onCancel: props.cancel,
+    variant: "editable",
+  });
+}
+
+export function createInputRenderer(
+  input: EditableInputConfig,
+): (props: EditableInputProps) => ReactElement {
+  return (props) => renderEditableInput(input, props);
+}
+
+export function editableInputForReferenceField(
+  field: ReferenceFieldDescriptor,
+  schema: string,
+  table: string,
+): EditableInputConfig {
+  return inputConfigForReferenceField(field, schema, table);
 }

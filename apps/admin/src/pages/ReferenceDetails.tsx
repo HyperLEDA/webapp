@@ -23,15 +23,17 @@ import {
   Loading,
   Pagination,
 } from "@leda/lib/ui";
-import { DropdownFilter, TextFilter } from "../components/ui";
-import { EditableReferenceField } from "../components/ui/EditableReferenceField";
-import { ReferenceFieldInput } from "../components/ui/ReferenceFieldInput";
 import {
+  DropdownFilter,
+  EditableFieldInput,
+  EditableReferenceField,
+  TextFilter,
   buildCreateRowPayload,
-  referenceTableKey,
   fieldRequirementPlaceholder,
+  inputConfigForReferenceField,
+  referenceTableKey,
   type ReferenceValue,
-} from "../components/ui/referenceValues";
+} from "../components/ui";
 import { useDataFetching } from "@leda/lib/hooks";
 import { formatApiError, formatCaughtError } from "@leda/lib/tap";
 
@@ -318,16 +320,15 @@ export function ReferenceDetailsPage(): ReactElement {
     field: ReferenceFieldDescriptor,
   ): ReactElement {
     return (
-      <ReferenceFieldInput
-        field={field}
+      <EditableFieldInput
+        input={inputConfigForReferenceField(field, schema ?? "", table ?? "")}
         value={createDrafts[field.name] ?? ""}
         requirementLabel={fieldRequirementPlaceholder(field)}
+        required={field.required}
         onChange={(nextValue) => {
           setCreateDrafts((prev) => ({ ...prev, [field.name]: nextValue }));
           setCreateTouched((prev) => new Set(prev).add(field.name));
         }}
-        schema={schema ?? ""}
-        table={table ?? ""}
         disabled={createSaving}
       />
     );

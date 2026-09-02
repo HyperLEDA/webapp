@@ -1,16 +1,22 @@
 import classNames from "classnames";
-import { KeyboardEvent, ReactElement, useEffect, useState } from "react";
+import { ReactElement, useEffect, useMemo, useState } from "react";
 import { MdEdit } from "react-icons/md";
+import type { ReferenceFieldDescriptor } from "../../clients/admin";
 import { formatCaughtError } from "@leda/lib/tap";
+import {
+  createInputRenderer,
+  editableInputForReferenceField,
+  renderEditableInput,
+  type EditableInputConfig,
+  type EditableInputProps,
+} from "./editableFieldInputs";
+import {
+  formatReferenceValue,
+  parseDraftValue,
+  type ReferenceValue,
+} from "./referenceValues";
 
-export interface EditableInputProps {
-  draft: string;
-  setDraft: (value: string) => void;
-  commit: () => void;
-  cancel: () => void;
-  saving: boolean;
-  inputClassName?: string;
-}
+export type { EditableInputProps } from "./editableFieldInputs";
 
 export interface EditableFieldType<T> {
   formatValue: (value: T) => string;
@@ -25,42 +31,60 @@ export interface EditableFieldType<T> {
   align?: "center" | "start";
 }
 
-function stringInput(props: EditableInputProps): ReactElement {
-  function handleKeyDown(event: KeyboardEvent<HTMLInputElement>): void {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      props.commit();
-    }
-    if (event.key === "Escape") {
-      event.preventDefault();
-      props.cancel();
-    }
-  }
-
-  return (
-    <input
-      type="text"
-      value={props.draft}
-      onChange={(event) => props.setDraft(event.target.value)}
-      onKeyDown={handleKeyDown}
-      disabled={props.saving}
-      className={classNames(
-        "w-full bg-transparent border border-border rounded px-2 py-0.5 text-primary flex-1 min-w-0",
-        props.inputClassName,
-      )}
-      autoFocus
-      onClick={(event) => event.stopPropagation()}
-    />
-  );
-}
-
 export const stringFieldType: EditableFieldType<string> = {
   formatValue: (value) => value,
   parseDraft: (draft) => draft,
-  renderInput: stringInput,
+  renderInput: (props) => renderEditableInput({ kind: "text" }, props),
   trimOnCommit: true,
   revertOnError: true,
 };
+
+export function inputFieldType(
+  input: EditableInputConfig,
+  options?: {
+    trimOnCommit?: boolean;
+    revertOnError?: boolean;
+    emptyDisplayValue?: string;
+    align?: "center" | "start";
+  },
+): EditableFieldType<string> {
+  return {
+    formatValue: (value) => value,
+    parseDraft: (draft) => draft,
+    renderInput: createInputRenderer(input),
+    trimOnCommit: options?.trimOnCommit ?? input.kind === "text",
+    revertOnError: options?.revertOnError ?? true,
+    emptyDisplayValue: options?.emptyDisplayValue,
+    align: options?.align,
+  };
+}
+
+export function referenceFieldType(
+  field: ReferenceFieldDescriptor,
+  schema: string,
+  table: string,
+): EditableFieldType<ReferenceValue> {
+  const input = editableInputForReferenceField(field, schema, table);
+
+  return {
+    formatValue: (value) => formatReferenceValue(value),
+    parseDraft: (draft) => parseDraftValue(field, draft),
+    renderInput: (props) => renderEditableInput(input, props),
+    trimOnCommit: false,
+    revertOnError: false,
+    emptyDisplayValue: "—",
+    align: "start",
+    isEmpty: (value) => formatReferenceValue(value) === "",
+    isUnchanged: (draft, value) => {
+      try {
+        const parsed = parseDraftValue(field, draft);
+        return JSON.stringify(parsed) === JSON.stringify(value ?? null);
+      } catch {
+        return false;
+      }
+    },
+  };
+}
 
 interface EditableTextFieldSharedProps {
   editLabel: string;
@@ -75,6 +99,7 @@ interface StringEditableTextFieldProps extends EditableTextFieldSharedProps {
   value: string;
   onCommit: (value: string) => void | Promise<void>;
   fieldType?: undefined;
+  input?: EditableInputConfig;
   renderDisplay?: (value: string) => ReactElement;
 }
 
@@ -257,6 +282,13 @@ export function EditableTextField<T>(
     return <EditableTextFieldInner {...props} fieldType={props.fieldType} />;
   }
 
+  const fieldType = props.input
+    ? inputFieldType(props.input, {
+        emptyDisplayValue: props.emptyDisplayValue,
+        align: props.align,
+      })
+    : stringFieldType;
+
   return (
     <EditableTextFieldInner
       value={props.value}
@@ -268,7 +300,47 @@ export function EditableTextField<T>(
       inputClassName={props.inputClassName}
       align={props.align}
       emptyDisplayValue={props.emptyDisplayValue}
-      fieldType={stringFieldType}
+      fieldType={fieldType}
+    />
+  );
+}
+
+interface EditableReferenceFieldProps {
+  field: ReferenceFieldDescriptor;
+  value: ReferenceValue | undefined;
+  schema: string;
+  table: string;
+  saving?: boolean;
+  onCommit: (value: ReferenceValue) => void | Promise<void>;
+}
+
+export function EditableReferenceField({
+  field,
+  value,
+  schema,
+  table,
+  saving = false,
+  onCommit,
+}: EditableReferenceFieldProps): ReactElement {
+  const fieldType = useMemo(
+    () => referenceFieldType(field, schema, table),
+    [field, schema, table],
+  );
+
+  return (
+    <EditableTextField<ReferenceValue>
+      value={value ?? null}
+      fieldType={fieldType}
+      editLabel={`Edit ${field.name}`}
+      saving={saving}
+      displayClassName={
+        field.input.kind === "json"
+          ? "font-mono whitespace-pre-wrap"
+          : field.input.kind === "textarea"
+            ? "whitespace-pre-wrap"
+            : undefined
+      }
+      onCommit={onCommit}
     />
   );
 }
