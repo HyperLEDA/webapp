@@ -116,3 +116,9 @@ export function buildCreateRowPayload(
 export function referenceTableKey(schema: string, table: string): string {
   return `${schema}.${table}`;
 }
+
+export function fieldRequirementPlaceholder(
+  field: ReferenceFieldDescriptor,
+): string {
+  return field.required ? "Required" : "Optional";
+}

@@ -25,7 +25,33 @@ interface ReferenceFieldInputProps {
   disabled?: boolean;
   autoFocus?: boolean;
   className?: string;
+  requirementLabel?: string;
+  rows?: number;
   onCommit?: () => void;
+}
+
+function RequirementFieldShell({
+  label,
+  required,
+  children,
+}: {
+  label: string;
+  required: boolean;
+  children: ReactNode;
+}): ReactElement {
+  return (
+    <div className="min-w-0">
+      <span
+        className={classNames(
+          "block mb-1 text-xs font-semibold whitespace-nowrap",
+          required ? "text-warning" : "text-subtle",
+        )}
+      >
+        {label}
+      </span>
+      {children}
+    </div>
+  );
 }
 
 function inputClassName(className?: string): string {
@@ -156,7 +182,7 @@ function ReferenceAutocompleteInput({
   }
 
   return (
-    <div className="min-w-48">
+    <div className="min-w-0">
       <SuggestibleInput
         value={value}
         onChange={(nextValue) => {
@@ -186,8 +212,22 @@ export function ReferenceFieldInput({
   disabled = false,
   autoFocus = false,
   className,
+  requirementLabel,
+  rows,
   onCommit,
 }: ReferenceFieldInputProps): ReactElement {
+  function wrapWithRequirementLabel(control: ReactElement): ReactElement {
+    if (!requirementLabel) {
+      return control;
+    }
+
+    return (
+      <RequirementFieldShell label={requirementLabel} required={field.required}>
+        {control}
+      </RequirementFieldShell>
+    );
+  }
+
   function handleKeyDown(
     event: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>,
   ): void {
@@ -200,7 +240,7 @@ export function ReferenceFieldInput({
   if (field.input.kind === "select") {
     const selectOptions = field.input.options ?? [];
 
-    return (
+    return wrapWithRequirementLabel(
       <select
         value={value}
         disabled={disabled}
@@ -217,12 +257,12 @@ export function ReferenceFieldInput({
             {option.label}
           </option>
         ))}
-      </select>
+      </select>,
     );
   }
 
   if (field.input.kind === "reference") {
-    return (
+    return wrapWithRequirementLabel(
       <ReferenceAutocompleteInput
         fieldName={field.name}
         value={value}
@@ -234,17 +274,19 @@ export function ReferenceFieldInput({
         className={className}
         onCommit={onCommit}
         onKeyDown={handleKeyDown}
-      />
+      />,
     );
   }
 
   if (field.input.kind === "textarea" || field.input.kind === "json") {
-    return (
+    const textareaRows = rows ?? (field.input.kind === "json" ? 4 : 3);
+
+    return wrapWithRequirementLabel(
       <textarea
         value={value}
         disabled={disabled}
         autoFocus={autoFocus}
-        rows={field.input.kind === "json" ? 4 : 3}
+        rows={textareaRows}
         onChange={(event) => onChange(event.target.value)}
         onKeyDown={(event) => {
           if (event.key === "Enter" && event.metaKey && onCommit) {
@@ -253,11 +295,11 @@ export function ReferenceFieldInput({
           }
         }}
         className={classNames(inputClassName(className), "font-mono resize-y")}
-      />
+      />,
     );
   }
 
-  return (
+  return wrapWithRequirementLabel(
     <input
       type={field.input.kind === "number" ? "number" : "text"}
       value={value}
@@ -266,6 +308,6 @@ export function ReferenceFieldInput({
       onChange={(event) => onChange(event.target.value)}
       onKeyDown={handleKeyDown}
       className={inputClassName(className)}
-    />
+    />,
   );
 }

@@ -14,5 +14,6 @@ export {
   formatReferenceValue,
   parseDraftValue,
   referenceTableKey,
+  fieldRequirementPlaceholder,
   type ReferenceValue,
 } from "./referenceValues";

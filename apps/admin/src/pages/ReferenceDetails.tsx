@@ -29,6 +29,7 @@ import { ReferenceFieldInput } from "../components/ui/ReferenceFieldInput";
 import {
   buildCreateRowPayload,
   referenceTableKey,
+  fieldRequirementPlaceholder,
   type ReferenceValue,
 } from "../components/ui/referenceValues";
 import { useDataFetching } from "@leda/lib/hooks";
@@ -320,6 +321,7 @@ export function ReferenceDetailsPage(): ReactElement {
       <ReferenceFieldInput
         field={field}
         value={createDrafts[field.name] ?? ""}
+        requirementLabel={fieldRequirementPlaceholder(field)}
         onChange={(nextValue) => {
           setCreateDrafts((prev) => ({ ...prev, [field.name]: nextValue }));
           setCreateTouched((prev) => new Set(prev).add(field.name));
@@ -375,7 +377,7 @@ export function ReferenceDetailsPage(): ReactElement {
   const selectedKey = referenceTableKey(schema, table);
 
   return (
-    <div className="min-w-0 w-full max-w-full">
+    <div className="min-w-0 w-full max-w-full overflow-x-hidden">
       <div className="mb-4">
         <h2 className="text-3xl font-bold">
           {data.descriptor.description || selectedKey}
@@ -430,8 +432,8 @@ export function ReferenceDetailsPage(): ReactElement {
         columns={columns}
         data={tableRows}
         loading={loading}
+        cellClassName="break-words"
         className={classNames(
-          "min-w-0",
           showCreateRow && "[&_tbody_tr:first-child]:bg-surface-2",
         )}
       />
