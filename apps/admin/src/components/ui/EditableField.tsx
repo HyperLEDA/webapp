@@ -30,6 +30,13 @@ export interface StringEditableFieldProps extends Omit<
   input?: FieldInputConfig;
 }
 
+function multilineSaveShortcutLabel(): string {
+  if (!("navigator" in globalThis)) {
+    return "Ctrl+Enter";
+  }
+  return /Mac|iPod|iPhone|iPad/.test(navigator.platform) ? "⌘↵" : "Ctrl+Enter";
+}
+
 function EditableFieldInner<T>({
   value,
   formatValue,
@@ -49,8 +56,11 @@ function EditableFieldInner<T>({
   isUnchanged,
 }: EditableFieldProps<T>): ReactElement {
   const [editing, setEditing] = useState(false);
+  const [savedValue, setSavedValue] = useState<T | undefined>(undefined);
   const [draft, setDraft] = useState(() => formatValue(value));
   const [error, setError] = useState<string | null>(null);
+  const multilineSaveShortcut = multilineSaveShortcutLabel();
+  const displayValue = savedValue ?? value;
 
   function valueIsEmpty(nextValue: T): boolean {
     if (isEmpty) {
@@ -67,20 +77,24 @@ function EditableFieldInner<T>({
   }
 
   useEffect(() => {
+    setSavedValue(undefined);
+  }, [value]);
+
+  useEffect(() => {
     if (!editing) {
-      setDraft(formatValue(value));
+      setDraft(formatValue(displayValue));
       setError(null);
     }
-  }, [value, editing, formatValue]);
+  }, [displayValue, editing, formatValue]);
 
   function startEdit(): void {
-    setDraft(formatValue(value));
+    setDraft(formatValue(displayValue));
     setError(null);
     setEditing(true);
   }
 
   function cancelEdit(): void {
-    setDraft(formatValue(value));
+    setDraft(formatValue(displayValue));
     setError(null);
     setEditing(false);
   }
@@ -88,8 +102,8 @@ function EditableFieldInner<T>({
   async function handleSave(): Promise<void> {
     const nextDraft = trimOnCommit ? draft.trim() : draft;
     const changed = isUnchanged
-      ? !isUnchanged(nextDraft, value)
-      : nextDraft !== formatValue(value);
+      ? !isUnchanged(nextDraft, displayValue)
+      : nextDraft !== formatValue(displayValue);
 
     if (!changed) {
       setEditing(false);
@@ -97,14 +111,17 @@ function EditableFieldInner<T>({
       return;
     }
 
+    const parsed = parseDraft(nextDraft);
+
     try {
-      await onSave(parseDraft(nextDraft));
+      await onSave(parsed);
+      setSavedValue(parsed);
       setEditing(false);
       setError(null);
     } catch (err) {
       setError(formatCaughtError(err));
       if (revertOnError) {
-        setDraft(formatValue(value));
+        setDraft(formatValue(displayValue));
       }
     }
   }
@@ -133,6 +150,11 @@ function EditableFieldInner<T>({
   }
 
   if (editing) {
+    const saveShortcut =
+      input.kind === "textarea" || input.kind === "json"
+        ? multilineSaveShortcut
+        : "↵";
+
     return (
       <div className="min-w-0">
         <FieldInput
@@ -147,6 +169,14 @@ function EditableFieldInner<T>({
           onCancel={cancelEdit}
           commitOnChange={input.kind === "select"}
         />
+        {input.kind !== "select" ? (
+          <div className="mt-1 flex gap-2 text-xs text-muted">
+            <span className="flex items-center gap-0.5">
+              {saveShortcut} save
+            </span>
+            <span className="flex items-center gap-0.5">Esc cancel</span>
+          </div>
+        ) : null}
         {error ? <p className="mt-1 text-xs text-danger">{error}</p> : null}
       </div>
     );
@@ -159,7 +189,7 @@ function EditableFieldInner<T>({
         align === "start" ? "items-start" : "items-center",
       )}
     >
-      <div className="min-w-0 flex-1">{renderValue(value)}</div>
+      <div className="min-w-0 flex-1">{renderValue(displayValue)}</div>
       <button
         type="button"
         aria-label={editLabel}

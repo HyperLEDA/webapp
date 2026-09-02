@@ -228,7 +228,6 @@ export function ReferenceDetailsPage(): ReactElement {
       if (response.error) {
         throw new Error(formatApiError(response.error));
       }
-      setRefreshKey((key) => key + 1);
     } catch (err) {
       setPatchError(formatCaughtError(err));
       throw err;
@@ -359,7 +358,7 @@ export function ReferenceDetailsPage(): ReactElement {
   const selectedKey = referenceTableKey(schema, table);
 
   return (
-    <div className="min-w-0 w-full max-w-full overflow-x-hidden">
+    <div className="min-w-0 w-full max-w-full">
       <div className="mb-4">
         <h2 className="text-3xl font-bold">
           {data.descriptor.description || selectedKey}

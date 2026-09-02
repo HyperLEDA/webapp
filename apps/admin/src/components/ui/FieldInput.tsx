@@ -7,9 +7,13 @@ import {
   useRef,
   useState,
 } from "react";
-import { SuggestibleInput } from "@leda/lib/ui";
+import Editor from "@monaco-editor/react";
+import type * as Monaco from "monaco-editor";
+import { SuggestibleInput, useTheme } from "@leda/lib/ui";
 
 const SEARCH_DEBOUNCE_MS = 300;
+const JSON_EDITOR_LIGHT_THEME = "leda-json-light";
+const JSON_EDITOR_DARK_THEME = "leda-json-dark";
 
 export interface FieldOption {
   value: string;
@@ -97,10 +101,108 @@ function handleMultilineKeyDown(
     onCancel();
     return;
   }
-  if (event.key === "Enter" && event.metaKey && onSave) {
+  if (event.key === "Enter" && (event.metaKey || event.ctrlKey) && onSave) {
     event.preventDefault();
     onSave();
   }
+}
+
+interface JsonEditorProps {
+  value: string;
+  onChange: (value: string) => void;
+  disabled: boolean;
+  autoFocus: boolean;
+  className: string;
+  onSave?: () => void;
+  onCancel?: () => void;
+}
+
+function JsonEditor({
+  value,
+  onChange,
+  disabled,
+  autoFocus,
+  className,
+  onSave,
+  onCancel,
+}: JsonEditorProps): ReactElement {
+  const { effectiveTheme } = useTheme();
+  const onSaveRef = useRef(onSave);
+  const onCancelRef = useRef(onCancel);
+  const height = `${(value.split("\n").length + 1) * 20 + 8}px`;
+  const widestLineLength = Math.max(
+    1,
+    ...value.split("\n").map((line) => line.length),
+  );
+  const minWidth = `calc(${widestLineLength}ch + 16px)`;
+
+  onSaveRef.current = onSave;
+  onCancelRef.current = onCancel;
+
+  return (
+    <div
+      className={classNames(className, "overflow-hidden p-0")}
+      style={{ height, minWidth }}
+      onClick={(event) => event.stopPropagation()}
+    >
+      <Editor
+        height="100%"
+        language="json"
+        theme={
+          effectiveTheme === "dark"
+            ? JSON_EDITOR_DARK_THEME
+            : JSON_EDITOR_LIGHT_THEME
+        }
+        value={value}
+        onChange={(nextValue) => onChange(nextValue ?? "")}
+        beforeMount={(monaco: typeof Monaco) => {
+          monaco.editor.defineTheme(JSON_EDITOR_LIGHT_THEME, {
+            base: "vs",
+            inherit: true,
+            colors: { "editor.background": "#00000000" },
+            rules: [],
+          });
+          monaco.editor.defineTheme(JSON_EDITOR_DARK_THEME, {
+            base: "vs-dark",
+            inherit: true,
+            colors: { "editor.background": "#00000000" },
+            rules: [],
+          });
+        }}
+        onMount={(editor, monaco: typeof Monaco) => {
+          if (autoFocus) {
+            editor.focus();
+          }
+          editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () =>
+            onSaveRef.current?.(),
+          );
+          editor.addCommand(monaco.KeyCode.Escape, () => {
+            onCancelRef.current?.();
+          });
+        }}
+        options={{
+          readOnly: disabled,
+          minimap: { enabled: false },
+          fontSize: 13,
+          lineNumbers: "off",
+          folding: false,
+          glyphMargin: false,
+          overviewRulerLanes: 0,
+          renderLineHighlight: "none",
+          scrollBeyondLastLine: false,
+          wordWrap: "off",
+          automaticLayout: true,
+          tabSize: 2,
+          padding: { top: 4, bottom: 4 },
+          scrollbar: {
+            horizontal: "hidden",
+            vertical: "hidden",
+            handleMouseWheel: false,
+          },
+        }}
+      />
+    </div>
+  );
 }
 
 interface AutocompleteInputProps {
@@ -266,6 +368,20 @@ export function FieldInput({
     return (
       <AutocompleteInput
         loadOptions={input.loadOptions}
+        value={value}
+        onChange={onChange}
+        disabled={disabled}
+        autoFocus={autoFocus}
+        className={resolvedClassName}
+        onSave={onSave}
+        onCancel={onCancel}
+      />
+    );
+  }
+
+  if (input.kind === "json" && appearance === "inline") {
+    return (
+      <JsonEditor
         value={value}
         onChange={onChange}
         disabled={disabled}
