@@ -1,5 +1,6 @@
 import React, { ReactElement, ReactNode } from "react";
 import classNames from "classnames";
+import { CollapsibleCell } from "./CollapsibleCell";
 import { Hint } from "./Hint";
 import { Loading } from "./Loading";
 
@@ -20,6 +21,17 @@ function columnWidthClassName(width: ColumnWidth = "auto"): string | undefined {
     return "w-px whitespace-nowrap text-center";
   }
   return undefined;
+}
+
+function cellResetKey(
+  value: CellPrimitive,
+  rowIndex: number,
+  columnSlug: string,
+): string {
+  if (React.isValidElement(value)) {
+    return `${rowIndex}:${columnSlug}`;
+  }
+  return `${rowIndex}:${columnSlug}:${String(value)}`;
 }
 
 interface CommonTableProps {
@@ -47,7 +59,7 @@ export function CommonTable({
   children,
   onRowClick,
 }: CommonTableProps): ReactElement {
-  function renderCell(value: CellPrimitive, column: Column): ReactNode {
+  function cellContent(value: CellPrimitive, column: Column): ReactNode {
     if (column.renderCell) {
       return column.renderCell(value);
     }
@@ -56,7 +68,19 @@ export function CommonTable({
       return value;
     }
 
-    return <span>{String(value)}</span>;
+    return <span className="whitespace-pre-wrap">{String(value)}</span>;
+  }
+
+  function renderCell(
+    value: CellPrimitive,
+    column: Column,
+    rowIndex: number,
+  ): ReactNode {
+    return (
+      <CollapsibleCell resetKey={cellResetKey(value, rowIndex, column.slug)}>
+        {cellContent(value, column)}
+      </CollapsibleCell>
+    );
   }
 
   return (
@@ -128,7 +152,7 @@ export function CommonTable({
                           columnWidthClassName(column.width),
                         )}
                       >
-                        {renderCell(cellValue, column)}
+                        {renderCell(cellValue, column, rowIndex)}
                       </td>
                     );
                   })}

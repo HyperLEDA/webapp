@@ -2,8 +2,16 @@ export { Accordion } from "./Accordion";
 export { Badge, type BadgeType } from "./Badge";
 export { CopyButton } from "./CopyButton";
 export { DropdownFilter } from "./DropdownFilter";
-export { EditableReferenceField } from "./EditableReferenceField";
-export { EditableTextField } from "./EditableTextField";
+export {
+  EditableReferenceField,
+  referenceFieldType,
+} from "./EditableReferenceField";
+export {
+  EditableTextField,
+  stringFieldType,
+  type EditableFieldType,
+  type EditableInputProps,
+} from "./EditableTextField";
 export { MultiSelectFilter } from "./MultiSelectFilter";
 export { ObjectSummary } from "./ObjectSummary";
 export { ReferenceFieldInput } from "./ReferenceFieldInput";

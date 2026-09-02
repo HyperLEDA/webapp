@@ -147,21 +147,17 @@ function renderColumnName(name: CellPrimitive): ReactElement {
 
 type ColumnMetadataField = "description" | "unit" | "ucd";
 
-interface MetadataCellDisplayProps {
-  value: string | null | undefined;
-  renderDisplay?: (value: string) => ReactElement;
-}
-
-function MetadataCellDisplay(props: MetadataCellDisplayProps): ReactElement {
-  if (props.value) {
-    return props.renderDisplay ? (
-      props.renderDisplay(props.value)
-    ) : (
-      <span>{props.value}</span>
-    );
+function renderMetadataDisplay(
+  value: string | null | undefined,
+  renderDisplay?: (value: string) => ReactElement,
+): ReactElement {
+  if (value && renderDisplay) {
+    return renderDisplay(value);
   }
 
-  return <span className="text-muted">—</span>;
+  return (
+    <span className={classNames(!value && "text-muted")}>{value || "—"}</span>
+  );
 }
 
 interface TableMetaProps {
@@ -604,9 +600,7 @@ function ColumnInfo(props: ColumnInfoProps): ReactElement {
     renderDisplay?: (displayValue: string) => ReactElement,
   ): ReactElement {
     if (!canEdit) {
-      return (
-        <MetadataCellDisplay value={value} renderDisplay={renderDisplay} />
-      );
+      return renderMetadataDisplay(value, renderDisplay);
     }
 
     const isSaving =
@@ -617,12 +611,13 @@ function ColumnInfo(props: ColumnInfoProps): ReactElement {
         value={value ?? ""}
         editLabel={`Edit ${field} for column ${columnName}`}
         saving={isSaving}
-        renderDisplay={(displayValue) => (
-          <MetadataCellDisplay
-            value={displayValue || null}
-            renderDisplay={renderDisplay}
-          />
-        )}
+        align="start"
+        emptyDisplayValue="—"
+        renderDisplay={
+          renderDisplay
+            ? (displayValue) => renderDisplay(displayValue)
+            : undefined
+        }
         onCommit={(trimmed) => commitColumnMetadata(columnName, field, trimmed)}
       />
     );
