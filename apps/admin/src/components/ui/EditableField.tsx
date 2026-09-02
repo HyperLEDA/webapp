@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import { ReactElement, useEffect, useState } from "react";
-import { MdClose, MdEdit, MdKeyboardReturn } from "react-icons/md";
+import { MdEdit } from "react-icons/md";
 import { formatCaughtError } from "@leda/lib/tap";
 import { FieldInput, type FieldInputConfig } from "./FieldInput";
 
@@ -155,9 +155,7 @@ function EditableFieldInner<T>({
             <span className="flex items-center gap-0.5">
               {saveShortcut} save
             </span>
-            <span className="flex items-center gap-0.5">
-              Esc cancel
-            </span>
+            <span className="flex items-center gap-0.5">Esc cancel</span>
           </div>
         ) : null}
         {error ? <p className="mt-1 text-xs text-danger">{error}</p> : null}
