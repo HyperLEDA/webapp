@@ -12,7 +12,8 @@ export {
 } from "./FieldInput";
 export { MultiSelectFilter } from "./MultiSelectFilter";
 export { ObjectSummary } from "./ObjectSummary";
-export { SearchPageSizeFilters } from "./SearchPageSizeFilters";
+export { PageSizeFilter } from "./PageSizeFilter";
+export { SearchFilter } from "./SearchFilter";
 export { TextFilter } from "./TextFilter";
 export {
   fieldInputForReferenceField,

@@ -21,7 +21,8 @@ import {
 import {
   Badge,
   MultiSelectFilter,
-  SearchPageSizeFilters,
+  PageSizeFilter,
+  SearchFilter,
 } from "../components/ui";
 import { useDataFetching } from "@leda/lib/hooks";
 import { formatApiError } from "@leda/lib/tap";
@@ -69,13 +70,12 @@ function TablesFilters({
   onStatusesChange,
 }: TablesFiltersProps): ReactElement {
   return (
-    <SearchPageSizeFilters
-      query={query}
-      pageSize={pageSize}
-      onQueryChange={onQueryChange}
-      onPageSizeChange={onPageSizeChange}
-      searchPlaceholder="Search by name or description"
-    >
+    <div className="flex flex-wrap gap-4 mb-4">
+      <SearchFilter
+        query={query}
+        onQueryChange={onQueryChange}
+        placeholder="Search by name or description"
+      />
       <MultiSelectFilter
         title="Status"
         options={TABLE_STATUS_OPTIONS}
@@ -84,7 +84,8 @@ function TablesFilters({
           onStatusesChange(parseStatusesParam(values.join(",")))
         }
       />
-    </SearchPageSizeFilters>
+      <PageSizeFilter pageSize={pageSize} onPageSizeChange={onPageSizeChange} />
+    </div>
   );
 }
 

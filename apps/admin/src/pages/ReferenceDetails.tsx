@@ -27,7 +27,8 @@ import {
 import {
   EditableField,
   LabeledFieldInput,
-  SearchPageSizeFilters,
+  PageSizeFilter,
+  SearchFilter,
   buildCreateRowPayload,
   fieldInputForReferenceField,
   fieldRequirementLabel,
@@ -366,15 +367,19 @@ export function ReferenceDetailsPage(): ReactElement {
         <p className="text-muted font-mono text-sm mt-1">{selectedKey}</p>
       </div>
 
-      <SearchPageSizeFilters
-        query={query}
-        pageSize={pageSize}
-        onQueryChange={(nextQuery) => updateParams({ q: nextQuery })}
-        onPageSizeChange={(nextPageSize) =>
-          updateParams({ page_size: nextPageSize })
-        }
-        searchPlaceholder="Search rows"
-      />
+      <div className="flex flex-wrap gap-4 mb-4">
+        <SearchFilter
+          query={query}
+          onQueryChange={(nextQuery) => updateParams({ q: nextQuery })}
+          placeholder="Search rows"
+        />
+        <PageSizeFilter
+          pageSize={pageSize}
+          onPageSizeChange={(nextPageSize) =>
+            updateParams({ page_size: nextPageSize })
+          }
+        />
+      </div>
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
         {showCreateRow ? (
