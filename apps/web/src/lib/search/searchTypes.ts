@@ -60,7 +60,7 @@ const pgcSearchType = regexSearchType({
 const designationSearchType = regexSearchType({
   id: "designation",
   title: "Designation",
-  patterns: [/^.+$/],
+  patterns: [/^(?!\d+$).+$/],
   formatSuggestion: (query) => `Will search designation containing: ${query}`,
   toQueryParams: (query) => ({ name: query }),
 });
