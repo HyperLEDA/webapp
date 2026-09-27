@@ -54,10 +54,16 @@
   --color-danger: var(--token-danger);
 }
 
+html,
+body,
+#root {
+  height: 100%;
+  overflow: hidden;
+}
+
 body {
   margin: 0;
   min-width: 320px;
-  min-height: 100vh;
   background-color: var(--token-app);
   color: var(--token-primary);
 }

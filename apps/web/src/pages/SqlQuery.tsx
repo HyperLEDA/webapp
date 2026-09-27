@@ -24,7 +24,7 @@ export function SqlQueryPage(): ReactElement {
   }
 
   return (
-    <div className="p-8">
+    <div>
       <CatalogSqlPanel
         sql={sqlDraft}
         onSqlChange={setSqlDraft}

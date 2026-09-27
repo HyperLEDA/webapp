@@ -23,7 +23,7 @@ export function NavRail({
   footer?: ReactNode;
 }): ReactElement {
   return (
-    <nav className="fixed left-0 top-0 h-screen w-12 flex flex-col items-center pt-4 pb-4 gap-2 z-20 bg-surface-2">
+    <nav className="h-full w-12 shrink-0 flex flex-col items-center pt-4 pb-4 gap-2 z-20 bg-surface-2">
       {children}
       {footer ? (
         <div className="mt-auto flex flex-col gap-2 items-center">{footer}</div>
