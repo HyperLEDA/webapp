@@ -14,6 +14,7 @@ import {
   MdLibraryBooks,
   MdOpenInNew,
   MdPublic,
+  MdSchedule,
   MdTableChart,
 } from "react-icons/md";
 import {
@@ -31,7 +32,7 @@ import {
 } from "./pages";
 import { isLoggedIn, useIsLoggedIn, clearAuthToken } from "./auth";
 import { AuthNavControl } from "./components/AuthNavControl";
-import { sameEnvWebOrigin } from "@leda/lib/origins";
+import { sameEnvTasksOrigin, sameEnvWebOrigin } from "@leda/lib/origins";
 import {
   Layout as SharedLayout,
   NavRail,
@@ -95,6 +96,20 @@ function Layout() {
                   }}
                 >
                   <MdPublic size={20} />
+                </NavButton>
+              ) : null}
+              {loggedIn ? (
+                <NavButton
+                  label="Open tasks"
+                  onClick={() => {
+                    window.open(
+                      sameEnvTasksOrigin(),
+                      "_blank",
+                      "noopener,noreferrer",
+                    );
+                  }}
+                >
+                  <MdSchedule size={20} />
                 </NavButton>
               ) : null}
               <AuthNavControl />
