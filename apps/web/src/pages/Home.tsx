@@ -13,7 +13,7 @@ const searchExamples: SearchExample[] = [
   {
     label: "Name with wildcard",
     query: "IC 144%",
-    hint: "⚠️ This type of search can be slow. Prefer using an exact name if can.",
+    hint: "⚠️ This type of search can be slow. Prefer using an exact name if you can.",
   },
   { label: "Coordinates", query: "J123049.42+122328.0" },
   { label: "Coordinates", query: '12h 30m 49.42s +12d 23m 28.0"' },
