@@ -7,6 +7,60 @@ import {
   useState,
 } from "react";
 
+import { Loading } from "./Loading";
+
+const ALADIN_SCRIPT_URL =
+  "https://aladin.cds.unistra.fr/AladinLite/api/v3/latest/aladin.js";
+
+let aladinScriptPromise: Promise<void> | null = null;
+
+function loadAladinScript(): Promise<void> {
+  if (window.A) {
+    return Promise.resolve();
+  }
+  if (aladinScriptPromise) {
+    return aladinScriptPromise;
+  }
+
+  aladinScriptPromise = new Promise((resolve, reject) => {
+    const existing = document.querySelector<HTMLScriptElement>(
+      `script[src="${ALADIN_SCRIPT_URL}"]`,
+    );
+    if (existing) {
+      if (window.A) {
+        resolve();
+        return;
+      }
+      existing.addEventListener("load", () => resolve(), { once: true });
+      existing.addEventListener(
+        "error",
+        () => reject(new Error("Failed to load Aladin")),
+        { once: true },
+      );
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = ALADIN_SCRIPT_URL;
+    script.async = true;
+    script.onload = () => {
+      if (window.A) {
+        resolve();
+        return;
+      }
+      aladinScriptPromise = null;
+      reject(new Error("Aladin failed to initialize"));
+    };
+    script.onerror = () => {
+      aladinScriptPromise = null;
+      reject(new Error("Failed to load Aladin"));
+    };
+    document.head.appendChild(script);
+  });
+
+  return aladinScriptPromise;
+}
+
 const ALADIN_SURVEYS = [
   {
     label: "DESI Legacy",
@@ -173,6 +227,8 @@ export const AladinViewer = forwardRef<AladinViewerHandle, AladinViewerProps>(
     const viewRef = useRef({ ra, dec, fov });
     const onSourceClickRef = useRef(onSourceClick);
     const [selectedSurvey, setSelectedSurvey] = useState(survey);
+    const [scriptReady, setScriptReady] = useState(() => Boolean(window.A));
+    const [scriptError, setScriptError] = useState(false);
     const additionalSourcesKey = JSON.stringify(additionalSources ?? []);
 
     viewRef.current = { ra, dec, fov };
@@ -199,7 +255,29 @@ export const AladinViewer = forwardRef<AladinViewerHandle, AladinViewerProps>(
     }, [survey]);
 
     useEffect(() => {
-      if (!aladinDivRef.current) {
+      let cancelled = false;
+
+      loadAladinScript()
+        .then(() => {
+          if (!cancelled) {
+            setScriptReady(true);
+            setScriptError(false);
+          }
+        })
+        .catch(() => {
+          if (!cancelled) {
+            setScriptError(true);
+          }
+        });
+
+      return () => {
+        cancelled = true;
+      };
+    }, []);
+
+    useEffect(() => {
+      const aladinApi = window.A;
+      if (!scriptReady || !aladinApi || !aladinDivRef.current) {
         return undefined;
       }
 
@@ -211,7 +289,7 @@ export const AladinViewer = forwardRef<AladinViewerHandle, AladinViewerProps>(
           dec: initialDec,
           fov: initialFov,
         } = viewRef.current;
-        const aladin = window.A.aladin(aladinDivRef.current, {
+        const aladin = aladinApi.aladin(aladinDivRef.current, {
           survey: selectedSurvey,
           fov: initialFov,
           showReticle: false,
@@ -235,13 +313,13 @@ export const AladinViewer = forwardRef<AladinViewerHandle, AladinViewerProps>(
         // SAFETY: additionalSourcesKey is JSON.stringify of AdditionalSource[].
         const sources = JSON.parse(additionalSourcesKey) as AdditionalSource[];
         if (sources.length > 0) {
-          const nameCatalog = window.A.catalog({
+          const nameCatalog = aladinApi.catalog({
             [ALADIN_MARKER_STYLE]: drawSourceWithLabel,
             color: "black",
             displayLabel: false,
             sourceSize: SOURCE_SIZE,
           });
-          const descrCatalog = window.A.catalog({
+          const descrCatalog = aladinApi.catalog({
             color: "black",
             [ALADIN_MARKER_STYLE]: "cross",
           });
@@ -255,7 +333,7 @@ export const AladinViewer = forwardRef<AladinViewerHandle, AladinViewerProps>(
             };
             if (source.description) {
               descrCatalog.addSources([
-                window.A.marker(source.ra, source.dec, {
+                aladinApi.marker(source.ra, source.dec, {
                   ...data,
                   popupTitle: source.label,
                   popupDesc: source.description,
@@ -263,7 +341,7 @@ export const AladinViewer = forwardRef<AladinViewerHandle, AladinViewerProps>(
               ]);
             }
             nameCatalog.addSources(
-              window.A.source(source.ra, source.dec, data),
+              aladinApi.source(source.ra, source.dec, data),
             );
           });
         }
@@ -275,7 +353,7 @@ export const AladinViewer = forwardRef<AladinViewerHandle, AladinViewerProps>(
       return () => {
         aladinRef.current = null;
       };
-    }, [selectedSurvey, additionalSourcesKey]);
+    }, [scriptReady, selectedSurvey, additionalSourcesKey]);
 
     useEffect(() => {
       const aladin = aladinRef.current;
@@ -287,12 +365,28 @@ export const AladinViewer = forwardRef<AladinViewerHandle, AladinViewerProps>(
 
     return (
       <div ref={containerRef} className="space-y-2">
-        <div ref={aladinDivRef} className={classNames("border", className)} />
+        {!scriptReady && !scriptError ? (
+          <div className={classNames("border", className)}>
+            <Loading message="Loading sky viewer..." />
+          </div>
+        ) : scriptError ? (
+          <div
+            className={classNames(
+              "border flex items-center justify-center text-subtle text-sm",
+              className,
+            )}
+          >
+            Failed to load sky viewer
+          </div>
+        ) : (
+          <div ref={aladinDivRef} className={classNames("border", className)} />
+        )}
         <select
           value={selectedSurvey}
           onChange={(event) => setSelectedSurvey(event.target.value)}
           className="bg-surface-2 border border-border rounded px-3 py-2 text-primary text-sm w-full"
           aria-label="Image survey"
+          disabled={!scriptReady}
         >
           {ALADIN_SURVEYS.map((option) => (
             <option key={option.survey} value={option.survey}>
@@ -329,7 +423,7 @@ interface AladinSource {
 
 declare global {
   interface Window {
-    A: {
+    A?: {
       aladin: (
         element: HTMLElement,
         options?: {
