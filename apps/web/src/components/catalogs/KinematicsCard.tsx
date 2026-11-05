@@ -21,12 +21,11 @@ FROM cz.data AS c
 WHERE r.pgc = ${pgc}`;
 }
 
-type VelocityKey = "heliocentric" | "local_group" | "cmb_old" | "cmb";
+type VelocityKey = "heliocentric" | "local_group" | "cmb";
 
 const VELOCITY_FIELDS: { key: VelocityKey; label: string }[] = [
   { key: "heliocentric", label: "Heliocentric" },
   { key: "local_group", label: "Local Group" },
-  { key: "cmb_old", label: "CMB (old)" },
   { key: "cmb", label: "CMB" },
 ];
 
