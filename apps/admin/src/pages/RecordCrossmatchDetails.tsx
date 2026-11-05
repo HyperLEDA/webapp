@@ -78,10 +78,6 @@ function convertAdminSchemaToBackendSchema(
           v: getVelocityUnit("local_group", "v"),
           e_v: getVelocityUnit("local_group", "e_v"),
         },
-        cmb_old: {
-          v: getVelocityUnit("cmb_old", "v"),
-          e_v: getVelocityUnit("cmb_old", "e_v"),
-        },
         cmb: {
           v: getVelocityUnit("cmb", "v"),
           e_v: getVelocityUnit("cmb", "e_v"),
