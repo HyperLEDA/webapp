@@ -1,12 +1,16 @@
 import { ReactElement, useEffect, useLayoutEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { CatalogSqlPanel } from "@leda/lib/ui";
-import { DEFAULT_SQL_EXAMPLE, parseSqlPermalink } from "@leda/lib/tap";
+import { parseSqlPermalink } from "@leda/lib/tap";
+import { executeTapQuery } from "../lib/tapQuery";
+
+const PUBLIC_SQL_EXAMPLE =
+  "SELECT TOP 25 * FROM leda.designations WHERE pgc = 67872";
 
 export function SqlQueryPage(): ReactElement {
   const [searchParams, setSearchParams] = useSearchParams();
   const permalinkSql = searchParams.get("q");
-  const [sqlDraft, setSqlDraft] = useState(DEFAULT_SQL_EXAMPLE);
+  const [sqlDraft, setSqlDraft] = useState(PUBLIC_SQL_EXAMPLE);
 
   useEffect(() => {
     document.title = "SQL | LEDA";
@@ -30,6 +34,7 @@ export function SqlQueryPage(): ReactElement {
         onSqlChange={setSqlDraft}
         permalinkRunKey={permalinkSql ? parseSqlPermalink(permalinkSql) : null}
         onQueryRun={handleQueryRun}
+        executeQuery={executeTapQuery}
       />
     </div>
   );
