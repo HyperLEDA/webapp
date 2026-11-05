@@ -1,7 +1,7 @@
 import { expect, it, vi } from "vitest";
 import { queryTap } from "./tapQuery";
 
-function tapFetch(body: string, type: string): typeof fetch {
+function tapFetch(body: string, type: string) {
   const init = { status: 200, headers: { "content-type": type } };
   return vi.fn<typeof fetch>().mockResolvedValue(new Response(body, init));
 }
