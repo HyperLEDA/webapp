@@ -11,12 +11,15 @@ import {
 } from "../clients/admin";
 import { adminClient } from "../clients";
 import { formatReferenceValue } from "../components/ui/referenceValues";
-import { inferColumns } from "../upload/csv/infer";
 import { CsvConfigFields } from "../upload/csv/ConfigFields";
+import { inferColumns } from "../upload/csv/infer";
 import type { CsvConfig } from "../upload/csv/parser";
+import { FitsConfigFields } from "../upload/fits/ConfigFields";
+import type { FitsConfig } from "../upload/fits/parser";
 import {
   CSV_FILE_TYPE,
   FILE_TYPES,
+  FITS_FILE_TYPE,
   matchFileType,
   tableNameFromFilename,
   type FileTypeId,
@@ -37,6 +40,8 @@ const TABLE_TYPES: { value: DataType; label: string }[] = [
   { value: "regular", label: "Regular" },
   { value: "compilation", label: "Compilation" },
 ];
+
+const FILE_ACCEPT = FILE_TYPES.flatMap((type) => type.extensions).join(",");
 
 interface BibSuggestion {
   code: string;
@@ -164,6 +169,7 @@ export function TableUploadPage(): ReactElement {
     separator: ",",
     skipLines: 0,
   });
+  const [fitsConfig, setFitsConfig] = useState<FitsConfig>({ hduIndex: 1 });
   const [tableName, setTableName] = useState("");
   const [tableType, setTableType] = useState<DataType>("regular");
   const [description, setDescription] = useState("");
@@ -176,15 +182,16 @@ export function TableUploadPage(): ReactElement {
   const [error, setError] = useState<string | null>(null);
 
   const hasFile = file !== null;
-  const csvReady =
-    hasFile && fileTypeId === "csv" && csvConfig.separator !== "";
+  const typeReady =
+    fileTypeId === "csv" ? csvConfig.separator !== "" : fileTypeId === "fits";
   const bibcodeValue = bibcode.trim();
   const bibcodeError =
     bibcodeValue !== "" && !BIBCODE_PATTERN.test(bibcodeValue)
       ? "Invalid bibcode"
       : null;
   const canSubmit =
-    csvReady &&
+    hasFile &&
+    typeReady &&
     tableName.trim() !== "" &&
     description.trim() !== "" &&
     bibcodeValue !== "" &&
@@ -199,14 +206,14 @@ export function TableUploadPage(): ReactElement {
   }, []);
 
   useEffect(() => {
-    if (!file || fileTypeId !== "csv") {
+    if (!file || fileTypeId === "") {
       setPreview(null);
       setParsing(false);
       setParseError(null);
       return;
     }
 
-    if (!csvConfig.separator) {
+    if (fileTypeId === "csv" && csvConfig.separator === "") {
       setPreview(null);
       setParsing(false);
       setParseError("Separator is empty");
@@ -217,7 +224,14 @@ export function TableUploadPage(): ReactElement {
     setParsing(true);
     setParseError(null);
 
-    void CSV_FILE_TYPE.parse(file, csvConfig, { truncate: PREVIEW_ROW_LIMIT })
+    const pending =
+      fileTypeId === "csv"
+        ? CSV_FILE_TYPE.parse(file, csvConfig, { truncate: PREVIEW_ROW_LIMIT })
+        : FITS_FILE_TYPE.parse(file, fitsConfig, {
+            truncate: PREVIEW_ROW_LIMIT,
+          });
+
+    void pending
       .then((result) => {
         if (cancelled) {
           return;
@@ -240,17 +254,18 @@ export function TableUploadPage(): ReactElement {
     return () => {
       cancelled = true;
     };
-  }, [file, fileTypeId, csvConfig]);
+  }, [file, fileTypeId, csvConfig, fitsConfig]);
 
   function chooseFile(next: File): void {
     const matched = matchFileType(next.name);
     setFile(next);
     setFileTypeId(matched?.id ?? "");
-    setCsvConfig(
-      matched?.id === "csv"
-        ? matched.defaultConfig(next.name)
-        : { separator: ",", skipLines: 0 },
-    );
+    if (matched?.id === "csv") {
+      setCsvConfig(matched.defaultConfig(next.name));
+    }
+    if (matched?.id === "fits") {
+      setFitsConfig(matched.defaultConfig(next.name));
+    }
     setTableName(tableNameFromFilename(next.name));
     setError(null);
     setProgress(null);
@@ -269,16 +284,25 @@ export function TableUploadPage(): ReactElement {
   }
 
   function selectFileType(next: string): void {
-    if (next !== "csv" || !file) {
+    if (!file) {
       setFileTypeId("");
       return;
     }
-    setFileTypeId("csv");
-    setCsvConfig(CSV_FILE_TYPE.defaultConfig(file.name));
+    const matched = FILE_TYPES.find((type) => type.id === next);
+    if (!matched) {
+      setFileTypeId("");
+      return;
+    }
+    setFileTypeId(matched.id);
+    if (matched.id === "csv") {
+      setCsvConfig(matched.defaultConfig(file.name));
+      return;
+    }
+    setFitsConfig(matched.defaultConfig(file.name));
   }
 
   async function submit(): Promise<void> {
-    if (!file || !canSubmit) {
+    if (!file || fileTypeId === "" || !canSubmit) {
       return;
     }
 
@@ -287,8 +311,12 @@ export function TableUploadPage(): ReactElement {
     setProgress(null);
 
     try {
-      const parsed = await CSV_FILE_TYPE.parse(file, csvConfig);
-      const columns = inferColumns(parsed.columns, parsed.rows);
+      const parsed =
+        fileTypeId === "csv"
+          ? await CSV_FILE_TYPE.parse(file, csvConfig)
+          : await FITS_FILE_TYPE.parse(file, fitsConfig);
+      const columns =
+        parsed.columnDescriptions ?? inferColumns(parsed.columns, parsed.rows);
       await uploadTable({
         tableName: tableName.trim(),
         description: description.trim(),
@@ -348,6 +376,7 @@ export function TableUploadPage(): ReactElement {
               <input
                 ref={fileInputRef}
                 type="file"
+                accept={FILE_ACCEPT}
                 className="hidden"
                 onChange={(event) => {
                   const next = event.target.files?.[0];
@@ -385,6 +414,13 @@ export function TableUploadPage(): ReactElement {
               config={csvConfig}
               disabled={!hasFile || uploading}
               onChange={setCsvConfig}
+            />
+          ) : null}
+          {fileTypeId === "fits" ? (
+            <FitsConfigFields
+              config={fitsConfig}
+              disabled={!hasFile || uploading}
+              onChange={setFitsConfig}
             />
           ) : null}
         </section>
