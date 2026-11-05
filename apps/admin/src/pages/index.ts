@@ -8,4 +8,5 @@ export { ReferenceDetailsPage } from "./ReferenceDetails";
 export { ReferencesPage } from "./References";
 export { DataCatalogPage } from "./DataCatalog";
 export { TablesPage } from "./Tables";
+export { TableUploadPage } from "./TableUpload";
 export { TableDetailsPage } from "./TableDetails";
