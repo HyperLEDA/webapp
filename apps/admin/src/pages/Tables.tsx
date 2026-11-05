@@ -1,4 +1,5 @@
 import { ReactElement, useEffect } from "react";
+import { MdUpload } from "react-icons/md";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import classNames from "classnames";
 import { getTableList } from "../clients/admin";
@@ -10,6 +11,7 @@ import type {
 } from "../clients/admin";
 import { adminClient } from "../clients";
 import {
+  Button,
   Card,
   CardAction,
   ErrorPage,
@@ -69,8 +71,10 @@ function TablesFilters({
   onPageSizeChange,
   onStatusesChange,
 }: TablesFiltersProps): ReactElement {
+  const navigate = useNavigate();
+
   return (
-    <div className="flex flex-wrap gap-4 mb-4">
+    <div className="flex flex-wrap items-end gap-4 mb-4">
       <SearchFilter
         query={query}
         onQueryChange={onQueryChange}
@@ -85,6 +89,14 @@ function TablesFilters({
         }
       />
       <PageSizeFilter pageSize={pageSize} onPageSizeChange={onPageSizeChange} />
+      <Button
+        type="button"
+        className="ml-auto"
+        onClick={() => void navigate("/tables/upload")}
+      >
+        <MdUpload className="w-5 h-5 mr-1" />
+        Upload
+      </Button>
     </div>
   );
 }

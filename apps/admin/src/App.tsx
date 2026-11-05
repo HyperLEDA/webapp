@@ -29,6 +29,7 @@ import {
   SqlQueryPage,
   TableDetailsPage,
   TablesPage,
+  TableUploadPage,
 } from "./pages";
 import { isLoggedIn, useIsLoggedIn, clearAuthToken } from "./auth";
 import { AuthNavControl } from "./components/AuthNavControl";
@@ -158,6 +159,7 @@ function App() {
             <Route path="/tasks" element={<AdminPage />} />
             <Route path="/merge-pgc" element={<AdminMergePgcPage />} />
             <Route path="/tables" element={<TablesPage />} />
+            <Route path="/tables/upload" element={<TableUploadPage />} />
             <Route path="/references" element={<ReferencesPage />} />
             <Route
               path="/references/:schema/:table"
