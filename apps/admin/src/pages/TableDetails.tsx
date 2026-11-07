@@ -485,12 +485,6 @@ function CatalogProgressCard({
           <Field label="Marked">
             {formatProgressValue(selectedProgress.structured, totalRecords)}
           </Field>
-          <Field label="Aggregated">
-            {formatProgressValue(selectedProgress.in_layer2, totalRecords)}
-          </Field>
-          <Field label="Waiting for aggregation">
-            {formatProgressValue(selectedProgress.layer2_pending, totalRecords)}
-          </Field>
         </dl>
       </div>
     </Card>
