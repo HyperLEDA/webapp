@@ -10,7 +10,6 @@ interface DropdownFilterProps {
   options: DropdownFilterOption[];
   value: string;
   onChange: (value: string) => void;
-  disabled?: boolean;
 }
 
 export function DropdownFilter({
@@ -18,7 +17,6 @@ export function DropdownFilter({
   options,
   value,
   onChange,
-  disabled = false,
 }: DropdownFilterProps): ReactElement {
   return (
     <div>
@@ -27,11 +25,8 @@ export function DropdownFilter({
       </label>
       <select
         value={value}
-        disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
-        className={`bg-surface-2 border border-border rounded px-3 py-2 text-primary h-10 w-full ${
-          disabled ? "opacity-50 cursor-not-allowed" : ""
-        }`}
+        className="bg-surface-2 border border-border rounded px-3 py-2 text-primary h-10 w-full"
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>
