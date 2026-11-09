@@ -98,12 +98,12 @@ export function CommonTable({
       <div className="relative min-w-0 max-w-full">
         <div
           className={classNames(
-            "min-w-0 max-w-full overflow-x-auto",
+            "min-w-0 max-w-full overflow-x-auto rounded-lg border border-border",
             tableClassName,
             loading && "opacity-50 pointer-events-none",
           )}
         >
-          <table className="w-full table-auto border-collapse border border-border rounded">
+          <table className="w-full table-auto border-collapse">
             <thead>
               <tr className="bg-surface-2">
                 {columns.map((column) => {
@@ -112,7 +112,7 @@ export function CommonTable({
                     <th
                       key={column.slug}
                       className={classNames(
-                        "border border-border px-2 py-1 text-center font-semibold text-primary whitespace-nowrap",
+                        "border-b border-r border-border px-2 py-1 text-center font-semibold text-primary whitespace-nowrap last:border-r-0",
                         columnHeaderClassName,
                         columnWidthClassName(column.width),
                       )}
@@ -130,7 +130,7 @@ export function CommonTable({
               </tr>
             </thead>
 
-            <tbody>
+            <tbody className="[&>tr:last-child>td]:border-b-0">
               {data.map((row, rowIndex) => (
                 <tr
                   key={rowIndex}
@@ -146,7 +146,7 @@ export function CommonTable({
                       <td
                         key={column.slug}
                         className={classNames(
-                          "min-w-0 border border-border px-2 py-1 align-top [overflow-wrap:anywhere]",
+                          "min-w-0 border-b border-r border-border px-2 py-1 align-top [overflow-wrap:anywhere] last:border-r-0",
                           cellClassName,
                           columnWidthClassName(column.width),
                         )}
