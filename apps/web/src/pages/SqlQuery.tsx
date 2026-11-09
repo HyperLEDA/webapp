@@ -1,11 +1,17 @@
 import { ReactElement, useEffect, useLayoutEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import type { TapSyncResponse } from "@leda/lib/clients/backend";
+import { config } from "@leda/lib/config";
 import { CatalogSqlPanel } from "@leda/lib/ui";
 import { parseSqlPermalink } from "@leda/lib/tap";
-import { executeTapQuery } from "../lib/tapQuery";
+import { queryTap, tapBaseUrl } from "../lib/tapQuery";
 
 const PUBLIC_SQL_EXAMPLE =
   "SELECT TOP 25 * FROM leda.designations WHERE pgc = 67872";
+
+function executeTapQuery(sql: string): Promise<TapSyncResponse> {
+  return queryTap(tapBaseUrl(config.backendBaseUrl), sql);
+}
 
 export function SqlQueryPage(): ReactElement {
   const [searchParams, setSearchParams] = useSearchParams();
