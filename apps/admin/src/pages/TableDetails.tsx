@@ -697,7 +697,12 @@ function ColumnInfo(props: ColumnInfoProps): ReactElement {
   return (
     <Card title="Column information" variant="block" actions={actions}>
       <div className="mb-4 max-w-md">
-        <TextFilter value={query} onChange={setQuery} defaultValue="" />
+        <TextFilter
+          value={query}
+          onChange={setQuery}
+          defaultValue=""
+          placeholder="Search column by name, description, or UCD"
+        />
       </div>
       {patchError ? (
         <p className="mb-4 text-sm text-danger">{patchError}</p>

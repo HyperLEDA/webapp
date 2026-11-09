@@ -449,6 +449,7 @@ export function DataCatalogPage(): ReactElement {
               title="Filter tables"
               value={filter}
               onChange={setFilter}
+              placeholder="Enter value"
               defaultValue=""
             />
           </div>
