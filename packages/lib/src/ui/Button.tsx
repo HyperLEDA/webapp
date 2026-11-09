@@ -9,9 +9,12 @@ interface ButtonProps {
   disabled?: boolean;
   transparent?: boolean;
   hoverText?: string;
+  size?: "sm" | "md";
 }
 
 export function Button(props: ButtonProps): ReactElement {
+  const size = props.size ?? "md";
+
   return (
     <button
       type={props.type}
@@ -20,7 +23,8 @@ export function Button(props: ButtonProps): ReactElement {
       title={props.hoverText}
       aria-label={props.hoverText}
       className={classNames(
-        "px-2 py-2 box-border flex items-center font-semibold rounded-lg transition-colors duration-300 cursor-pointer",
+        "box-border flex items-center font-semibold rounded-lg transition-colors duration-300 cursor-pointer",
+        size === "sm" ? "h-8 px-2 py-0 text-sm" : "px-2 py-2",
         props.transparent
           ? "border-0 bg-transparent hover:text-accent active:text-primary"
           : "border-1 border-surface-2 bg-surface-2 hover:border-accent active:border-primary",

@@ -21,7 +21,8 @@ import type {
 } from "@leda/lib/clients/backend";
 import { backendClient } from "@leda/lib/clients";
 import { CommonTable, Column, ErrorPage, Loading, Text } from "@leda/lib/ui";
-import { Accordion, TextFilter } from "../components/ui";
+import { Accordion } from "../components/ui";
+import { TextFilter } from "../components/ui/filters";
 import { useDataFetching } from "@leda/lib/hooks";
 import { Button } from "@leda/lib/ui";
 import classNames from "classnames";
@@ -448,7 +449,8 @@ export function DataCatalogPage(): ReactElement {
               title="Filter tables"
               value={filter}
               onChange={setFilter}
-              placeholder="Schema, table name, or description"
+              placeholder="Enter value"
+              defaultValue=""
             />
           </div>
           <div className="lg:flex-1 lg:min-h-0 lg:overflow-y-auto pr-0.5">

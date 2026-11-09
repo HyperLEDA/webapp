@@ -27,8 +27,6 @@ import {
 import {
   EditableField,
   LabeledFieldInput,
-  PageSizeFilter,
-  SearchFilter,
   buildCreateRowPayload,
   fieldInputForReferenceField,
   fieldRequirementLabel,
@@ -36,6 +34,7 @@ import {
   referenceTableKey,
   type ReferenceValue,
 } from "../components/ui";
+import { PageSizeFilter, SearchFilter } from "../components/ui/filters";
 import { useDataFetching } from "@leda/lib/hooks";
 import { formatApiError, formatCaughtError } from "@leda/lib/tap";
 
@@ -366,7 +365,7 @@ export function ReferenceDetailsPage(): ReactElement {
         <p className="text-muted font-mono text-sm mt-1">{selectedKey}</p>
       </div>
 
-      <div className="flex flex-wrap gap-4 mb-4">
+      <div className="flex flex-wrap items-center gap-3 mb-4">
         <SearchFilter
           query={query}
           onQueryChange={(nextQuery) => updateParams({ q: nextQuery })}
@@ -377,6 +376,7 @@ export function ReferenceDetailsPage(): ReactElement {
           onPageSizeChange={(nextPageSize) =>
             updateParams({ page_size: nextPageSize })
           }
+          defaultValue={25}
         />
       </div>
 

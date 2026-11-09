@@ -11,11 +11,13 @@ const PAGE_SIZE_OPTIONS = [
 interface PageSizeFilterProps {
   pageSize: number;
   onPageSizeChange: (pageSize: number) => void;
+  defaultValue?: number;
 }
 
 export function PageSizeFilter({
   pageSize,
   onPageSizeChange,
+  defaultValue,
 }: PageSizeFilterProps): ReactElement {
   return (
     <DropdownFilter
@@ -23,6 +25,9 @@ export function PageSizeFilter({
       options={PAGE_SIZE_OPTIONS}
       value={pageSize.toString()}
       onChange={(value) => onPageSizeChange(Number.parseInt(value, 10))}
+      defaultValue={
+        defaultValue === undefined ? undefined : defaultValue.toString()
+      }
     />
   );
 }

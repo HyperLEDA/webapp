@@ -20,12 +20,12 @@ import {
   Loading,
   Pagination,
 } from "@leda/lib/ui";
+import { Badge } from "../components/ui";
 import {
-  Badge,
   MultiSelectFilter,
   PageSizeFilter,
   SearchFilter,
-} from "../components/ui";
+} from "../components/ui/filters";
 import { useDataFetching } from "@leda/lib/hooks";
 import { formatApiError } from "@leda/lib/tap";
 import { getSourceLink } from "@leda/lib/astronomy";
@@ -74,7 +74,7 @@ function TablesFilters({
   const navigate = useNavigate();
 
   return (
-    <div className="flex flex-wrap items-end gap-4 mb-4">
+    <div className="flex flex-wrap items-center gap-3 mb-4">
       <SearchFilter
         query={query}
         onQueryChange={onQueryChange}
@@ -87,14 +87,20 @@ function TablesFilters({
         onChange={(values) =>
           onStatusesChange(parseStatusesParam(values.join(",")))
         }
+        defaultValue={[]}
       />
-      <PageSizeFilter pageSize={pageSize} onPageSizeChange={onPageSizeChange} />
+      <PageSizeFilter
+        pageSize={pageSize}
+        onPageSizeChange={onPageSizeChange}
+        defaultValue={25}
+      />
       <Button
         type="button"
+        size="sm"
         className="ml-auto"
         onClick={() => void navigate("/tables/upload")}
       >
-        <MdUpload className="w-5 h-5 mr-1" />
+        <MdUpload className="w-4 h-4 mr-1" />
         Upload
       </Button>
     </div>

@@ -20,7 +20,8 @@ import {
   Loading,
   Pagination,
 } from "@leda/lib/ui";
-import { Badge, DropdownFilter, TextFilter } from "../components/ui";
+import { Badge } from "../components/ui";
+import { DropdownFilter, TextFilter } from "../components/ui/filters";
 import { useDataFetching } from "@leda/lib/hooks";
 
 interface CrossmatchFiltersProps {
@@ -59,13 +60,14 @@ function CrossmatchFilters({
   const tableLink = adminTableUrl(localTableName.trim());
 
   return (
-    <div className="flex gap-4 mb-4">
+    <div className="flex flex-wrap items-center gap-3 mb-4">
       <TextFilter
         title="Table name"
         value={localTableName}
         onChange={setLocalTableName}
         placeholder="Enter table name"
         onEnter={applyFilters}
+        defaultValue=""
       />
       <Link href={tableLink.href} external={tableLink.external} />
       <DropdownFilter
@@ -77,6 +79,7 @@ function CrossmatchFilters({
         ]}
         value={localTriageStatus}
         onChange={setLocalTriageStatus}
+        defaultValue="pending"
       />
       <DropdownFilter
         title="Page size"
@@ -88,10 +91,11 @@ function CrossmatchFilters({
         ]}
         value={localPageSize.toString()}
         onChange={(value) => setLocalPageSize(parseInt(value))}
+        defaultValue="25"
       />
-      <div className="flex items-end">
-        <Button onClick={applyFilters}>Apply</Button>
-      </div>
+      <Button size="sm" onClick={applyFilters}>
+        Apply
+      </Button>
     </div>
   );
 }

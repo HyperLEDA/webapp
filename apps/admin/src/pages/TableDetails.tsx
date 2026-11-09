@@ -24,7 +24,8 @@ import {
   Link,
   Loading,
 } from "@leda/lib/ui";
-import { Badge, CopyButton, EditableField, TextFilter } from "../components/ui";
+import { Badge, CopyButton, EditableField } from "../components/ui";
+import { TextFilter } from "../components/ui/filters";
 import { useDataFetching } from "@leda/lib/hooks";
 import { originalDataCatalogLink } from "@leda/lib/astronomy";
 import { formatCaughtError } from "@leda/lib/tap";
@@ -699,6 +700,7 @@ function ColumnInfo(props: ColumnInfoProps): ReactElement {
         <TextFilter
           value={query}
           onChange={setQuery}
+          defaultValue=""
           placeholder="Search column by name, description, or UCD"
         />
       </div>

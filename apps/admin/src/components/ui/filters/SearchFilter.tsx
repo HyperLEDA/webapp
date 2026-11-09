@@ -35,6 +35,11 @@ export function SearchFilter({
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
     }
+    if (value === "") {
+      debounceRef.current = null;
+      onQueryChange(value);
+      return;
+    }
     debounceRef.current = setTimeout(() => {
       debounceRef.current = null;
       onQueryChange(value);
@@ -47,6 +52,7 @@ export function SearchFilter({
       value={localQuery}
       onChange={handleQueryChange}
       placeholder={placeholder}
+      defaultValue=""
     />
   );
 }
