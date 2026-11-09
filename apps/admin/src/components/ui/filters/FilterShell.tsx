@@ -49,11 +49,12 @@ export function FilterAutoWidth({
     <div className="relative inline-block max-w-full min-w-0">
       <span
         aria-hidden="true"
-        className={`invisible block whitespace-pre pl-2 ${
-          endPad ? "pr-5" : "pr-2"
+        className={`invisible flex items-center whitespace-pre px-2 ${
+          endPad ? "gap-2" : ""
         } ${filterControlClassName}`}
       >
-        {text || " "}
+        <span>{text || " "}</span>
+        {endPad ? <span className="text-xs">▾</span> : null}
       </span>
       <div className="absolute inset-0 flex items-center">{children}</div>
     </div>
