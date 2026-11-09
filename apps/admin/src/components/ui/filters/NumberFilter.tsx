@@ -11,6 +11,7 @@ interface NumberFilterProps {
   onChange: (value: string) => void;
   placeholder?: string;
   onEnter?: () => void;
+  defaultValue?: string;
 }
 
 export function NumberFilter({
@@ -19,9 +20,15 @@ export function NumberFilter({
   onChange,
   placeholder,
   onEnter,
+  defaultValue,
 }: NumberFilterProps): ReactElement {
+  const showClear = defaultValue !== undefined && value !== defaultValue;
+
   return (
-    <FilterShell title={title}>
+    <FilterShell
+      title={title}
+      onClear={showClear ? () => onChange(defaultValue) : undefined}
+    >
       <FilterAutoWidth text={value || placeholder || ""}>
         <input
           type="number"

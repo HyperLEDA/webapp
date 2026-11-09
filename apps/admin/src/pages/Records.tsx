@@ -269,6 +269,7 @@ function RecordsFilters({
         onChange={setLocalTableName}
         placeholder="All tables"
         onEnter={applyFilters}
+        defaultValue=""
       />
       <NumberFilter
         title="PGC"
@@ -276,6 +277,7 @@ function RecordsFilters({
         onChange={setLocalPgc}
         placeholder="Exact PGC"
         onEnter={applyFilters}
+        defaultValue=""
       />
       <DropdownFilter
         title="Upload status"
@@ -283,10 +285,12 @@ function RecordsFilters({
         value={uploadDisabled ? "all" : localUploadStatus}
         onChange={setLocalUploadStatus}
         disabled={uploadDisabled}
+        defaultValue="all"
       />
       <PageSizeFilter
         pageSize={localPageSize}
         onPageSizeChange={setLocalPageSize}
+        defaultValue={25}
       />
       <Button size="sm" onClick={applyFilters}>
         Apply

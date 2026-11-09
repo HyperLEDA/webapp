@@ -16,6 +16,15 @@ interface MultiSelectFilterProps {
   options: MultiSelectFilterOption[];
   values: string[];
   onChange: (values: string[]) => void;
+  defaultValue?: string[];
+}
+
+function sameValues(left: string[], right: string[]): boolean {
+  if (left.length !== right.length) {
+    return false;
+  }
+  const rightSet = new Set(right);
+  return left.every((value) => rightSet.has(value));
 }
 
 export function MultiSelectFilter({
@@ -24,6 +33,7 @@ export function MultiSelectFilter({
   options,
   values,
   onChange,
+  defaultValue,
 }: MultiSelectFilterProps): ReactElement {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -63,6 +73,8 @@ export function MultiSelectFilter({
 
   const summary =
     selectedLabels.length === 0 ? placeholder : selectedLabels.join(", ");
+  const showClear =
+    defaultValue !== undefined && !sameValues(values, defaultValue);
 
   function toggleValue(value: string): void {
     if (values.includes(value)) {
@@ -73,7 +85,11 @@ export function MultiSelectFilter({
   }
 
   return (
-    <FilterShell title={title} containerRef={containerRef}>
+    <FilterShell
+      title={title}
+      containerRef={containerRef}
+      onClear={showClear ? () => onChange(defaultValue) : undefined}
+    >
       <FilterAutoWidth text={summary} endPad>
         <div className="relative w-full min-w-0">
           <button

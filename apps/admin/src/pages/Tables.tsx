@@ -87,8 +87,13 @@ function TablesFilters({
         onChange={(values) =>
           onStatusesChange(parseStatusesParam(values.join(",")))
         }
+        defaultValue={[]}
       />
-      <PageSizeFilter pageSize={pageSize} onPageSizeChange={onPageSizeChange} />
+      <PageSizeFilter
+        pageSize={pageSize}
+        onPageSizeChange={onPageSizeChange}
+        defaultValue={25}
+      />
       <Button
         type="button"
         size="sm"

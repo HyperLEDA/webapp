@@ -11,6 +11,7 @@ interface TextFieldProps {
   onChange: (value: string) => void;
   placeholder?: string;
   onEnter?: () => void;
+  defaultValue?: string;
 }
 
 export function TextFilter({
@@ -19,9 +20,15 @@ export function TextFilter({
   onChange,
   placeholder,
   onEnter,
+  defaultValue,
 }: TextFieldProps): ReactElement {
+  const showClear = defaultValue !== undefined && value !== defaultValue;
+
   return (
-    <FilterShell title={title}>
+    <FilterShell
+      title={title}
+      onClear={showClear ? () => onChange(defaultValue) : undefined}
+    >
       <FilterAutoWidth text={value || placeholder || ""}>
         <input
           size={1}

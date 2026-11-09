@@ -16,6 +16,7 @@ interface DropdownFilterProps {
   value: string;
   onChange: (value: string) => void;
   disabled?: boolean;
+  defaultValue?: string;
 }
 
 export function DropdownFilter({
@@ -24,12 +25,19 @@ export function DropdownFilter({
   value,
   onChange,
   disabled = false,
+  defaultValue,
 }: DropdownFilterProps): ReactElement {
   const selected =
     options.find((option) => option.value === value)?.label || value;
+  const showClear =
+    defaultValue !== undefined && value !== defaultValue && !disabled;
 
   return (
-    <FilterShell title={title} disabled={disabled}>
+    <FilterShell
+      title={title}
+      disabled={disabled}
+      onClear={showClear ? () => onChange(defaultValue) : undefined}
+    >
       <FilterAutoWidth text={selected} endPad>
         <div className="relative w-full min-w-0">
           <select

@@ -376,6 +376,7 @@ export function ReferenceDetailsPage(): ReactElement {
           onPageSizeChange={(nextPageSize) =>
             updateParams({ page_size: nextPageSize })
           }
+          defaultValue={25}
         />
       </div>
 

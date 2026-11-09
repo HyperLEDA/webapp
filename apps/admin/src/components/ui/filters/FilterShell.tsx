@@ -1,10 +1,12 @@
 import { ReactElement, ReactNode, Ref } from "react";
+import { MdClose } from "react-icons/md";
 
 export const filterControlClassName = "text-sm leading-none text-primary";
 
 interface FilterShellProps {
   title?: string;
   disabled?: boolean;
+  onClear?: () => void;
   children: ReactNode;
   containerRef?: Ref<HTMLDivElement>;
 }
@@ -12,6 +14,7 @@ interface FilterShellProps {
 export function FilterShell({
   title,
   disabled = false,
+  onClear,
   children,
   containerRef,
 }: FilterShellProps): ReactElement {
@@ -30,6 +33,20 @@ export function FilterShell({
         </span>
       ) : null}
       {children}
+      {onClear ? (
+        <button
+          type="button"
+          aria-label="Clear filter"
+          disabled={disabled}
+          onClick={(event) => {
+            event.stopPropagation();
+            onClear();
+          }}
+          className="shrink-0 flex items-center justify-center pr-1.5 text-muted hover:text-primary disabled:cursor-not-allowed"
+        >
+          <MdClose className="w-3.5 h-3.5" />
+        </button>
+      ) : null}
     </div>
   );
 }

@@ -67,6 +67,7 @@ function CrossmatchFilters({
         onChange={setLocalTableName}
         placeholder="Enter table name"
         onEnter={applyFilters}
+        defaultValue=""
       />
       <Link href={tableLink.href} external={tableLink.external} />
       <DropdownFilter
@@ -78,6 +79,7 @@ function CrossmatchFilters({
         ]}
         value={localTriageStatus}
         onChange={setLocalTriageStatus}
+        defaultValue="pending"
       />
       <DropdownFilter
         title="Page size"
@@ -89,6 +91,7 @@ function CrossmatchFilters({
         ]}
         value={localPageSize.toString()}
         onChange={(value) => setLocalPageSize(parseInt(value))}
+        defaultValue="25"
       />
       <Button size="sm" onClick={applyFilters}>
         Apply
