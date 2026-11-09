@@ -288,7 +288,9 @@ function RecordsFilters({
         pageSize={localPageSize}
         onPageSizeChange={setLocalPageSize}
       />
-      <Button onClick={applyFilters}>Apply</Button>
+      <Button size="sm" onClick={applyFilters}>
+        Apply
+      </Button>
     </div>
   );
 }

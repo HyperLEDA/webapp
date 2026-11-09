@@ -90,7 +90,9 @@ function CrossmatchFilters({
         value={localPageSize.toString()}
         onChange={(value) => setLocalPageSize(parseInt(value))}
       />
-      <Button onClick={applyFilters}>Apply</Button>
+      <Button size="sm" onClick={applyFilters}>
+        Apply
+      </Button>
     </div>
   );
 }

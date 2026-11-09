@@ -91,10 +91,11 @@ function TablesFilters({
       <PageSizeFilter pageSize={pageSize} onPageSizeChange={onPageSizeChange} />
       <Button
         type="button"
+        size="sm"
         className="ml-auto"
         onClick={() => void navigate("/tables/upload")}
       >
-        <MdUpload className="w-5 h-5 mr-1" />
+        <MdUpload className="w-4 h-4 mr-1" />
         Upload
       </Button>
     </div>
