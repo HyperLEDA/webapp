@@ -422,7 +422,7 @@ export const WwtViewer = forwardRef<SkyViewerHandle, WwtViewerProps>(
           ref={hostRef}
           id={hostId}
           className={classNames(
-            "relative border overflow-hidden [&>canvas]:block [&>canvas]:h-full [&>canvas]:w-full",
+            "relative overflow-hidden rounded-lg border border-border [&>canvas]:block [&>canvas]:h-full [&>canvas]:w-full",
             className,
           )}
         >

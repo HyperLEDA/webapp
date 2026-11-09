@@ -28,7 +28,7 @@ export function SkyViewCard({
           ra={coordinates.equatorial.ra}
           dec={coordinates.equatorial.dec}
           fov={0.02}
-          className="w-full aspect-square border-0"
+          className="w-full aspect-square"
         />
       ) : (
         <CatalogNoData />

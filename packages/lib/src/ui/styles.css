@@ -52,6 +52,9 @@
   --color-success: var(--token-success);
   --color-warning: var(--token-warning);
   --color-danger: var(--token-danger);
+
+  --radius: 0.25rem;
+  --radius-lg: 0.25rem;
 }
 
 html,

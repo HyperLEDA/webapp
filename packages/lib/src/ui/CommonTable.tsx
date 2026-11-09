@@ -88,7 +88,7 @@ export function CommonTable({
       {children && (
         <div
           className={classNames(
-            "mb-1 p-2 bg-surface-2 rounded-sm",
+            "mb-1 p-2 bg-surface-2 rounded",
             headerClassName,
           )}
         >
@@ -103,7 +103,7 @@ export function CommonTable({
             loading && "opacity-50 pointer-events-none",
           )}
         >
-          <table className="w-full table-auto border-collapse border border-border rounded-sm">
+          <table className="w-full table-auto border-collapse border border-border rounded">
             <thead>
               <tr className="bg-surface-2">
                 {columns.map((column) => {
