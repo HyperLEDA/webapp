@@ -12,7 +12,7 @@ import { Loading } from "./Loading";
 import type { SkyViewerHandle, SkyViewerProps } from "./SkyViewer";
 
 const WWT_SCRIPT_URL = "https://web.wwtassets.org/engine/7/wwtsdk.js";
-const MARKER_RADIUS_PX = 6;
+const MARKER_MARGIN_PX = 16;
 
 const WWT_SURVEYS = [
   {
@@ -97,29 +97,9 @@ function raDegToHours(raDeg: number): number {
   return raDeg / 15;
 }
 
-type WwtCircle = {
-  setCenter: (raHours: number, decDeg: number) => void;
-  set_radius: (radiusDeg: number) => number;
-  set_lineColor: (color: string) => string;
-  set_fill: (fill: boolean) => boolean;
-  set_id: (id: string) => string;
-};
-
-type AnnotationClickArgs = {
-  get_id: () => string;
-};
-
 type WwtScriptInterface = {
   add_ready: (callback: () => void) => void;
   remove_ready: (callback: () => void) => void;
-  add_annotationClicked: (
-    callback: (si: WwtScriptInterface, args: AnnotationClickArgs) => void,
-  ) => void;
-  remove_annotationClicked: (
-    callback: (si: WwtScriptInterface, args: AnnotationClickArgs) => void,
-  ) => void;
-  addAnnotation: (annotation: WwtCircle) => void;
-  clearAnnotations: () => void;
 };
 
 type WwtControl = {
@@ -131,6 +111,14 @@ type WwtControl = {
     instant: boolean,
   ) => void;
   setBackgroundImageByName: (name: string) => void;
+  getScreenPointForCoordinates: (
+    raHours: number,
+    decDeg: number,
+  ) => { x: number; y: number };
+  renderContext: {
+    get_RA: () => number;
+    get_dec: () => number;
+  };
 };
 
 type WwtBuilder = {
@@ -139,8 +127,20 @@ type WwtBuilder = {
   create: () => WwtScriptInterface;
 };
 
+type WwtSettings = {
+  set_showConstellationFigures: (value: boolean) => boolean;
+  set_showConstellationBoundries: (value: boolean) => boolean;
+  set_showConstellationSelection: (value: boolean) => boolean;
+  set_showConstellationPictures: (value: boolean) => boolean;
+  set_showConstellationLabels: (value: boolean) => boolean;
+  set_showCrosshairs: (value: boolean) => boolean;
+  set_showHorizon: (value: boolean) => boolean;
+};
+
 type WwtLibrary = {
-  Circle: new () => WwtCircle;
+  Settings: {
+    get_current: () => WwtSettings;
+  };
   WWTControl: {
     singleton: WwtControl;
     scriptInterface?: WwtScriptInterface;
@@ -160,9 +160,65 @@ function showSurvey(name: string): void {
   window.wwtlib?.WWTControl.singleton.setBackgroundImageByName(name);
 }
 
-function markerRadiusDeg(fovDeg: number, heightPx: number): number {
-  const height = heightPx > 0 ? heightPx : 400;
-  return (MARKER_RADIUS_PX / height) * fovDeg;
+function hideOverlays(): void {
+  const settings = window.wwtlib?.Settings.get_current();
+  if (!settings) {
+    return;
+  }
+  settings.set_showConstellationFigures(false);
+  settings.set_showConstellationBoundries(false);
+  settings.set_showConstellationSelection(false);
+  settings.set_showConstellationPictures(false);
+  settings.set_showConstellationLabels(false);
+  settings.set_showCrosshairs(false);
+  settings.set_showHorizon(false);
+}
+
+function angularSeparationDeg(
+  ra1: number,
+  dec1: number,
+  ra2: number,
+  dec2: number,
+): number {
+  const ra1Rad = (ra1 * Math.PI) / 180;
+  const dec1Rad = (dec1 * Math.PI) / 180;
+  const ra2Rad = (ra2 * Math.PI) / 180;
+  const dec2Rad = (dec2 * Math.PI) / 180;
+  const cosSep =
+    Math.sin(dec1Rad) * Math.sin(dec2Rad) +
+    Math.cos(dec1Rad) * Math.cos(dec2Rad) * Math.cos(ra1Rad - ra2Rad);
+  return (Math.acos(Math.min(1, Math.max(-1, cosSep))) * 180) / Math.PI;
+}
+
+function placeMarkers(host: HTMLElement, overlay: HTMLElement): void {
+  const control = window.wwtlib?.WWTControl.singleton;
+  if (!control) {
+    return;
+  }
+
+  const width = host.clientWidth;
+  const height = host.clientHeight;
+  const cameraRa = control.renderContext.get_RA() * 15;
+  const cameraDec = control.renderContext.get_dec();
+  const markers = overlay.children;
+
+  for (let index = 0; index < markers.length; index += 1) {
+    const marker = markers.item(index);
+    if (!(marker instanceof HTMLElement)) {
+      continue;
+    }
+    const ra = Number(marker.dataset.ra);
+    const dec = Number(marker.dataset.dec);
+    const point = control.getScreenPointForCoordinates(ra / 15, dec);
+    const visible =
+      angularSeparationDeg(ra, dec, cameraRa, cameraDec) < 90 &&
+      point.x >= -MARKER_MARGIN_PX &&
+      point.y >= -MARKER_MARGIN_PX &&
+      point.x <= width + MARKER_MARGIN_PX &&
+      point.y <= height + MARKER_MARGIN_PX;
+    marker.style.display = visible ? "block" : "none";
+    marker.style.transform = `translate(${point.x}px, ${point.y}px)`;
+  }
 }
 
 function attachEngine(
@@ -210,9 +266,9 @@ export const WwtViewer = forwardRef<SkyViewerHandle, WwtViewerProps>(
     const containerRef = useRef<HTMLDivElement>(null);
     const hostRef = useRef<HTMLDivElement>(null);
     const scriptRef = useRef<WwtScriptInterface | null>(null);
+    const overlayRef = useRef<HTMLDivElement>(null);
     const viewRef = useRef({ ra, dec, fov });
     const onSourceClickRef = useRef(onSourceClick);
-    const sourceIdsRef = useRef<Map<string, string | number>>(new Map());
     const hostId = useId().replace(/:/g, "");
     const [scriptReady, setScriptReady] = useState(false);
     const [engineReady, setEngineReady] = useState(wwtEngineReady);
@@ -301,6 +357,7 @@ export const WwtViewer = forwardRef<SkyViewerHandle, WwtViewerProps>(
       }
 
       function onReady(): void {
+        hideOverlays();
         showSurvey(selectedSurveyRef.current);
         wwtEngineReady = true;
         if (!cancelled) {
@@ -323,6 +380,7 @@ export const WwtViewer = forwardRef<SkyViewerHandle, WwtViewerProps>(
       if (!engineReady || !scriptReady) {
         return;
       }
+      hideOverlays();
       showSurvey(selectedSurvey);
     }, [engineReady, scriptReady, selectedSurvey]);
 
@@ -339,59 +397,24 @@ export const WwtViewer = forwardRef<SkyViewerHandle, WwtViewerProps>(
     }, [engineReady, scriptReady, ra, dec, fov]);
 
     useEffect(() => {
-      const script = scriptRef.current;
       const host = hostRef.current;
-      const wwt = window.wwtlib;
-      if (!engineReady || !scriptReady || !script || !host || !wwt) {
-        return;
-      }
-
-      // SAFETY: additionalSourcesKey is JSON.stringify of SkySource[].
-      const sources = JSON.parse(additionalSourcesKey) as NonNullable<
-        WwtViewerProps["additionalSources"]
-      >;
-      script.clearAnnotations();
-
-      const radius = markerRadiusDeg(fov, host.clientHeight);
-      const ids = new Map<string, string | number>();
-      sources.forEach((source, index) => {
-        const circle = new wwt.Circle();
-        // Circle's default transform treats the first argument as hours.
-        circle.setCenter(raDegToHours(source.ra), source.dec);
-        circle.set_radius(radius);
-        circle.set_lineColor("#000000");
-        circle.set_fill(false);
-        if (source.id !== undefined) {
-          const key = String(index);
-          circle.set_id(key);
-          ids.set(key, source.id);
-        }
-        script.addAnnotation(circle);
-      });
-      sourceIdsRef.current = ids;
-    }, [engineReady, scriptReady, additionalSourcesKey, fov]);
-
-    useEffect(() => {
-      const script = scriptRef.current;
-      if (!engineReady || !scriptReady || !script) {
+      const overlay = overlayRef.current;
+      if (!engineReady || !scriptReady || !host || !overlay) {
         return undefined;
       }
+      const element = host;
+      const markers = overlay;
 
-      function onAnnotationClicked(
-        _si: WwtScriptInterface,
-        args: AnnotationClickArgs,
-      ): void {
-        const id = sourceIdsRef.current.get(args.get_id());
-        if (id === undefined) {
-          return;
-        }
-        onSourceClickRef.current?.(id);
+      let frame = 0;
+      function tick(): void {
+        placeMarkers(element, markers);
+        frame = requestAnimationFrame(tick);
       }
-      script.add_annotationClicked(onAnnotationClicked);
+      frame = requestAnimationFrame(tick);
       return () => {
-        script.remove_annotationClicked(onAnnotationClicked);
+        cancelAnimationFrame(frame);
       };
-    }, [engineReady, scriptReady]);
+    }, [engineReady, scriptReady, additionalSourcesKey]);
 
     return (
       <div ref={containerRef} className="space-y-2">
@@ -413,6 +436,59 @@ export const WwtViewer = forwardRef<SkyViewerHandle, WwtViewerProps>(
               Failed to load sky viewer
             </div>
           ) : null}
+          <div
+            ref={overlayRef}
+            className="pointer-events-none absolute inset-0 z-20"
+          >
+            {(additionalSources ?? []).map((source) => (
+              <div
+                key={`${source.id ?? source.label}-${source.ra}-${source.dec}`}
+                data-ra={source.ra}
+                data-dec={source.dec}
+                className="absolute left-0 top-0 hidden h-0 w-0"
+              >
+                <button
+                  type="button"
+                  title={source.label}
+                  className={classNames(
+                    "pointer-events-auto absolute left-0 top-0 h-0 w-0",
+                    source.id === undefined
+                      ? "cursor-default"
+                      : "cursor-pointer",
+                  )}
+                  onClick={() => {
+                    if (source.id !== undefined) {
+                      onSourceClickRef.current?.(source.id);
+                    }
+                  }}
+                >
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 12 12"
+                    aria-hidden="true"
+                    className="absolute left-0 top-0 block -translate-x-1/2 -translate-y-1/2 overflow-visible"
+                  >
+                    <path
+                      d="M1 1 L11 11 M11 1 L1 11"
+                      stroke="#ffffff"
+                      strokeWidth="4"
+                      strokeLinecap="round"
+                    />
+                    <path
+                      d="M1 1 L11 11 M11 1 L1 11"
+                      stroke="#111111"
+                      strokeWidth="1.75"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <span className="absolute left-2 top-0 -translate-y-1/2 whitespace-nowrap text-xs font-medium text-white [text-shadow:0_0_2px_#000,1px_0_0_#000,-1px_0_0_#000,0_1px_0_#000,0_-1px_0_#000]">
+                    {source.label}
+                  </span>
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
         <select
           value={selectedSurvey}
