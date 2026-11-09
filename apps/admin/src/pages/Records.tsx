@@ -27,7 +27,7 @@ import {
   NumberFilter,
   PageSizeFilter,
   TextFilter,
-} from "../components/ui";
+} from "../components/ui/filters";
 import { useDataFetching } from "@leda/lib/hooks";
 import { formatApiError } from "@leda/lib/tap";
 

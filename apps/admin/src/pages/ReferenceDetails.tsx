@@ -27,8 +27,6 @@ import {
 import {
   EditableField,
   LabeledFieldInput,
-  PageSizeFilter,
-  SearchFilter,
   buildCreateRowPayload,
   fieldInputForReferenceField,
   fieldRequirementLabel,
@@ -36,6 +34,7 @@ import {
   referenceTableKey,
   type ReferenceValue,
 } from "../components/ui";
+import { PageSizeFilter, SearchFilter } from "../components/ui/filters";
 import { useDataFetching } from "@leda/lib/hooks";
 import { formatApiError, formatCaughtError } from "@leda/lib/tap";
 

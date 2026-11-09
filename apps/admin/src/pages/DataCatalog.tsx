@@ -21,7 +21,8 @@ import type {
 } from "@leda/lib/clients/backend";
 import { backendClient } from "@leda/lib/clients";
 import { CommonTable, Column, ErrorPage, Loading, Text } from "@leda/lib/ui";
-import { Accordion, TextFilter } from "../components/ui";
+import { Accordion } from "../components/ui";
+import { TextFilter } from "../components/ui/filters";
 import { useDataFetching } from "@leda/lib/hooks";
 import { Button } from "@leda/lib/ui";
 import classNames from "classnames";

@@ -20,12 +20,12 @@ import {
   Loading,
   Pagination,
 } from "@leda/lib/ui";
+import { Badge } from "../components/ui";
 import {
-  Badge,
   MultiSelectFilter,
   PageSizeFilter,
   SearchFilter,
-} from "../components/ui";
+} from "../components/ui/filters";
 import { useDataFetching } from "@leda/lib/hooks";
 import { formatApiError } from "@leda/lib/tap";
 import { getSourceLink } from "@leda/lib/astronomy";

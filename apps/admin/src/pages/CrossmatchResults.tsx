@@ -20,7 +20,8 @@ import {
   Loading,
   Pagination,
 } from "@leda/lib/ui";
-import { Badge, DropdownFilter, TextFilter } from "../components/ui";
+import { Badge } from "../components/ui";
+import { DropdownFilter, TextFilter } from "../components/ui/filters";
 import { useDataFetching } from "@leda/lib/hooks";
 
 interface CrossmatchFiltersProps {
