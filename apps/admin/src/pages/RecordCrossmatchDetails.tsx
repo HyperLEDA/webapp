@@ -17,7 +17,7 @@ import { isLoggedIn } from "../auth";
 import { getResource } from "../resources";
 import { publicObjectUrl, adminTableUrl } from "../origins";
 import {
-  AladinViewer,
+  SkyViewer,
   Button,
   CellPrimitive,
   Column,
@@ -495,7 +495,8 @@ function RecordCrossmatchDetails({
     <div className="space-y-6 rounded-lg">
       <div className="flex items-start gap-6">
         {crossmatch.catalogs.coordinates?.equatorial && (
-          <AladinViewer
+          <SkyViewer
+            backend="wwt"
             ra={crossmatch.catalogs.coordinates.equatorial.ra}
             dec={crossmatch.catalogs.coordinates.equatorial.dec}
             fov={0.02}
