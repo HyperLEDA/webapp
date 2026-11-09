@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { lazy, Suspense, useMemo } from "react";
 import {
   BrowserRouter,
   Navigate,
@@ -18,32 +18,64 @@ import {
   MdSchedule,
   MdTableChart,
 } from "react-icons/md";
-import {
-  AdminMergePgcPage,
-  AdminPage,
-  CrossmatchResultsPage,
-  DataCatalogPage,
-  RecordsPage,
-  LoginPage,
-  RecordCrossmatchDetailsPage,
-  ReferenceDetailsPage,
-  ReferencesPage,
-  SqlQueryPage,
-  TableDetailsPage,
-  TablesPage,
-  TableUploadPage,
-} from "./pages";
+import { LoginPage } from "./pages/Login";
 import { isLoggedIn, useIsLoggedIn, clearAuthToken } from "./auth";
 import { AuthNavControl } from "./components/AuthNavControl";
 import { sameEnvTasksOrigin, sameEnvWebOrigin } from "@leda/lib/origins";
 import {
   Layout as SharedLayout,
+  Loading,
   NavRail,
   NavButton,
   NavItem,
   ThemeSwitcher,
   BackendSwitcher,
 } from "@leda/lib/ui";
+
+const AdminMergePgcPage = lazy(() =>
+  import("./pages/AdminMergePgc").then((m) => ({
+    default: m.AdminMergePgcPage,
+  })),
+);
+const AdminPage = lazy(() =>
+  import("./pages/Admin").then((m) => ({ default: m.AdminPage })),
+);
+const CrossmatchResultsPage = lazy(() =>
+  import("./pages/CrossmatchResults").then((m) => ({
+    default: m.CrossmatchResultsPage,
+  })),
+);
+const DataCatalogPage = lazy(() =>
+  import("./pages/DataCatalog").then((m) => ({ default: m.DataCatalogPage })),
+);
+const RecordsPage = lazy(() =>
+  import("./pages/Records").then((m) => ({ default: m.RecordsPage })),
+);
+const RecordCrossmatchDetailsPage = lazy(() =>
+  import("./pages/RecordCrossmatchDetails").then((m) => ({
+    default: m.RecordCrossmatchDetailsPage,
+  })),
+);
+const ReferenceDetailsPage = lazy(() =>
+  import("./pages/ReferenceDetails").then((m) => ({
+    default: m.ReferenceDetailsPage,
+  })),
+);
+const ReferencesPage = lazy(() =>
+  import("./pages/References").then((m) => ({ default: m.ReferencesPage })),
+);
+const SqlQueryPage = lazy(() =>
+  import("./pages/SqlQuery").then((m) => ({ default: m.SqlQueryPage })),
+);
+const TableDetailsPage = lazy(() =>
+  import("./pages/TableDetails").then((m) => ({ default: m.TableDetailsPage })),
+);
+const TablesPage = lazy(() =>
+  import("./pages/Tables").then((m) => ({ default: m.TablesPage })),
+);
+const TableUploadPage = lazy(() =>
+  import("./pages/TableUpload").then((m) => ({ default: m.TableUploadPage })),
+);
 
 const productionAdmin = "https://admin.leda.sao.ru";
 
@@ -148,7 +180,9 @@ function Layout() {
         </NavRail>
       }
     >
-      <Outlet />
+      <Suspense fallback={<Loading />}>
+        <Outlet />
+      </Suspense>
     </SharedLayout>
   );
 }

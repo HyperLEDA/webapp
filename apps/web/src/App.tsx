@@ -1,16 +1,33 @@
-import { ReactElement, useEffect } from "react";
+import { lazy, ReactElement, Suspense, useEffect } from "react";
 import { BrowserRouter, Outlet, Route, Routes } from "react-router-dom";
 import { Layout as SharedLayout, Loading } from "@leda/lib/ui";
 import { sameEnvAdminOrigin } from "@leda/lib/origins";
 import { HomePage } from "./pages/Home";
-import { SearchResultsPage } from "./pages/SearchResults";
-import { ObjectDetailsPage } from "./pages/ObjectDetails";
 import { NotFoundPage } from "./pages/NotFound";
-import { SqlQueryPage } from "./pages/SqlQuery";
-import { CalculatorsPage } from "./pages/Calculators";
-import { ReddeningCalculatorPage } from "./pages/ReddeningCalculator";
 import { Navbar } from "./components/ui/Navbar";
 import { SearchBar } from "./components/ui/Searchbar";
+
+const SearchResultsPage = lazy(() =>
+  import("./pages/SearchResults").then((m) => ({
+    default: m.SearchResultsPage,
+  })),
+);
+const ObjectDetailsPage = lazy(() =>
+  import("./pages/ObjectDetails").then((m) => ({
+    default: m.ObjectDetailsPage,
+  })),
+);
+const SqlQueryPage = lazy(() =>
+  import("./pages/SqlQuery").then((m) => ({ default: m.SqlQueryPage })),
+);
+const CalculatorsPage = lazy(() =>
+  import("./pages/Calculators").then((m) => ({ default: m.CalculatorsPage })),
+);
+const ReddeningCalculatorPage = lazy(() =>
+  import("./pages/ReddeningCalculator").then((m) => ({
+    default: m.ReddeningCalculatorPage,
+  })),
+);
 
 function adminRedirectPath(pathname: string): string {
   if (pathname === "/admin" || pathname === "/admin/") {
@@ -36,7 +53,9 @@ function RedirectToAdminPage(): ReactElement {
 function Layout() {
   return (
     <SharedLayout navbar={<Navbar />}>
-      <Outlet />
+      <Suspense fallback={<Loading />}>
+        <Outlet />
+      </Suspense>
     </SharedLayout>
   );
 }

@@ -95,8 +95,3 @@ export async function queryTap(
   }
   throw new Error("Unexpected TAP response");
 }
-
-export async function executeTapQuery(sql: string): Promise<TapSyncResponse> {
-  const { config } = await import("@leda/lib/config");
-  return queryTap(tapBaseUrl(config.backendBaseUrl), sql);
-}
