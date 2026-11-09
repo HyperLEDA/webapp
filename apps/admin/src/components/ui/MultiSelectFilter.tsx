@@ -1,5 +1,9 @@
 import { ReactElement, useEffect, useRef, useState } from "react";
-import { FilterShell, filterControlClassName } from "./FilterShell";
+import {
+  FilterAutoWidth,
+  FilterShell,
+  filterControlClassName,
+} from "./FilterShell";
 
 interface MultiSelectFilterOption {
   value: string;
@@ -70,51 +74,53 @@ export function MultiSelectFilter({
 
   return (
     <FilterShell title={title} containerRef={containerRef}>
-      <div className="relative min-w-0 flex-1">
-        <button
-          type="button"
-          aria-expanded={open}
-          aria-haspopup="listbox"
-          onClick={() => setOpen((current) => !current)}
-          className={`flex w-full min-w-0 items-center justify-between gap-2 border-0 bg-transparent px-2 text-left ${filterControlClassName}`}
-        >
-          <span
-            className={`truncate ${selectedLabels.length === 0 ? "text-muted" : ""}`}
+      <FilterAutoWidth text={summary} endPad>
+        <div className="relative w-full min-w-0">
+          <button
+            type="button"
+            aria-expanded={open}
+            aria-haspopup="listbox"
+            onClick={() => setOpen((current) => !current)}
+            className={`flex w-full min-w-0 items-center justify-between gap-2 border-0 bg-transparent px-2 text-left ${filterControlClassName}`}
           >
-            {summary}
-          </span>
-          <span aria-hidden="true" className="shrink-0 text-xs text-subtle">
-            ▾
-          </span>
-        </button>
-        {open ? (
-          <div
-            role="listbox"
-            aria-multiselectable="true"
-            className="absolute top-full right-0 left-0 z-20 mt-1 rounded border border-border bg-surface-2 py-1 shadow-lg"
-          >
-            {options.map((option) => {
-              const checked = values.includes(option.value);
-              return (
-                <label
-                  key={option.value}
-                  role="option"
-                  aria-selected={checked}
-                  className="flex cursor-pointer items-center gap-2 px-2 py-1.5 text-sm text-primary hover:bg-surface-3"
-                >
-                  <input
-                    type="checkbox"
-                    checked={checked}
-                    onChange={() => toggleValue(option.value)}
-                    className="rounded border-border"
-                  />
-                  <span>{option.label}</span>
-                </label>
-              );
-            })}
-          </div>
-        ) : null}
-      </div>
+            <span
+              className={`truncate ${selectedLabels.length === 0 ? "text-muted" : ""}`}
+            >
+              {summary}
+            </span>
+            <span aria-hidden="true" className="shrink-0 text-xs text-subtle">
+              ▾
+            </span>
+          </button>
+          {open ? (
+            <div
+              role="listbox"
+              aria-multiselectable="true"
+              className="absolute top-full left-0 z-20 mt-1 min-w-full w-max rounded border border-border bg-surface-2 py-1 shadow-lg"
+            >
+              {options.map((option) => {
+                const checked = values.includes(option.value);
+                return (
+                  <label
+                    key={option.value}
+                    role="option"
+                    aria-selected={checked}
+                    className="flex cursor-pointer items-center gap-2 px-2 py-1.5 text-sm text-primary hover:bg-surface-3"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => toggleValue(option.value)}
+                      className="rounded border-border"
+                    />
+                    <span>{option.label}</span>
+                  </label>
+                );
+              })}
+            </div>
+          ) : null}
+        </div>
+      </FilterAutoWidth>
     </FilterShell>
   );
 }

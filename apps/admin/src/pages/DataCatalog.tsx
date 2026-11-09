@@ -448,7 +448,6 @@ export function DataCatalogPage(): ReactElement {
               title="Filter tables"
               value={filter}
               onChange={setFilter}
-              placeholder="Schema, table name, or description"
             />
           </div>
           <div className="lg:flex-1 lg:min-h-0 lg:overflow-y-auto pr-0.5">

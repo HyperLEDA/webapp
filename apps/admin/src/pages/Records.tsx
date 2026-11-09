@@ -22,7 +22,12 @@ import {
   Pagination,
   type SkyViewerHandle,
 } from "@leda/lib/ui";
-import { DropdownFilter, PageSizeFilter, TextFilter } from "../components/ui";
+import {
+  DropdownFilter,
+  NumberFilter,
+  PageSizeFilter,
+  TextFilter,
+} from "../components/ui";
 import { useDataFetching } from "@leda/lib/hooks";
 import { formatApiError } from "@leda/lib/tap";
 
@@ -265,7 +270,7 @@ function RecordsFilters({
         placeholder="All tables"
         onEnter={applyFilters}
       />
-      <TextFilter
+      <NumberFilter
         title="PGC"
         value={localPgc}
         onChange={setLocalPgc}

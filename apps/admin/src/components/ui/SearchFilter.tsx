@@ -6,13 +6,11 @@ const SEARCH_DEBOUNCE_MS = 300;
 interface SearchFilterProps {
   query: string | null;
   onQueryChange: (query: string) => void;
-  placeholder: string;
 }
 
 export function SearchFilter({
   query,
   onQueryChange,
-  placeholder,
 }: SearchFilterProps): ReactElement {
   const [localQuery, setLocalQuery] = useState<string>(query || "");
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -42,11 +40,6 @@ export function SearchFilter({
   }
 
   return (
-    <TextFilter
-      title="Search"
-      value={localQuery}
-      onChange={handleQueryChange}
-      placeholder={placeholder}
-    />
+    <TextFilter title="Search" value={localQuery} onChange={handleQueryChange} />
   );
 }

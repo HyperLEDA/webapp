@@ -11,6 +11,7 @@ export {
   type FieldOption,
 } from "./FieldInput";
 export { MultiSelectFilter } from "./MultiSelectFilter";
+export { NumberFilter } from "./NumberFilter";
 export { ObjectSummary } from "./ObjectSummary";
 export { PageSizeFilter } from "./PageSizeFilter";
 export { SearchFilter } from "./SearchFilter";
