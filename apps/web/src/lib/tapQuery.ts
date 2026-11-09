@@ -1,4 +1,5 @@
 import type { TapSyncResponse } from "@leda/lib/clients/backend";
+import { config } from "@leda/lib/config";
 
 const MAXREC = "50";
 
@@ -97,6 +98,5 @@ export async function queryTap(
 }
 
 export async function executeTapQuery(sql: string): Promise<TapSyncResponse> {
-  const { config } = await import("@leda/lib/config");
   return queryTap(tapBaseUrl(config.backendBaseUrl), sql);
 }
