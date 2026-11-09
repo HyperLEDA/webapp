@@ -1,4 +1,5 @@
 import { ReactElement, useEffect, useRef, useState } from "react";
+import { FilterShell, filterControlClassName } from "./FilterShell";
 
 interface MultiSelectFilterOption {
   value: string;
@@ -57,7 +58,7 @@ export function MultiSelectFilter({
     .map((option) => option.label);
 
   const summary =
-    selectedLabels.length > 0 ? selectedLabels.join(", ") : placeholder;
+    selectedLabels.length === 0 ? placeholder : selectedLabels.join(", ");
 
   function toggleValue(value: string): void {
     if (values.includes(value)) {
@@ -68,51 +69,52 @@ export function MultiSelectFilter({
   }
 
   return (
-    <div ref={containerRef} className="relative min-w-[10rem]">
-      <label className="block text-sm font-medium text-subtle mb-1">
-        {title}
-      </label>
-      <button
-        type="button"
-        aria-expanded={open}
-        aria-haspopup="listbox"
-        onClick={() => setOpen((current) => !current)}
-        className="bg-surface-2 border border-border rounded px-3 py-2 text-primary h-10 w-full text-left flex items-center justify-between gap-2"
-      >
-        <span className={selectedLabels.length === 0 ? "text-muted" : ""}>
-          {summary}
-        </span>
-        <span aria-hidden="true" className="text-subtle text-xs">
-          ▾
-        </span>
-      </button>
-      {open ? (
-        <div
-          role="listbox"
-          aria-multiselectable="true"
-          className="absolute z-20 mt-1 w-full bg-surface-2 border border-border rounded shadow-lg py-1"
+    <FilterShell title={title} containerRef={containerRef}>
+      <div className="relative min-w-0 flex-1">
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-haspopup="listbox"
+          onClick={() => setOpen((current) => !current)}
+          className={`flex w-full min-w-0 items-center justify-between gap-2 border-0 bg-transparent px-2 text-left ${filterControlClassName}`}
         >
-          {options.map((option) => {
-            const checked = values.includes(option.value);
-            return (
-              <label
-                key={option.value}
-                role="option"
-                aria-selected={checked}
-                className="flex items-center gap-2 px-3 py-2 hover:bg-surface-3 cursor-pointer text-primary"
-              >
-                <input
-                  type="checkbox"
-                  checked={checked}
-                  onChange={() => toggleValue(option.value)}
-                  className="rounded border-border"
-                />
-                <span>{option.label}</span>
-              </label>
-            );
-          })}
-        </div>
-      ) : null}
-    </div>
+          <span
+            className={`truncate ${selectedLabels.length === 0 ? "text-muted" : ""}`}
+          >
+            {summary}
+          </span>
+          <span aria-hidden="true" className="shrink-0 text-xs text-subtle">
+            ▾
+          </span>
+        </button>
+        {open ? (
+          <div
+            role="listbox"
+            aria-multiselectable="true"
+            className="absolute top-full right-0 left-0 z-20 mt-1 rounded border border-border bg-surface-2 py-1 shadow-lg"
+          >
+            {options.map((option) => {
+              const checked = values.includes(option.value);
+              return (
+                <label
+                  key={option.value}
+                  role="option"
+                  aria-selected={checked}
+                  className="flex cursor-pointer items-center gap-2 px-2 py-1.5 text-sm text-primary hover:bg-surface-3"
+                >
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={() => toggleValue(option.value)}
+                    className="rounded border-border"
+                  />
+                  <span>{option.label}</span>
+                </label>
+              );
+            })}
+          </div>
+        ) : null}
+      </div>
+    </FilterShell>
   );
 }

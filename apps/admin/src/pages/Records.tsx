@@ -257,7 +257,7 @@ function RecordsFilters({
   }
 
   return (
-    <div className="flex flex-wrap items-end gap-4 mb-4">
+    <div className="flex flex-wrap items-center gap-3 mb-4">
       <TextFilter
         title="Table name"
         value={localTableName}
@@ -283,9 +283,7 @@ function RecordsFilters({
         pageSize={localPageSize}
         onPageSizeChange={setLocalPageSize}
       />
-      <div className="flex items-end">
-        <Button onClick={applyFilters}>Apply</Button>
-      </div>
+      <Button onClick={applyFilters}>Apply</Button>
     </div>
   );
 }

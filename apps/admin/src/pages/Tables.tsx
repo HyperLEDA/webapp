@@ -74,7 +74,7 @@ function TablesFilters({
   const navigate = useNavigate();
 
   return (
-    <div className="flex flex-wrap items-end gap-4 mb-4">
+    <div className="flex flex-wrap items-center gap-3 mb-4">
       <SearchFilter
         query={query}
         onQueryChange={onQueryChange}
