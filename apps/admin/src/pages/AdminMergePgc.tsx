@@ -6,7 +6,7 @@ import { adminClient } from "../clients";
 import { backendClient } from "@leda/lib/clients";
 import { describeUnknownError } from "@leda/lib/tap";
 import { publicObjectUrl } from "../origins";
-import { AladinViewer, Button, Link, SuggestibleInput } from "@leda/lib/ui";
+import { SkyViewer, Button, Link, SuggestibleInput } from "@leda/lib/ui";
 import { ObjectSummary } from "../components/ui";
 
 const MIN_ALADIN_FOV_DEG = 0.05;
@@ -473,7 +473,8 @@ export function AdminMergePgcPage(): ReactElement {
       ) : null}
 
       {skyView ? (
-        <AladinViewer
+        <SkyViewer
+          backend="wwt"
           ra={skyView.ra}
           dec={skyView.dec}
           fov={skyView.fov}

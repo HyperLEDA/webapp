@@ -15,11 +15,11 @@ import {
 } from "@leda/lib/ui";
 import { PgcObject } from "@leda/lib/clients/backend";
 import {
-  AladinViewer,
+  SkyViewer,
   Declination,
   Link,
   RightAscension,
-  type AladinViewerHandle,
+  type SkyViewerHandle,
 } from "@leda/lib/ui";
 import { Button } from "@leda/lib/ui";
 import {
@@ -237,7 +237,7 @@ function SearchResults({
   navigate,
 }: SearchResultsProps): ReactElement {
   const columns = resultTableColumns();
-  const aladinRef = useRef<AladinViewerHandle>(null);
+  const aladinRef = useRef<SkyViewerHandle>(null);
 
   const loadedObjects = sections.flatMap((section) =>
     section.status === "success" ? section.results.objects : [],
@@ -256,7 +256,8 @@ function SearchResults({
   return (
     <div className="space-y-6">
       {skyView ? (
-        <AladinViewer
+        <SkyViewer
+          backend="wwt"
           ref={aladinRef}
           ra={skyView.ra}
           dec={skyView.dec}

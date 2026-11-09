@@ -1,6 +1,6 @@
 import { ReactElement } from "react";
 import { Catalogs } from "@leda/lib/clients/backend";
-import { AladinViewer } from "@leda/lib/ui";
+import { SkyViewer } from "@leda/lib/ui";
 import { CatalogCard, CatalogNoData } from "./CatalogCard";
 
 export function SkyViewCard({
@@ -23,7 +23,8 @@ export function SkyViewCard({
       className={className}
     >
       {hasCoordinates ? (
-        <AladinViewer
+        <SkyViewer
+          backend="wwt"
           ra={coordinates.equatorial.ra}
           dec={coordinates.equatorial.dec}
           fov={0.02}
