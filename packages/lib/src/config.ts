@@ -20,7 +20,7 @@ const backendEnvironmentUrls = {
   },
   prod: {
     backendBaseUrl: "https://leda.sao.ru",
-    adminBaseUrl: "https://admin.leda.sao.ru",
+    adminBaseUrl: "https://leda.sao.ru",
   },
 } satisfies Record<BackendEnvironment, AppConfig>;
 
