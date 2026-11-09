@@ -2,7 +2,6 @@ export { SqlQueryPage } from "./SqlQuery";
 export { AdminPage } from "./Admin";
 export { AdminMergePgcPage } from "./AdminMergePgc";
 export { CrossmatchResultsPage } from "./CrossmatchResults";
-export { RecordsPage } from "./Records";
 export { LoginPage } from "./Login";
 export { RecordCrossmatchDetailsPage } from "./RecordCrossmatchDetails";
 export { ReferenceDetailsPage } from "./ReferenceDetails";

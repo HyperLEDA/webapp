@@ -12,7 +12,6 @@ import {
   MdAccountTree,
   MdCode,
   MdLibraryBooks,
-  MdListAlt,
   MdOpenInNew,
   MdPublic,
   MdSchedule,
@@ -23,7 +22,6 @@ import {
   AdminPage,
   CrossmatchResultsPage,
   DataCatalogPage,
-  RecordsPage,
   LoginPage,
   RecordCrossmatchDetailsPage,
   ReferenceDetailsPage,
@@ -128,9 +126,6 @@ function Layout() {
               <NavItem to="/tables" label="Tables">
                 <MdTableChart size={20} />
               </NavItem>
-              <NavItem to="/records" label="Records">
-                <MdListAlt size={20} />
-              </NavItem>
               <NavItem to="/data-catalog" label="Data catalog">
                 <MdAccountTree size={20} />
               </NavItem>
@@ -164,7 +159,6 @@ function App() {
             <Route path="/tasks" element={<AdminPage />} />
             <Route path="/merge-pgc" element={<AdminMergePgcPage />} />
             <Route path="/tables" element={<TablesPage />} />
-            <Route path="/records" element={<RecordsPage />} />
             <Route path="/tables/upload" element={<TableUploadPage />} />
             <Route path="/references" element={<ReferencesPage />} />
             <Route
