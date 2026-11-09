@@ -124,7 +124,7 @@ function SchemaSidebar({
                     type="button"
                     onClick={() => onSelect(schema.schema_name, t.name)}
                     className={classNames(
-                      "w-full text-left px-3 py-2 transition-colors border-l-2 rounded-sm",
+                      "w-full text-left px-3 py-2 transition-colors border-l-2 rounded",
                       active
                         ? "border-accent bg-accent/15"
                         : "border-transparent hover:bg-surface-2",

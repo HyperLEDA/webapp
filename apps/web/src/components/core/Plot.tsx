@@ -631,7 +631,7 @@ export function PlotView({
           <button
             type="button"
             aria-label="Plot interaction help"
-            className="flex h-8 w-8 items-center justify-center rounded-md border border-border bg-surface-2/90 text-muted shadow-sm transition-colors hover:border-accent hover:text-primary"
+            className="flex h-8 w-8 items-center justify-center rounded border border-border bg-surface-2/90 text-muted shadow-sm transition-colors hover:border-accent hover:text-primary"
           >
             <MdInfo size={18} />
           </button>
@@ -639,7 +639,7 @@ export function PlotView({
       </div>
       {activePoint !== null && activeDetails && (
         <div
-          className="pointer-events-none absolute z-10 max-w-xs rounded-md border border-border bg-surface-2 px-2.5 py-1.5 text-sm shadow-md whitespace-pre-wrap"
+          className="pointer-events-none absolute z-10 max-w-xs rounded border border-border bg-surface-2 px-2.5 py-1.5 text-sm shadow-md whitespace-pre-wrap"
           style={{
             left: activePoint.left,
             top: activePoint.top,
