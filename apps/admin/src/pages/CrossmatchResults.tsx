@@ -124,7 +124,7 @@ function CrossmatchResults({
 }: CrossmatchResultsProps): ReactElement {
   function getRecordName(record: ApiRecord): ReactElement {
     const displayName = record.catalogs.designation?.name || record.id;
-    return <Link href={`/records/${record.id}/crossmatch`}>{displayName}</Link>;
+    return <Link href={`/records/${record.id}`}>{displayName}</Link>;
   }
 
   function getCandidatePgcs(record: ApiRecord): number[] {

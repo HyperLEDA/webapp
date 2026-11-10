@@ -215,8 +215,12 @@ function App() {
             <Route path="/table/:tableName" element={<TableDetailsPage />} />
             <Route path="/crossmatch" element={<CrossmatchResultsPage />} />
             <Route
-              path="/records/:recordId/crossmatch"
+              path="/records/:recordId"
               element={<RecordCrossmatchDetailsPage />}
+            />
+            <Route
+              path="/records/:recordId/crossmatch"
+              element={<Navigate to=".." relative="path" replace />}
             />
           </Route>
           <Route path="*" element={<Navigate to="/login" replace />} />

@@ -262,7 +262,11 @@ function recordRows(
 ): Record<string, CellPrimitive>[] {
   return records.map((record) => ({
     "": renderLocate(record, onLocate),
-    Name: record.catalogs.designation?.name || record.id,
+    Name: (
+      <Link href={`/records/${record.id}`}>
+        {record.catalogs.designation?.name || record.id}
+      </Link>
+    ),
     Table: record.table_name ? (
       <Link href={adminTableUrl(record.table_name).href}>
         {record.table_name}
