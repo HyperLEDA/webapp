@@ -16,10 +16,12 @@ import {
   CellPrimitive,
   Column,
   CommonTable,
+  Declination,
   ErrorPage,
   Link,
   Loading,
   Pagination,
+  RightAscension,
   type SkyViewerHandle,
 } from "@leda/lib/ui";
 import {
@@ -195,14 +197,37 @@ function renderLocate(
   );
 }
 
+function isNumericCell(value: CellPrimitive): value is number {
+  return Number.isFinite(value);
+}
+
 const columns: Column[] = [
   { slug: "", width: "fit" },
   { slug: "Name" },
   { slug: "Table" },
   { slug: "PGC" },
+  {
+    slug: "RA",
+    renderCell: (value) =>
+      isNumericCell(value) ? <RightAscension value={value} /> : value,
+  },
+  {
+    slug: "Dec",
+    renderCell: (value) =>
+      isNumericCell(value) ? <Declination value={value} /> : value,
+  },
   { slug: "Redshift" },
   { slug: "Nature" },
 ];
+
+const defaultVisibleColumns = ["Name", "Table", "PGC", "Redshift", "Nature"];
+
+function recordCoordinateCell(value: number | null | undefined): CellPrimitive {
+  if (value === null || value === undefined || !Number.isFinite(value)) {
+    return "—";
+  }
+  return value;
+}
 
 function recordRows(
   records: ApiRecord[],
@@ -219,6 +244,8 @@ function recordRows(
       "—"
     ),
     PGC: renderPgc(record.pgc),
+    RA: recordCoordinateCell(record.catalogs.icrs?.ra),
+    Dec: recordCoordinateCell(record.catalogs.icrs?.dec),
     Redshift: formatCatalogNumber(record.catalogs.redshift?.z, 4),
     Nature: record.catalogs.nature?.type_name || "—",
   }));
@@ -383,6 +410,8 @@ function RecordsContent({
         columns={columns}
         data={recordRows(data.records, onLocate)}
         loading={loading}
+        columnFilter
+        defaultVisibleColumns={defaultVisibleColumns}
       />
       <Pagination
         page={page}
