@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo } from "react";
+import { lazy, ReactElement, Suspense, useMemo } from "react";
 import {
   BrowserRouter,
   Navigate,
@@ -31,7 +31,6 @@ import {
   ThemeSwitcher,
   BackendSwitcher,
 } from "@leda/lib/ui";
-
 const AdminMergePgcPage = lazy(() =>
   import("./pages/AdminMergePgc").then((m) => ({
     default: m.AdminMergePgcPage,
@@ -39,11 +38,6 @@ const AdminMergePgcPage = lazy(() =>
 );
 const AdminPage = lazy(() =>
   import("./pages/Admin").then((m) => ({ default: m.AdminPage })),
-);
-const CrossmatchResultsPage = lazy(() =>
-  import("./pages/CrossmatchResults").then((m) => ({
-    default: m.CrossmatchResultsPage,
-  })),
 );
 const DataCatalogPage = lazy(() =>
   import("./pages/DataCatalog").then((m) => ({ default: m.DataCatalogPage })),
@@ -187,6 +181,11 @@ function Layout() {
   );
 }
 
+function RedirectCrossmatchList(): ReactElement {
+  const { search } = useLocation();
+  return <Navigate to={`/records${search}`} replace />;
+}
+
 function App() {
   return (
     <BrowserRouter>
@@ -213,10 +212,14 @@ function App() {
               element={<DataCatalogPage />}
             />
             <Route path="/table/:tableName" element={<TableDetailsPage />} />
-            <Route path="/crossmatch" element={<CrossmatchResultsPage />} />
+            <Route path="/crossmatch" element={<RedirectCrossmatchList />} />
+            <Route
+              path="/records/:recordId"
+              element={<RecordCrossmatchDetailsPage />}
+            />
             <Route
               path="/records/:recordId/crossmatch"
-              element={<RecordCrossmatchDetailsPage />}
+              element={<Navigate to=".." relative="path" replace />}
             />
           </Route>
           <Route path="*" element={<Navigate to="/login" replace />} />

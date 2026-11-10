@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { MdMyLocation } from "react-icons/md";
 import { getRecords } from "../clients/admin";
 import type {
+  CrossmatchTriageStatus,
   GetRecordsData,
   GetRecordsResponse,
   Record as ApiRecord,
@@ -10,18 +11,22 @@ import type {
 } from "../clients/admin";
 import { adminClient } from "../clients";
 import { adminTableUrl, publicObjectUrl } from "../origins";
+import { getResource } from "../resources";
 import {
   Button,
   SkyViewer,
   CellPrimitive,
   Column,
   CommonTable,
+  Declination,
   ErrorPage,
   Link,
   Loading,
   Pagination,
+  RightAscension,
   type SkyViewerHandle,
 } from "@leda/lib/ui";
+import { Badge } from "../components/ui";
 import {
   DropdownFilter,
   NumberFilter,
@@ -35,6 +40,13 @@ const UPLOAD_STATUS_OPTIONS = [
   { value: "all", label: "All" },
   { value: "uploaded", label: "Uploaded" },
   { value: "pending", label: "Pending" },
+];
+
+const TRIAGE_STATUS_OPTIONS = [
+  { value: "all", label: "All" },
+  { value: "pending", label: "Pending" },
+  { value: "resolved", label: "Resolved" },
+  { value: "unprocessed", label: "Unprocessed" },
 ];
 
 const PAGE_SIZES = [10, 25, 50, 100];
@@ -102,6 +114,7 @@ interface RecordsQuery {
   pgc: number | null;
   recordId: string | null;
   uploadStatus: UploadStatus | null;
+  triageStatus: CrossmatchTriageStatus | null;
 }
 
 interface AppliedFilters {
@@ -109,11 +122,21 @@ interface AppliedFilters {
   pgc: string;
   recordId: string;
   uploadStatus: string;
+  triageStatus: string;
   pageSize: number;
 }
 
 function parseUploadStatus(value: string | null): UploadStatus | null {
   if (value === "uploaded" || value === "pending") {
+    return value;
+  }
+  return null;
+}
+
+function parseTriageStatus(
+  value: string | null,
+): CrossmatchTriageStatus | null {
+  if (value === "pending" || value === "resolved" || value === "unprocessed") {
     return value;
   }
   return null;
@@ -195,14 +218,121 @@ function renderLocate(
   );
 }
 
+function isNumericCell(value: CellPrimitive): value is number {
+  return Number.isFinite(value);
+}
+
+function getCandidatePgcs(record: ApiRecord): number[] {
+  const fromCandidates = record.crossmatch.candidates
+    .map((candidate) => candidate.pgc)
+    .filter(
+      (pgc): pgc is number => Number.isFinite(pgc) && Number.isInteger(pgc),
+    );
+
+  const recordPgc = record.pgc;
+  if (
+    recordPgc === null ||
+    !Number.isFinite(recordPgc) ||
+    !Number.isInteger(recordPgc)
+  ) {
+    return fromCandidates;
+  }
+
+  if (fromCandidates.includes(recordPgc)) {
+    return fromCandidates;
+  }
+
+  return [recordPgc, ...fromCandidates];
+}
+
+function renderCandidates(record: ApiRecord): CellPrimitive {
+  const pgcNumbers = getCandidatePgcs(record);
+  if (pgcNumbers.length === 0) {
+    return "—";
+  }
+
+  return (
+    <>
+      {pgcNumbers.map((pgc, index) => {
+        const objectLink = publicObjectUrl(pgc);
+        return (
+          <Badge
+            key={`${pgc}-${index}`}
+            href={objectLink.href}
+            external={objectLink.external}
+          >
+            {pgc}
+          </Badge>
+        );
+      })}
+    </>
+  );
+}
+
+function getTriageStatusLabel(triageStatus: CrossmatchTriageStatus): string {
+  const resourceKey =
+    triageStatus === "unprocessed"
+      ? "crossmatch.status.unprocessed"
+      : `crossmatch.triage.${triageStatus}`;
+  return getResource(resourceKey).Title;
+}
+
 const columns: Column[] = [
   { slug: "", width: "fit" },
   { slug: "Name" },
   { slug: "Table" },
   { slug: "PGC" },
+  {
+    slug: "RA",
+    renderCell: (value) =>
+      isNumericCell(value) ? <RightAscension value={value} /> : value,
+  },
+  {
+    slug: "Dec",
+    renderCell: (value) =>
+      isNumericCell(value) ? <Declination value={value} /> : value,
+  },
   { slug: "Redshift" },
   { slug: "Nature" },
+  { slug: "Manual check status" },
+  { slug: "Candidates" },
 ];
+
+const FILTERABLE_COLUMNS = columns
+  .map((column) => column.slug)
+  .filter((slug) => slug !== "");
+const defaultVisibleColumns = ["Name", "Table", "PGC", "Redshift", "Nature"];
+
+function parseVisibleColumns(value: string | null): string[] {
+  if (value === null || value.trim() === "") {
+    return defaultVisibleColumns;
+  }
+  const known = new Set(FILTERABLE_COLUMNS);
+  const parsed = value
+    .split(",")
+    .map((slug) => slug.trim())
+    .filter((slug) => known.has(slug));
+  return parsed.length > 0 ? parsed : defaultVisibleColumns;
+}
+
+function isDefaultVisibleColumns(visible: string[]): boolean {
+  if (visible.length !== defaultVisibleColumns.length) {
+    return false;
+  }
+  const selected = new Set(visible);
+  return defaultVisibleColumns.every((slug) => selected.has(slug));
+}
+
+function writeVisibleColumns(params: URLSearchParams, visible: string[]): void {
+  if (isDefaultVisibleColumns(visible)) {
+    params.delete("columns");
+    return;
+  }
+  params.set(
+    "columns",
+    FILTERABLE_COLUMNS.filter((slug) => visible.includes(slug)).join(","),
+  );
+}
 
 function recordRows(
   records: ApiRecord[],
@@ -210,7 +340,11 @@ function recordRows(
 ): Record<string, CellPrimitive>[] {
   return records.map((record) => ({
     "": renderLocate(record, onLocate),
-    Name: record.catalogs.designation?.name || record.id,
+    Name: (
+      <Link href={`/records/${record.id}`}>
+        {record.catalogs.designation?.name || record.id}
+      </Link>
+    ),
     Table: record.table_name ? (
       <Link href={adminTableUrl(record.table_name).href}>
         {record.table_name}
@@ -219,8 +353,14 @@ function recordRows(
       "—"
     ),
     PGC: renderPgc(record.pgc),
+    RA: record.catalogs.icrs?.ra ?? "—",
+    Dec: record.catalogs.icrs?.dec ?? "—",
     Redshift: formatCatalogNumber(record.catalogs.redshift?.z, 4),
     Nature: record.catalogs.nature?.type_name || "—",
+    "Manual check status": getTriageStatusLabel(
+      record.crossmatch.triage_status,
+    ),
+    Candidates: renderCandidates(record),
   }));
 }
 
@@ -229,6 +369,7 @@ interface RecordsFiltersProps {
   pgc: string;
   recordId: string;
   uploadStatus: string;
+  triageStatus: string;
   pageSize: number;
   onApply: (filters: AppliedFilters) => void;
 }
@@ -238,6 +379,7 @@ function RecordsFilters({
   pgc,
   recordId,
   uploadStatus,
+  triageStatus,
   pageSize,
   onApply,
 }: RecordsFiltersProps): ReactElement {
@@ -245,6 +387,7 @@ function RecordsFilters({
   const [localPgc, setLocalPgc] = useState(pgc);
   const [localRecordId, setLocalRecordId] = useState(recordId);
   const [localUploadStatus, setLocalUploadStatus] = useState(uploadStatus);
+  const [localTriageStatus, setLocalTriageStatus] = useState(triageStatus);
   const [localPageSize, setLocalPageSize] = useState(pageSize);
 
   useEffect(() => {
@@ -252,18 +395,22 @@ function RecordsFilters({
     setLocalPgc(pgc);
     setLocalRecordId(recordId);
     setLocalUploadStatus(uploadStatus);
+    setLocalTriageStatus(triageStatus);
     setLocalPageSize(pageSize);
-  }, [tableName, pgc, recordId, uploadStatus, pageSize]);
+  }, [tableName, pgc, recordId, uploadStatus, triageStatus, pageSize]);
 
   const pgcActive = localPgc.trim() !== "";
   const uploadDisabled = pgcActive;
+  const effectiveUploadStatus = uploadDisabled ? "all" : localUploadStatus;
+  const triageDisabled = pgcActive || effectiveUploadStatus === "uploaded";
 
   function applyFilters(): void {
     onApply({
       tableName: localTableName,
       pgc: localPgc,
       recordId: localRecordId,
-      uploadStatus: uploadDisabled ? "all" : localUploadStatus,
+      uploadStatus: effectiveUploadStatus,
+      triageStatus: triageDisabled ? "all" : localTriageStatus,
       pageSize: localPageSize,
     });
   }
@@ -297,9 +444,17 @@ function RecordsFilters({
       <DropdownFilter
         title="Upload status"
         options={UPLOAD_STATUS_OPTIONS}
-        value={uploadDisabled ? "all" : localUploadStatus}
+        value={effectiveUploadStatus}
         onChange={setLocalUploadStatus}
         disabled={uploadDisabled}
+        defaultValue="all"
+      />
+      <DropdownFilter
+        title="Manual check status"
+        options={TRIAGE_STATUS_OPTIONS}
+        value={triageDisabled ? "all" : localTriageStatus}
+        onChange={setLocalTriageStatus}
+        disabled={triageDisabled}
         defaultValue="all"
       />
       <PageSizeFilter
@@ -329,6 +484,7 @@ async function fetchRecords(
     pgc: query.pgc,
     record_id: query.recordId,
     upload_status: query.uploadStatus,
+    triage_status: query.triageStatus,
   } as GetRecordsData["query"];
 
   const response = await getRecords({
@@ -350,8 +506,10 @@ interface RecordsContentProps {
   error: string | null;
   page: number;
   pageSize: number;
+  visibleColumns: string[];
   onLocate: (ra: number, dec: number) => void;
   onPageChange: (page: number) => void;
+  onVisibleColumnsChange: (visibleColumns: string[]) => void;
 }
 
 function RecordsContent({
@@ -361,8 +519,10 @@ function RecordsContent({
   error,
   page,
   pageSize,
+  visibleColumns,
   onLocate,
   onPageChange,
+  onVisibleColumnsChange,
 }: RecordsContentProps): ReactElement {
   if (pgcInvalid) {
     return <ErrorPage title="Error" message="PGC must be an integer." />;
@@ -383,6 +543,9 @@ function RecordsContent({
         columns={columns}
         data={recordRows(data.records, onLocate)}
         loading={loading}
+        columnFilter
+        visibleColumns={visibleColumns}
+        onVisibleColumnsChange={onVisibleColumnsChange}
       />
       <Pagination
         page={page}
@@ -405,8 +568,13 @@ export function RecordsPage(): ReactElement {
   const pgcInvalid = Boolean(pgcParam?.trim()) && pgc === null;
   const uploadStatus =
     pgc === null ? parseUploadStatus(searchParams.get("upload_status")) : null;
+  const triageStatus =
+    pgc === null && uploadStatus !== "uploaded"
+      ? parseTriageStatus(searchParams.get("triage_status"))
+      : null;
   const page = parsePage(searchParams.get("page"));
   const pageSize = parsePageSize(searchParams.get("page_size"));
+  const visibleColumns = parseVisibleColumns(searchParams.get("columns"));
 
   const query: RecordsQuery | null = pgcInvalid
     ? null
@@ -417,6 +585,7 @@ export function RecordsPage(): ReactElement {
         pgc,
         recordId: recordId || null,
         uploadStatus,
+        triageStatus,
       };
 
   useEffect(() => {
@@ -436,6 +605,12 @@ export function RecordsPage(): ReactElement {
     setSearchParams(next);
   }
 
+  function handleVisibleColumnsChange(nextVisible: string[]): void {
+    const next = new URLSearchParams(searchParams);
+    writeVisibleColumns(next, nextVisible);
+    setSearchParams(next, { replace: true });
+  }
+
   function handleApplyFilters(filters: AppliedFilters): void {
     const next = new URLSearchParams();
     const nextTableName = filters.tableName.trim();
@@ -450,15 +625,25 @@ export function RecordsPage(): ReactElement {
     }
     if (nextPgc) {
       next.set("pgc", nextPgc);
-    } else if (filters.uploadStatus !== "all") {
-      next.set("upload_status", filters.uploadStatus);
+    } else {
+      if (filters.uploadStatus !== "all") {
+        next.set("upload_status", filters.uploadStatus);
+      }
+      if (
+        filters.triageStatus !== "all" &&
+        filters.uploadStatus !== "uploaded"
+      ) {
+        next.set("triage_status", filters.triageStatus);
+      }
     }
     next.set("page_size", filters.pageSize.toString());
     next.set("page", "0");
+    writeVisibleColumns(next, visibleColumns);
     setSearchParams(next);
   }
 
   const uploadStatusValue = searchParams.get("upload_status") ?? "all";
+  const triageStatusValue = searchParams.get("triage_status") ?? "all";
   const skySources = recordSkySources(data?.records ?? []);
   const skyView = skyViewForSources(skySources);
 
@@ -475,6 +660,9 @@ export function RecordsPage(): ReactElement {
         recordId={recordId}
         uploadStatus={
           parseUploadStatus(uploadStatusValue) ? uploadStatusValue : "all"
+        }
+        triageStatus={
+          parseTriageStatus(triageStatusValue) ? triageStatusValue : "all"
         }
         pageSize={pageSize}
         onApply={handleApplyFilters}
@@ -499,8 +687,10 @@ export function RecordsPage(): ReactElement {
         error={error}
         page={page}
         pageSize={pageSize}
+        visibleColumns={visibleColumns}
         onLocate={handleLocate}
         onPageChange={handlePageChange}
+        onVisibleColumnsChange={handleVisibleColumnsChange}
       />
     </>
   );

@@ -349,7 +349,8 @@ function RecordCrossmatchDetails({
   const redshift = record.catalogs.redshift;
   const triageStatus = record.crossmatch.triage_status;
   const tableName = record.table_name;
-  const showResolveControls = isLoggedIn();
+  const assignedPgc = record.pgc;
+  const canResolve = assignedPgc === null && isLoggedIn();
   const candidateSources = convertCandidatesToAdditionalSources(
     candidates,
     record,
@@ -362,6 +363,8 @@ function RecordCrossmatchDetails({
       : `crossmatch.triage.verbose.${triageStatus}`,
   ).Title;
   const objectName = record.catalogs.designation?.name ?? `Record ${record.id}`;
+  const assignedPgcLink =
+    assignedPgc !== null ? publicObjectUrl(assignedPgc) : null;
 
   async function submitCrossmatchResolution(
     statuses: StatusesPayload,
@@ -482,11 +485,23 @@ function RecordCrossmatchDetails({
                 {tableName}
               </Link>
             </p>
-            <p>
-              {candidates.length === 1
-                ? "1 candidate"
-                : `${candidates.length} candidates`}
-            </p>
+            {assignedPgcLink !== null ? (
+              <p>
+                PGC:{" "}
+                <Link
+                  href={assignedPgcLink.href}
+                  external={assignedPgcLink.external}
+                >
+                  {assignedPgc}
+                </Link>
+              </p>
+            ) : (
+              <p>
+                {candidates.length === 1
+                  ? "1 candidate"
+                  : `${candidates.length} candidates`}
+              </p>
+            )}
           </div>
           <div className="rounded-lg border border-border bg-surface p-4">
             <h3 className="text-sm font-semibold mb-3">Object</h3>
@@ -514,24 +529,30 @@ function RecordCrossmatchDetails({
         </div>
       </div>
 
-      <ResolutionSelector
-        matchedPgc={candidates.length === 1 ? candidates[0].pgc : null}
-        markedNew={triageStatus !== "unprocessed" && candidates.length === 0}
-        candidates={candidates}
-        schema={schema}
-        showResolveControls={showResolveControls}
-        resolving={resolving}
-        addingCandidate={addingCandidate}
-        selected={selected}
-        onSelect={setSelected}
-        onSubmit={() => void submitResolution()}
-        onAddCandidate={addCandidate}
-      />
+      {assignedPgc === null && (
+        <>
+          <ResolutionSelector
+            matchedPgc={candidates.length === 1 ? candidates[0].pgc : null}
+            markedNew={
+              triageStatus !== "unprocessed" && candidates.length === 0
+            }
+            candidates={candidates}
+            schema={schema}
+            showResolveControls={canResolve}
+            resolving={resolving}
+            addingCandidate={addingCandidate}
+            selected={selected}
+            onSelect={setSelected}
+            onSubmit={() => void submitResolution()}
+            onAddCandidate={addCandidate}
+          />
 
-      {resolveError && (
-        <p className="text-danger text-sm" role="alert">
-          {resolveError}
-        </p>
+          {resolveError && (
+            <p className="text-danger text-sm" role="alert">
+              {resolveError}
+            </p>
+          )}
+        </>
       )}
 
       {originalDataFields && (

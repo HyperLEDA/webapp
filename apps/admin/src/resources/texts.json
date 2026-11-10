@@ -4,14 +4,10 @@
     "catalog.icrs": "Celestial coordinates",
     "catalog.redshift": "Redshift",
     "crossmatch.status.unprocessed": "Unprocessed",
-    "crossmatch.status.new": "New",
-    "crossmatch.status.collided": "Collided",
-    "crossmatch.status.existing": "Existing",
     "crossmatch.triage.pending": "Pending",
     "crossmatch.triage.resolved": "Resolved",
     "crossmatch.triage.verbose.pending": "Pending manual check",
     "crossmatch.triage.verbose.resolved": "Resolved",
-    "crossmatch.action.mark_new": "Mark as new",
-    "crossmatch.action.resolve": "Match to this PGC"
+    "crossmatch.action.mark_new": "Mark as new"
   }
 }
