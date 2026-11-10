@@ -11,6 +11,7 @@ import type {
 } from "../clients/admin";
 import { adminClient } from "../clients";
 import { adminTableUrl, publicObjectUrl } from "../origins";
+import { getResource } from "../resources";
 import {
   Button,
   SkyViewer,
@@ -25,6 +26,7 @@ import {
   RightAscension,
   type SkyViewerHandle,
 } from "@leda/lib/ui";
+import { Badge } from "../components/ui";
 import {
   DropdownFilter,
   NumberFilter,
@@ -224,6 +226,61 @@ function isNumericCell(value: CellPrimitive): value is number {
   return Number.isFinite(value);
 }
 
+function getCandidatePgcs(record: ApiRecord): number[] {
+  const fromCandidates = record.crossmatch.candidates
+    .map((candidate) => candidate.pgc)
+    .filter(
+      (pgc): pgc is number => Number.isFinite(pgc) && Number.isInteger(pgc),
+    );
+
+  const recordPgc = record.pgc;
+  if (
+    recordPgc === null ||
+    !Number.isFinite(recordPgc) ||
+    !Number.isInteger(recordPgc)
+  ) {
+    return fromCandidates;
+  }
+
+  if (fromCandidates.includes(recordPgc)) {
+    return fromCandidates;
+  }
+
+  return [recordPgc, ...fromCandidates];
+}
+
+function renderCandidates(record: ApiRecord): CellPrimitive {
+  const pgcNumbers = getCandidatePgcs(record);
+  if (pgcNumbers.length === 0) {
+    return "—";
+  }
+
+  return (
+    <>
+      {pgcNumbers.map((pgc, index) => {
+        const objectLink = publicObjectUrl(pgc);
+        return (
+          <Badge
+            key={`${pgc}-${index}`}
+            href={objectLink.href}
+            external={objectLink.external}
+          >
+            {pgc}
+          </Badge>
+        );
+      })}
+    </>
+  );
+}
+
+function getTriageStatusLabel(triageStatus: CrossmatchTriageStatus): string {
+  const resourceKey =
+    triageStatus === "unprocessed"
+      ? "crossmatch.status.unprocessed"
+      : `crossmatch.triage.${triageStatus}`;
+  return getResource(resourceKey).Title;
+}
+
 const columns: Column[] = [
   { slug: "", width: "fit" },
   { slug: "Name" },
@@ -241,6 +298,8 @@ const columns: Column[] = [
   },
   { slug: "Redshift" },
   { slug: "Nature" },
+  { slug: "Manual check status" },
+  { slug: "Candidates" },
 ];
 
 const FILTERABLE_COLUMNS = columns
@@ -302,6 +361,10 @@ function recordRows(
     Dec: record.catalogs.icrs?.dec ?? "—",
     Redshift: formatCatalogNumber(record.catalogs.redshift?.z, 4),
     Nature: record.catalogs.nature?.type_name || "—",
+    "Manual check status": getTriageStatusLabel(
+      record.crossmatch.triage_status,
+    ),
+    Candidates: renderCandidates(record),
   }));
 }
 
