@@ -220,7 +220,41 @@ const columns: Column[] = [
   { slug: "Nature" },
 ];
 
+const FILTERABLE_COLUMNS = columns
+  .map((column) => column.slug)
+  .filter((slug) => slug !== "");
 const defaultVisibleColumns = ["Name", "Table", "PGC", "Redshift", "Nature"];
+
+function parseVisibleColumns(value: string | null): string[] {
+  if (value === null || value.trim() === "") {
+    return defaultVisibleColumns;
+  }
+  const known = new Set(FILTERABLE_COLUMNS);
+  const parsed = value
+    .split(",")
+    .map((slug) => slug.trim())
+    .filter((slug) => known.has(slug));
+  return parsed.length > 0 ? parsed : defaultVisibleColumns;
+}
+
+function isDefaultVisibleColumns(visible: string[]): boolean {
+  if (visible.length !== defaultVisibleColumns.length) {
+    return false;
+  }
+  const selected = new Set(visible);
+  return defaultVisibleColumns.every((slug) => selected.has(slug));
+}
+
+function writeVisibleColumns(params: URLSearchParams, visible: string[]): void {
+  if (isDefaultVisibleColumns(visible)) {
+    params.delete("columns");
+    return;
+  }
+  params.set(
+    "columns",
+    FILTERABLE_COLUMNS.filter((slug) => visible.includes(slug)).join(","),
+  );
+}
 
 function recordRows(
   records: ApiRecord[],
@@ -370,8 +404,10 @@ interface RecordsContentProps {
   error: string | null;
   page: number;
   pageSize: number;
+  visibleColumns: string[];
   onLocate: (ra: number, dec: number) => void;
   onPageChange: (page: number) => void;
+  onVisibleColumnsChange: (visibleColumns: string[]) => void;
 }
 
 function RecordsContent({
@@ -381,8 +417,10 @@ function RecordsContent({
   error,
   page,
   pageSize,
+  visibleColumns,
   onLocate,
   onPageChange,
+  onVisibleColumnsChange,
 }: RecordsContentProps): ReactElement {
   if (pgcInvalid) {
     return <ErrorPage title="Error" message="PGC must be an integer." />;
@@ -404,7 +442,8 @@ function RecordsContent({
         data={recordRows(data.records, onLocate)}
         loading={loading}
         columnFilter
-        defaultVisibleColumns={defaultVisibleColumns}
+        visibleColumns={visibleColumns}
+        onVisibleColumnsChange={onVisibleColumnsChange}
       />
       <Pagination
         page={page}
@@ -429,6 +468,7 @@ export function RecordsPage(): ReactElement {
     pgc === null ? parseUploadStatus(searchParams.get("upload_status")) : null;
   const page = parsePage(searchParams.get("page"));
   const pageSize = parsePageSize(searchParams.get("page_size"));
+  const visibleColumns = parseVisibleColumns(searchParams.get("columns"));
 
   const query: RecordsQuery | null = pgcInvalid
     ? null
@@ -458,6 +498,12 @@ export function RecordsPage(): ReactElement {
     setSearchParams(next);
   }
 
+  function handleVisibleColumnsChange(nextVisible: string[]): void {
+    const next = new URLSearchParams(searchParams);
+    writeVisibleColumns(next, nextVisible);
+    setSearchParams(next, { replace: true });
+  }
+
   function handleApplyFilters(filters: AppliedFilters): void {
     const next = new URLSearchParams();
     const nextTableName = filters.tableName.trim();
@@ -477,6 +523,7 @@ export function RecordsPage(): ReactElement {
     }
     next.set("page_size", filters.pageSize.toString());
     next.set("page", "0");
+    writeVisibleColumns(next, visibleColumns);
     setSearchParams(next);
   }
 
@@ -521,8 +568,10 @@ export function RecordsPage(): ReactElement {
         error={error}
         page={page}
         pageSize={pageSize}
+        visibleColumns={visibleColumns}
         onLocate={handleLocate}
         onPageChange={handlePageChange}
+        onVisibleColumnsChange={handleVisibleColumnsChange}
       />
     </>
   );

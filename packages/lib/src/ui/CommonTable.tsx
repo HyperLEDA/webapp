@@ -39,6 +39,24 @@ function columnLabel(column: Column): string {
   return column.label ?? column.slug;
 }
 
+function filterableSlugs(columns: Column[]): string[] {
+  return columns
+    .filter((column) => columnLabel(column) !== "")
+    .map((column) => column.slug);
+}
+
+function hiddenSlugs(
+  columns: Column[],
+  visible: string[] | undefined,
+): Set<string> {
+  if (!visible) {
+    return new Set();
+  }
+  return new Set(
+    filterableSlugs(columns).filter((slug) => !visible.includes(slug)),
+  );
+}
+
 interface CommonTableProps {
   columns: Column[];
   data: Record<string, CellPrimitive>[];
@@ -52,6 +70,8 @@ interface CommonTableProps {
   onRowClick?: (row: Record<string, CellPrimitive>, rowIndex: number) => void;
   columnFilter?: boolean;
   defaultVisibleColumns?: string[];
+  visibleColumns?: string[];
+  onVisibleColumnsChange?: (visibleColumns: string[]) => void;
 }
 
 export function CommonTable({
@@ -67,25 +87,37 @@ export function CommonTable({
   onRowClick,
   columnFilter = false,
   defaultVisibleColumns,
+  visibleColumns: visibleColumnsProp,
+  onVisibleColumnsChange,
 }: CommonTableProps): ReactElement {
-  const [hidden, setHidden] = useState(
-    () =>
-      new Set(
-        defaultVisibleColumns
-          ? columns
-              .filter(
-                (column) =>
-                  columnLabel(column) !== "" &&
-                  !defaultVisibleColumns.includes(column.slug),
-              )
-              .map((column) => column.slug)
-          : [],
-      ),
+  const controlled = visibleColumnsProp !== undefined;
+  const [hiddenState, setHiddenState] = useState(() =>
+    hiddenSlugs(columns, defaultVisibleColumns),
   );
+  const hidden = controlled
+    ? hiddenSlugs(columns, visibleColumnsProp)
+    : hiddenState;
 
   const visibleColumns = columnFilter
     ? columns.filter((column) => !hidden.has(column.slug))
     : columns;
+
+  function toggleColumn(slug: string): void {
+    const nextHidden = new Set(hidden);
+    if (nextHidden.has(slug)) {
+      nextHidden.delete(slug);
+    } else {
+      nextHidden.add(slug);
+    }
+    onVisibleColumnsChange?.(
+      filterableSlugs(columns).filter(
+        (columnSlug) => !nextHidden.has(columnSlug),
+      ),
+    );
+    if (!controlled) {
+      setHiddenState(nextHidden);
+    }
+  }
 
   function cellContent(value: CellPrimitive, column: Column): ReactNode {
     if (column.renderCell) {
@@ -147,17 +179,7 @@ export function CommonTable({
                     <input
                       type="checkbox"
                       checked={!hidden.has(column.slug)}
-                      onChange={() =>
-                        setHidden((current) => {
-                          const next = new Set(current);
-                          if (next.has(column.slug)) {
-                            next.delete(column.slug);
-                          } else {
-                            next.add(column.slug);
-                          }
-                          return next;
-                        })
-                      }
+                      onChange={() => toggleColumn(column.slug)}
                       className="rounded border-border"
                     />
                     {label}
