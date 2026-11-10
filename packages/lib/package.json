@@ -17,6 +17,7 @@
     "./ui/styles.css": "./src/ui/styles.css"
   },
   "dependencies": {
+    "astronomy-engine": "^2.1.19",
     "classnames": "^2.5.1",
     "flowbite-react": "^0.12.17",
     "react-markdown": "^10.1.0"

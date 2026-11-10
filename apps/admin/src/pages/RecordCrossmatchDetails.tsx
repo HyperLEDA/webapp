@@ -2,17 +2,23 @@ import { ReactElement, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import classNames from "classnames";
 import { MdAdd, MdClose } from "react-icons/md";
-import {
-  getRecordCrossmatch,
-  setCrossmatchResults,
-  GetRecordCrossmatchResponse,
-  RecordCrossmatch,
+import { querySimple } from "@leda/lib/clients/backend";
+import type { Schema as BackendSchema } from "@leda/lib/clients/backend";
+import { backendClient } from "@leda/lib/clients";
+import { getRecords, setCrossmatchResults } from "../clients/admin";
+import type {
   PgcCandidate,
-  Schema as AdminSchema,
+  Record as ApiRecord,
   StatusesPayload,
 } from "../clients/admin";
-import { Schema as BackendSchema } from "@leda/lib/clients/backend";
 import { adminClient } from "../clients";
+import {
+  candidatesInRequestOrder,
+  crossmatchStatus,
+  recordCatalogsToCrossmatch,
+  schemaFromRecord,
+  type CrossmatchView,
+} from "./recordCrossmatchModel";
 import { isLoggedIn } from "../auth";
 import { getResource } from "../resources";
 import { publicObjectUrl, adminTableUrl } from "../origins";
@@ -35,57 +41,6 @@ import {
 } from "../components/ui";
 import { useDataFetching } from "@leda/lib/hooks";
 import { describeUnknownError, formatCaughtError } from "@leda/lib/tap";
-
-function convertAdminSchemaToBackendSchema(
-  adminSchema: AdminSchema,
-): BackendSchema {
-  function getCoordinateUnit(type: string, param: string): string {
-    return adminSchema.units.coordinates[type]?.[param] || "deg";
-  }
-
-  function getVelocityUnit(type: string, param: string): string {
-    return adminSchema.units.velocity[type]?.[param] || "km/s";
-  }
-
-  return {
-    units: {
-      coordinates: {
-        equatorial: {
-          ra: getCoordinateUnit("equatorial", "ra"),
-          dec: getCoordinateUnit("equatorial", "dec"),
-          e_ra: getCoordinateUnit("equatorial", "e_ra"),
-          e_dec: getCoordinateUnit("equatorial", "e_dec"),
-        },
-        galactic: {
-          lon: getCoordinateUnit("galactic", "lon"),
-          lat: getCoordinateUnit("galactic", "lat"),
-          e_lon: getCoordinateUnit("galactic", "e_lon"),
-          e_lat: getCoordinateUnit("galactic", "e_lat"),
-        },
-        supergalactic: {
-          lon: getCoordinateUnit("supergalactic", "lon"),
-          lat: getCoordinateUnit("supergalactic", "lat"),
-          e_lon: getCoordinateUnit("supergalactic", "e_lon"),
-          e_lat: getCoordinateUnit("supergalactic", "e_lat"),
-        },
-      },
-      velocity: {
-        heliocentric: {
-          v: getVelocityUnit("heliocentric", "v"),
-          e_v: getVelocityUnit("heliocentric", "e_v"),
-        },
-        local_group: {
-          v: getVelocityUnit("local_group", "v"),
-          e_v: getVelocityUnit("local_group", "e_v"),
-        },
-        cmb: {
-          v: getVelocityUnit("cmb", "v"),
-          e_v: getVelocityUnit("cmb", "e_v"),
-        },
-      },
-    },
-  };
-}
 
 function createDescription(
   velocity?: { v: number; e_v: number } | null,
@@ -110,7 +65,7 @@ function getCandidateLabel(candidate: PgcCandidate): string {
 
 function convertCandidatesToAdditionalSources(
   candidates: PgcCandidate[],
-  mainRecord: RecordCrossmatch,
+  mainRecord: CrossmatchView,
 ) {
   const candidateSources = candidates
     .filter((candidate) => candidate.catalogs.coordinates?.equatorial)
@@ -142,7 +97,7 @@ function convertCandidatesToAdditionalSources(
 type ResolutionChoice = "new" | number;
 
 interface ResolutionSelectorProps {
-  crossmatch: RecordCrossmatch;
+  crossmatch: CrossmatchView;
   candidates: PgcCandidate[];
   schema: BackendSchema;
   showResolveControls: boolean;
@@ -377,8 +332,16 @@ function OriginalData({ data }: { data: OriginalDataFields }): ReactElement {
   return <CommonTable columns={columns} data={tableData} />;
 }
 
+interface RecordCrossmatchDetailsData {
+  table_name: string;
+  crossmatch: CrossmatchView;
+  candidates: PgcCandidate[];
+  schema: BackendSchema;
+  original_data: ApiRecord["original_data"] | null;
+}
+
 interface RecordCrossmatchDetailsProps {
-  data: GetRecordCrossmatchResponse;
+  data: RecordCrossmatchDetailsData;
 }
 
 function RecordCrossmatchDetails({
@@ -396,7 +359,6 @@ function RecordCrossmatchDetails({
     original_data: originalData,
   } = data;
   const showResolveControls = isLoggedIn();
-  const backendSchema = convertAdminSchemaToBackendSchema(schema);
   const candidateSources = convertCandidatesToAdditionalSources(
     candidates,
     crossmatch,
@@ -404,7 +366,9 @@ function RecordCrossmatchDetails({
   const triageBadgeType: BadgeType =
     crossmatch.triage_status === "resolved" ? "success" : "warning";
   const triageBadgeLabel = getResource(
-    `crossmatch.triage.verbose.${crossmatch.triage_status}`,
+    crossmatch.triage_status === "unprocessed"
+      ? "crossmatch.status.unprocessed"
+      : `crossmatch.triage.verbose.${crossmatch.triage_status}`,
   ).Title;
   const objectName =
     crossmatch.catalogs.designation?.name ?? `Record ${crossmatch.record_id}`;
@@ -537,7 +501,7 @@ function RecordCrossmatchDetails({
             <h3 className="text-sm font-semibold mb-3">Object</h3>
             <ObjectSummary
               catalogs={crossmatch.catalogs}
-              schema={backendSchema}
+              schema={schema}
               name={objectName}
             />
           </div>
@@ -547,7 +511,7 @@ function RecordCrossmatchDetails({
       <ResolutionSelector
         crossmatch={crossmatch}
         candidates={candidates}
-        schema={backendSchema}
+        schema={schema}
         showResolveControls={showResolveControls}
         resolving={resolving}
         addingCandidate={addingCandidate}
@@ -574,15 +538,17 @@ function RecordCrossmatchDetails({
 
 async function fetcher(
   recordId: string | undefined,
-): Promise<GetRecordCrossmatchResponse> {
+): Promise<RecordCrossmatchDetailsData> {
   if (!recordId) {
     throw new Error("Record ID is required");
   }
 
-  const response = await getRecordCrossmatch({
+  const response = await getRecords({
     client: adminClient,
     query: {
       record_id: recordId,
+      page: 0,
+      page_size: 1,
     },
   });
 
@@ -592,7 +558,56 @@ async function fetcher(
     );
   }
 
-  return response.data.data;
+  const records = response.data.data.records;
+  if (records.length === 0) {
+    throw new Error(`Record ${recordId} was not found`);
+  }
+  const record = records[0];
+
+  const candidatePgcs = record.crossmatch.candidates.map(
+    (candidate) => candidate.pgc,
+  );
+  const status = crossmatchStatus(
+    record.crossmatch.triage_status,
+    candidatePgcs,
+  );
+  let candidates: PgcCandidate[] = [];
+  let schema = schemaFromRecord(response.data.data.schema);
+
+  if (candidatePgcs.length > 0) {
+    const objects = await querySimple({
+      client: backendClient,
+      query: {
+        pgcs: candidatePgcs,
+        page: 0,
+        page_size: candidatePgcs.length,
+      },
+    });
+    if (objects.error) {
+      throw new Error(
+        `Error fetching candidate objects: ${describeUnknownError(objects.error) || "Unknown error"}`,
+      );
+    }
+    schema = objects.data.data.schema;
+    candidates = candidatesInRequestOrder(
+      candidatePgcs,
+      objects.data.data.objects,
+    );
+  }
+
+  return {
+    table_name: record.table_name ?? "",
+    original_data: record.original_data,
+    schema,
+    candidates,
+    crossmatch: {
+      record_id: record.id,
+      status: status.status,
+      triage_status: record.crossmatch.triage_status,
+      metadata: status.metadata,
+      catalogs: recordCatalogsToCrossmatch(record.catalogs),
+    },
+  };
 }
 
 export function RecordCrossmatchDetailsPage(): ReactElement {
