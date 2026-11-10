@@ -33,6 +33,7 @@ export {
   type Column,
   type CellPrimitive,
   type ColumnWidth,
+  type TableAction,
 } from "./CommonTable";
 export { Pagination } from "./Pagination";
 export { ErrorPage, ErrorPageHomeButton } from "./ErrorPage";
