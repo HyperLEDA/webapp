@@ -393,7 +393,7 @@ function TableProgressSummaryCard({
     ? [
         {
           title: "View crossmatch results",
-          href: `/crossmatch?table_name=${encodeURIComponent(tableName)}&triage_status=pending`,
+          href: `/records?table_name=${encodeURIComponent(tableName)}&triage_status=pending&columns=${encodeURIComponent("Name,Manual check status,Candidates")}`,
         },
       ]
     : [];

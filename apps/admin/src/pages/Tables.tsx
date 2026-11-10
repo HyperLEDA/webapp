@@ -149,10 +149,6 @@ function formatCatalogsSummary(
   return parts.length > 0 ? parts.join(", ") : "—";
 }
 
-function crossmatchListHref(tableName: string): string {
-  return `/crossmatch?table_name=${encodeURIComponent(tableName)}&triage_status=pending`;
-}
-
 function TableListCard({ table }: { table: TableListItem }): ReactElement {
   const navigate = useNavigate();
   const { progress } = table;
@@ -161,7 +157,9 @@ function TableListCard({ table }: { table: TableListItem }): ReactElement {
     {
       title: "View crossmatch results",
       onClick: () => {
-        void navigate(crossmatchListHref(table.name));
+        void navigate(
+          `/records?table_name=${encodeURIComponent(table.name)}&triage_status=pending&columns=${encodeURIComponent("Name,Manual check status,Candidates")}`,
+        );
       },
     },
   ];
