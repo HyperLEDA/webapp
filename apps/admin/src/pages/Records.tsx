@@ -511,12 +511,13 @@ function AssignPgcDialog({
   onAssigned: () => void;
 }): ReactElement {
   const [pgcText, setPgcText] = useState("");
+  const [createNewPgc, setCreateNewPgc] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   async function submit(): Promise<void> {
-    const pgc = parsePgc(pgcText);
-    if (pgc === null) {
+    const pgc = createNewPgc ? null : parsePgc(pgcText);
+    if (!createNewPgc && pgc === null) {
       setError("PGC must be an integer.");
       return;
     }
@@ -566,13 +567,23 @@ function AssignPgcDialog({
         <input
           id="assign-pgc"
           type="number"
-          required
-          autoFocus
+          required={!createNewPgc}
+          autoFocus={!createNewPgc}
           value={pgcText}
-          disabled={submitting}
+          disabled={submitting || createNewPgc}
           onChange={(event) => setPgcText(event.target.value)}
-          className="w-full rounded border border-border bg-surface px-3 py-2 text-primary"
+          className="w-full rounded border border-border bg-surface px-3 py-2 text-primary disabled:opacity-50"
         />
+        <label className="mt-3 flex items-center gap-2 text-sm text-primary">
+          <input
+            type="checkbox"
+            checked={createNewPgc}
+            disabled={submitting}
+            onChange={(event) => setCreateNewPgc(event.target.checked)}
+            className="size-4 accent-accent cursor-pointer"
+          />
+          Create new PGC
+        </label>
         {error ? (
           <p className="mt-2 text-sm text-danger" role="alert">
             {error}
