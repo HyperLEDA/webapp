@@ -1,4 +1,4 @@
-import { ReactElement, useEffect, useMemo, useRef, useState } from "react";
+import { ReactElement, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { MdMyLocation } from "react-icons/md";
 import { assignRecordPgcs, getRecords } from "../clients/admin";
@@ -501,17 +501,15 @@ async function fetchRecords(
   return response.data.data;
 }
 
-interface AssignPgcDialogProps {
-  recordIds: string[];
-  onClose: () => void;
-  onAssigned: () => void;
-}
-
 function AssignPgcDialog({
   recordIds,
   onClose,
   onAssigned,
-}: AssignPgcDialogProps): ReactElement {
+}: {
+  recordIds: string[];
+  onClose: () => void;
+  onAssigned: () => void;
+}): ReactElement {
   const [pgcText, setPgcText] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -529,10 +527,7 @@ function AssignPgcDialog({
       const response = await assignRecordPgcs({
         client: adminClient,
         body: {
-          assignments: recordIds.map((recordId) => ({
-            record_id: recordId,
-            pgc,
-          })),
+          assignments: recordIds.map((record_id) => ({ record_id, pgc })),
         },
       });
       if (response.error) {
@@ -605,6 +600,7 @@ interface RecordsContentProps {
   pageSize: number;
   visibleColumns: string[];
   actions: TableAction[];
+  tableKey: string;
   onLocate: (ra: number, dec: number) => void;
   onPageChange: (page: number) => void;
   onVisibleColumnsChange: (visibleColumns: string[]) => void;
@@ -619,22 +615,11 @@ function RecordsContent({
   pageSize,
   visibleColumns,
   actions,
+  tableKey,
   onLocate,
   onPageChange,
   onVisibleColumnsChange,
 }: RecordsContentProps): ReactElement {
-  const onLocateRef = useRef(onLocate);
-  onLocateRef.current = onLocate;
-  const rows = useMemo(
-    () =>
-      data
-        ? recordRows(data.records, (ra, dec) => {
-            onLocateRef.current(ra, dec);
-          })
-        : [],
-    [data],
-  );
-
   if (pgcInvalid) {
     return <ErrorPage title="Error" message="PGC must be an integer." />;
   }
@@ -651,8 +636,9 @@ function RecordsContent({
   return (
     <>
       <CommonTable
+        key={tableKey}
         columns={columns}
-        data={rows}
+        data={recordRows(data.records, onLocate)}
         loading={loading}
         columnFilter
         visibleColumns={visibleColumns}
@@ -717,18 +703,7 @@ export function RecordsPage(): ReactElement {
     {
       label: "Assign PGC",
       onAction: (rows) => {
-        const recordIds = rows.flatMap((row) => {
-          if (!row.__recordId) {
-            return [];
-          }
-          // SAFETY: recordRows stores the API record id string on __recordId.
-          const recordId = row.__recordId as string;
-          return [recordId];
-        });
-        if (recordIds.length === 0) {
-          return;
-        }
-        setAssignRecordIds(recordIds);
+        setAssignRecordIds(rows.map((row) => String(row.__recordId)));
       },
     },
   ];
@@ -823,6 +798,7 @@ export function RecordsPage(): ReactElement {
         pageSize={pageSize}
         visibleColumns={visibleColumns}
         actions={tableActions}
+        tableKey={`${refreshKey}:${data?.records.map((record) => record.id).join(",") ?? ""}`}
         onLocate={handleLocate}
         onPageChange={handlePageChange}
         onVisibleColumnsChange={handleVisibleColumnsChange}

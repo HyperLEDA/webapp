@@ -1,11 +1,6 @@
-import React, {
-  ReactElement,
-  ReactNode,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { ReactElement, ReactNode, useState } from "react";
 import classNames from "classnames";
+import type { IconType } from "react-icons";
 import { MdMoreVert, MdSettings } from "react-icons/md";
 import { CollapsibleCell } from "./CollapsibleCell";
 import { Hint } from "./Hint";
@@ -68,6 +63,30 @@ function hiddenSlugs(
   );
 }
 
+const menuButtonClassName =
+  "flex cursor-pointer list-none items-center rounded-lg border border-surface-2 bg-surface-2 p-1.5 [&::-webkit-details-marker]:hidden";
+const menuPanelClassName =
+  "absolute right-0 top-full z-20 mt-1 min-w-48 w-max rounded-lg border border-border bg-surface-2 py-1 shadow-lg";
+
+function TableMenu({
+  label,
+  icon: Icon,
+  children,
+}: {
+  label: string;
+  icon: IconType;
+  children: ReactNode;
+}): ReactElement {
+  return (
+    <details className="relative">
+      <summary className={menuButtonClassName} title={label} aria-label={label}>
+        <Icon size={18} className="text-muted" aria-hidden />
+      </summary>
+      <div className={menuPanelClassName}>{children}</div>
+    </details>
+  );
+}
+
 interface CommonTableProps {
   columns: Column[];
   data: Record<string, CellPrimitive>[];
@@ -108,16 +127,11 @@ export function CommonTable({
     hiddenSlugs(columns, defaultVisibleColumns),
   );
   const [selected, setSelected] = useState<Set<number>>(() => new Set());
-  const actionsMenuRef = useRef<HTMLDetailsElement>(null);
   const hidden = controlled
     ? hiddenSlugs(columns, visibleColumnsProp)
     : hiddenState;
   const hasActions = actions.length > 0;
   const allSelected = data.length > 0 && selected.size === data.length;
-
-  useEffect(() => {
-    setSelected((current) => (current.size === 0 ? current : new Set()));
-  }, [data]);
 
   const visibleColumns = columnFilter
     ? columns.filter((column) => !hidden.has(column.slug))
@@ -141,11 +155,9 @@ export function CommonTable({
   }
 
   function toggleAllRows(): void {
-    if (allSelected) {
-      setSelected(new Set());
-      return;
-    }
-    setSelected(new Set(data.map((_, rowIndex) => rowIndex)));
+    setSelected(
+      allSelected ? new Set() : new Set(data.map((_, rowIndex) => rowIndex)),
+    );
   }
 
   function toggleRow(rowIndex: number): void {
@@ -160,14 +172,13 @@ export function CommonTable({
     });
   }
 
-  function runAction(action: TableAction): void {
-    const rows = [...selected]
-      .sort((left, right) => left - right)
-      .map((rowIndex) => data[rowIndex]);
-    if (actionsMenuRef.current) {
-      actionsMenuRef.current.open = false;
-    }
-    action.onAction(rows);
+  function runAction(action: TableAction, menu: HTMLDetailsElement): void {
+    menu.open = false;
+    action.onAction(
+      [...selected]
+        .sort((left, right) => left - right)
+        .map((index) => data[index]),
+    );
   }
 
   function cellContent(value: CellPrimitive, column: Column): ReactNode {
@@ -209,66 +220,53 @@ export function CommonTable({
       {(hasActions || columnFilter) && (
         <div className="relative z-20 mb-1 flex justify-end gap-1">
           {hasActions && (
-            <details ref={actionsMenuRef} className="relative">
-              <summary
-                className="flex cursor-pointer list-none items-center rounded-lg border border-surface-2 bg-surface-2 p-1.5 [&::-webkit-details-marker]:hidden"
-                title="Actions"
-                aria-label="Actions"
-              >
-                <MdMoreVert size={18} className="text-muted" aria-hidden />
-              </summary>
-              <div className="absolute right-0 top-full z-20 mt-1 min-w-48 w-max rounded-lg border border-border bg-surface-2 py-1 shadow-lg">
-                {actions.map((action) => (
-                  <button
-                    key={action.label}
-                    type="button"
-                    disabled={selected.size === 0}
-                    className={classNames(
-                      "block w-full px-3 py-1.5 text-left text-sm text-primary",
-                      selected.size === 0
-                        ? "cursor-not-allowed opacity-50"
-                        : "cursor-pointer hover:bg-surface",
-                    )}
-                    onClick={() => runAction(action)}
-                  >
-                    {action.label}
-                  </button>
-                ))}
-              </div>
-            </details>
+            <TableMenu label="Actions" icon={MdMoreVert}>
+              {actions.map((action) => (
+                <button
+                  key={action.label}
+                  type="button"
+                  disabled={selected.size === 0}
+                  className={classNames(
+                    "block w-full px-3 py-1.5 text-left text-sm text-primary",
+                    selected.size === 0
+                      ? "cursor-not-allowed opacity-50"
+                      : "cursor-pointer hover:bg-surface",
+                  )}
+                  onClick={(event) => {
+                    const menu = event.currentTarget.closest("details");
+                    if (menu) {
+                      runAction(action, menu);
+                    }
+                  }}
+                >
+                  {action.label}
+                </button>
+              ))}
+            </TableMenu>
           )}
           {columnFilter && (
-            <details className="relative">
-              <summary
-                className="flex cursor-pointer list-none items-center rounded-lg border border-surface-2 bg-surface-2 p-1.5 [&::-webkit-details-marker]:hidden"
-                title="Columns"
-                aria-label="Columns"
-              >
-                <MdSettings size={18} className="text-muted" aria-hidden />
-              </summary>
-              <div className="absolute right-0 top-full z-20 mt-1 min-w-48 w-max rounded-lg border border-border bg-surface-2 py-1 shadow-lg">
-                {columns.map((column) => {
-                  const label = columnLabel(column);
-                  if (!label) {
-                    return null;
-                  }
-                  return (
-                    <label
-                      key={column.slug}
-                      className="flex cursor-pointer items-center gap-2 px-3 py-1.5 text-sm text-primary hover:bg-surface"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={!hidden.has(column.slug)}
-                        onChange={() => toggleColumn(column.slug)}
-                        className="rounded border-border"
-                      />
-                      {label}
-                    </label>
-                  );
-                })}
-              </div>
-            </details>
+            <TableMenu label="Columns" icon={MdSettings}>
+              {columns.map((column) => {
+                const label = columnLabel(column);
+                if (!label) {
+                  return null;
+                }
+                return (
+                  <label
+                    key={column.slug}
+                    className="flex cursor-pointer items-center gap-2 px-3 py-1.5 text-sm text-primary hover:bg-surface"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={!hidden.has(column.slug)}
+                      onChange={() => toggleColumn(column.slug)}
+                      className="rounded border-border"
+                    />
+                    {label}
+                  </label>
+                );
+              })}
+            </TableMenu>
           )}
         </div>
       )}
