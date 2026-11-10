@@ -274,7 +274,7 @@ function RecordsFilters({
         title="Table name"
         value={localTableName}
         onChange={setLocalTableName}
-        placeholder="All tables"
+        placeholder="Any"
         onEnter={applyFilters}
         defaultValue=""
       />
@@ -282,7 +282,7 @@ function RecordsFilters({
         title="Record ID"
         value={localRecordId}
         onChange={setLocalRecordId}
-        placeholder="Exact record ID"
+        placeholder="Any"
         onEnter={applyFilters}
         defaultValue=""
       />
@@ -290,7 +290,7 @@ function RecordsFilters({
         title="PGC"
         value={localPgc}
         onChange={setLocalPgc}
-        placeholder="Exact PGC"
+        placeholder="Any"
         onEnter={applyFilters}
         defaultValue=""
       />
