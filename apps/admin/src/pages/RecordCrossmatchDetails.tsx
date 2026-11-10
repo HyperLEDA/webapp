@@ -348,7 +348,7 @@ function RecordCrossmatchDetails({
   const icrs = record.catalogs.icrs;
   const redshift = record.catalogs.redshift;
   const triageStatus = record.crossmatch.triage_status;
-  const tableName = record.table_name ?? "";
+  const tableName = record.table_name;
   const showResolveControls = isLoggedIn();
   const candidateSources = convertCandidatesToAdditionalSources(
     candidates,
