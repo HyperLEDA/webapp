@@ -1,7 +1,7 @@
 import { ReactElement, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { MdMyLocation } from "react-icons/md";
-import { getRecords } from "../clients/admin";
+import { assignRecordPgcs, getRecords } from "../clients/admin";
 import type {
   CrossmatchTriageStatus,
   GetRecordsData,
@@ -19,6 +19,7 @@ import {
   Column,
   CommonTable,
   Declination,
+  type TableAction,
   ErrorPage,
   Link,
   Loading,
@@ -34,7 +35,7 @@ import {
   TextFilter,
 } from "../components/ui/filters";
 import { useDataFetching } from "@leda/lib/hooks";
-import { formatApiError } from "@leda/lib/tap";
+import { formatApiError, formatCaughtError } from "@leda/lib/tap";
 
 const UPLOAD_STATUS_OPTIONS = [
   { value: "all", label: "All" },
@@ -229,7 +230,7 @@ function getCandidatePgcs(record: ApiRecord): number[] {
       (pgc): pgc is number => Number.isFinite(pgc) && Number.isInteger(pgc),
     );
 
-  const recordPgc = record.pgc;
+  const recordPgc = record.pgc ?? null;
   if (
     recordPgc === null ||
     !Number.isFinite(recordPgc) ||
@@ -339,6 +340,7 @@ function recordRows(
   onLocate: (ra: number, dec: number) => void,
 ): Record<string, CellPrimitive>[] {
   return records.map((record) => ({
+    __recordId: record.id,
     "": renderLocate(record, onLocate),
     Name: (
       <Link href={`/records/${record.id}`}>
@@ -499,6 +501,96 @@ async function fetchRecords(
   return response.data.data;
 }
 
+function AssignPgcDialog({
+  recordIds,
+  onClose,
+  onAssigned,
+}: {
+  recordIds: string[];
+  onClose: () => void;
+  onAssigned: () => void;
+}): ReactElement {
+  const [pgcText, setPgcText] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  async function submit(): Promise<void> {
+    const pgc = parsePgc(pgcText);
+    if (pgc === null) {
+      setError("PGC must be an integer.");
+      return;
+    }
+
+    setSubmitting(true);
+    setError(null);
+    try {
+      const response = await assignRecordPgcs({
+        client: adminClient,
+        body: {
+          assignments: recordIds.map((record_id) => ({ record_id, pgc })),
+        },
+      });
+      if (response.error) {
+        throw new Error(formatApiError(response.error));
+      }
+      onAssigned();
+    } catch (submitError) {
+      setError(formatCaughtError(submitError));
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-app/60 p-4"
+      onClick={onClose}
+    >
+      <form
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="assign-pgc-title"
+        className="w-full max-w-sm rounded-lg border border-border bg-surface-2 p-4"
+        onClick={(event) => event.stopPropagation()}
+        onSubmit={(event) => {
+          event.preventDefault();
+          void submit();
+        }}
+      >
+        <h3 id="assign-pgc-title" className="mb-3 text-lg font-semibold">
+          Assign PGC
+        </h3>
+        <label htmlFor="assign-pgc" className="mb-1 block text-sm text-subtle">
+          PGC
+        </label>
+        <input
+          id="assign-pgc"
+          type="number"
+          required
+          autoFocus
+          value={pgcText}
+          disabled={submitting}
+          onChange={(event) => setPgcText(event.target.value)}
+          className="w-full rounded border border-border bg-surface px-3 py-2 text-primary"
+        />
+        {error ? (
+          <p className="mt-2 text-sm text-danger" role="alert">
+            {error}
+          </p>
+        ) : null}
+        <div className="mt-4 flex justify-end gap-2">
+          <Button type="button" onClick={onClose} disabled={submitting}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={submitting}>
+            {submitting ? "Assigning..." : "Assign"}
+          </Button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 interface RecordsContentProps {
   pgcInvalid: boolean;
   data: GetRecordsResponse | null;
@@ -507,6 +599,8 @@ interface RecordsContentProps {
   page: number;
   pageSize: number;
   visibleColumns: string[];
+  actions: TableAction[];
+  tableKey: string;
   onLocate: (ra: number, dec: number) => void;
   onPageChange: (page: number) => void;
   onVisibleColumnsChange: (visibleColumns: string[]) => void;
@@ -520,6 +614,8 @@ function RecordsContent({
   page,
   pageSize,
   visibleColumns,
+  actions,
+  tableKey,
   onLocate,
   onPageChange,
   onVisibleColumnsChange,
@@ -540,12 +636,14 @@ function RecordsContent({
   return (
     <>
       <CommonTable
+        key={tableKey}
         columns={columns}
         data={recordRows(data.records, onLocate)}
         loading={loading}
         columnFilter
         visibleColumns={visibleColumns}
         onVisibleColumnsChange={onVisibleColumnsChange}
+        actions={actions}
       />
       <Pagination
         page={page}
@@ -560,6 +658,8 @@ function RecordsContent({
 export function RecordsPage(): ReactElement {
   const [searchParams, setSearchParams] = useSearchParams();
   const skyViewerRef = useRef<SkyViewerHandle>(null);
+  const [assignRecordIds, setAssignRecordIds] = useState<string[] | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const tableName = searchParams.get("table_name")?.trim() ?? "";
   const recordId = searchParams.get("record_id")?.trim() ?? "";
@@ -596,8 +696,17 @@ export function RecordsPage(): ReactElement {
 
   const { data, loading, error } = useDataFetching(
     () => fetchRecords(query),
-    [query],
+    [query, refreshKey],
   );
+
+  const tableActions: TableAction[] = [
+    {
+      label: "Assign PGC",
+      onAction: (rows) => {
+        setAssignRecordIds(rows.map((row) => String(row.__recordId)));
+      },
+    },
+  ];
 
   function handlePageChange(newPage: number): void {
     const next = new URLSearchParams(searchParams);
@@ -688,10 +797,22 @@ export function RecordsPage(): ReactElement {
         page={page}
         pageSize={pageSize}
         visibleColumns={visibleColumns}
+        actions={tableActions}
+        tableKey={`${refreshKey}:${data?.records.map((record) => record.id).join(",") ?? ""}`}
         onLocate={handleLocate}
         onPageChange={handlePageChange}
         onVisibleColumnsChange={handleVisibleColumnsChange}
       />
+      {assignRecordIds ? (
+        <AssignPgcDialog
+          recordIds={assignRecordIds}
+          onClose={() => setAssignRecordIds(null)}
+          onAssigned={() => {
+            setAssignRecordIds(null);
+            setRefreshKey((current) => current + 1);
+          }}
+        />
+      ) : null}
     </>
   );
 }

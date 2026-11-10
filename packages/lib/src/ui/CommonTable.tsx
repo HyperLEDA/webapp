@@ -1,6 +1,7 @@
 import React, { ReactElement, ReactNode, useState } from "react";
 import classNames from "classnames";
-import { MdSettings } from "react-icons/md";
+import type { IconType } from "react-icons";
+import { MdMoreVert, MdSettings } from "react-icons/md";
 import { CollapsibleCell } from "./CollapsibleCell";
 import { Hint } from "./Hint";
 import { Loading } from "./Loading";
@@ -8,6 +9,11 @@ import { Loading } from "./Loading";
 export type CellPrimitive = ReactElement | string | number;
 
 export type ColumnWidth = "auto" | "fit";
+
+export type TableAction = {
+  label: string;
+  onAction: (rows: Record<string, CellPrimitive>[]) => void;
+};
 
 export interface Column {
   slug: string;
@@ -57,6 +63,30 @@ function hiddenSlugs(
   );
 }
 
+const menuButtonClassName =
+  "flex cursor-pointer list-none items-center rounded-lg border border-surface-2 bg-surface-2 p-1.5 [&::-webkit-details-marker]:hidden";
+const menuPanelClassName =
+  "absolute right-0 top-full z-20 mt-1 min-w-48 w-max rounded-lg border border-border bg-surface-2 py-1 shadow-lg";
+
+function TableMenu({
+  label,
+  icon: Icon,
+  children,
+}: {
+  label: string;
+  icon: IconType;
+  children: ReactNode;
+}): ReactElement {
+  return (
+    <details className="relative">
+      <summary className={menuButtonClassName} title={label} aria-label={label}>
+        <Icon size={18} className="text-muted" aria-hidden />
+      </summary>
+      <div className={menuPanelClassName}>{children}</div>
+    </details>
+  );
+}
+
 interface CommonTableProps {
   columns: Column[];
   data: Record<string, CellPrimitive>[];
@@ -72,6 +102,7 @@ interface CommonTableProps {
   defaultVisibleColumns?: string[];
   visibleColumns?: string[];
   onVisibleColumnsChange?: (visibleColumns: string[]) => void;
+  actions?: TableAction[];
 }
 
 export function CommonTable({
@@ -89,14 +120,18 @@ export function CommonTable({
   defaultVisibleColumns,
   visibleColumns: visibleColumnsProp,
   onVisibleColumnsChange,
+  actions = [],
 }: CommonTableProps): ReactElement {
   const controlled = visibleColumnsProp !== undefined;
   const [hiddenState, setHiddenState] = useState(() =>
     hiddenSlugs(columns, defaultVisibleColumns),
   );
+  const [selected, setSelected] = useState<Set<number>>(() => new Set());
   const hidden = controlled
     ? hiddenSlugs(columns, visibleColumnsProp)
     : hiddenState;
+  const hasActions = actions.length > 0;
+  const allSelected = data.length > 0 && selected.size === data.length;
 
   const visibleColumns = columnFilter
     ? columns.filter((column) => !hidden.has(column.slug))
@@ -117,6 +152,33 @@ export function CommonTable({
     if (!controlled) {
       setHiddenState(nextHidden);
     }
+  }
+
+  function toggleAllRows(): void {
+    setSelected(
+      allSelected ? new Set() : new Set(data.map((_, rowIndex) => rowIndex)),
+    );
+  }
+
+  function toggleRow(rowIndex: number): void {
+    setSelected((current) => {
+      const next = new Set(current);
+      if (next.has(rowIndex)) {
+        next.delete(rowIndex);
+      } else {
+        next.add(rowIndex);
+      }
+      return next;
+    });
+  }
+
+  function runAction(action: TableAction, menu: HTMLDetailsElement): void {
+    menu.open = false;
+    action.onAction(
+      [...selected]
+        .sort((left, right) => left - right)
+        .map((index) => data[index]),
+    );
   }
 
   function cellContent(value: CellPrimitive, column: Column): ReactNode {
@@ -155,17 +217,35 @@ export function CommonTable({
           {children}
         </div>
       )}
-      {columnFilter && (
-        <div className="mb-1 flex justify-end">
-          <details className="relative">
-            <summary
-              className="flex cursor-pointer list-none items-center rounded-lg border border-surface-2 bg-surface-2 p-1.5 [&::-webkit-details-marker]:hidden"
-              title="Columns"
-              aria-label="Columns"
-            >
-              <MdSettings size={18} className="text-muted" aria-hidden />
-            </summary>
-            <div className="absolute right-0 top-full z-20 mt-1 min-w-48 w-max rounded-lg border border-border bg-surface-2 py-1 shadow-lg">
+      {(hasActions || columnFilter) && (
+        <div className="relative z-20 mb-1 flex justify-end gap-1">
+          {hasActions && (
+            <TableMenu label="Actions" icon={MdMoreVert}>
+              {actions.map((action) => (
+                <button
+                  key={action.label}
+                  type="button"
+                  disabled={selected.size === 0}
+                  className={classNames(
+                    "block w-full px-3 py-1.5 text-left text-sm text-primary",
+                    selected.size === 0
+                      ? "cursor-not-allowed opacity-50"
+                      : "cursor-pointer hover:bg-surface",
+                  )}
+                  onClick={(event) => {
+                    const menu = event.currentTarget.closest("details");
+                    if (menu) {
+                      runAction(action, menu);
+                    }
+                  }}
+                >
+                  {action.label}
+                </button>
+              ))}
+            </TableMenu>
+          )}
+          {columnFilter && (
+            <TableMenu label="Columns" icon={MdSettings}>
               {columns.map((column) => {
                 const label = columnLabel(column);
                 if (!label) {
@@ -186,8 +266,8 @@ export function CommonTable({
                   </label>
                 );
               })}
-            </div>
-          </details>
+            </TableMenu>
+          )}
         </div>
       )}
       <div className="relative min-w-0 max-w-full">
@@ -201,6 +281,18 @@ export function CommonTable({
           <table className="w-full table-auto border-collapse">
             <thead>
               <tr className="bg-surface-2">
+                {hasActions && (
+                  <th className="w-px whitespace-nowrap border-b border-r border-border px-2 py-1 text-center">
+                    <input
+                      type="checkbox"
+                      checked={allSelected}
+                      disabled={data.length === 0}
+                      onChange={toggleAllRows}
+                      aria-label="Select all rows"
+                      className="rounded border-border"
+                    />
+                  </th>
+                )}
                 {visibleColumns.map((column) => {
                   const header = columnLabel(column);
                   return (
@@ -235,6 +327,20 @@ export function CommonTable({
                   )}
                   onClick={() => onRowClick?.(row, rowIndex)}
                 >
+                  {hasActions && (
+                    <td
+                      className="w-px whitespace-nowrap border-b border-r border-border px-2 py-1 text-center align-top"
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selected.has(rowIndex)}
+                        onChange={() => toggleRow(rowIndex)}
+                        aria-label={`Select row ${rowIndex + 1}`}
+                        className="rounded border-border"
+                      />
+                    </td>
+                  )}
                   {visibleColumns.map((column) => {
                     const cellValue = row[column.slug];
                     return (

@@ -349,7 +349,7 @@ function RecordCrossmatchDetails({
   const redshift = record.catalogs.redshift;
   const triageStatus = record.crossmatch.triage_status;
   const tableName = record.table_name;
-  const assignedPgc = record.pgc;
+  const assignedPgc = record.pgc ?? null;
   const canResolve = assignedPgc === null && isLoggedIn();
   const candidateSources = convertCandidatesToAdditionalSources(
     candidates,
