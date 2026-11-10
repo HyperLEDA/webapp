@@ -100,12 +100,14 @@ interface RecordsQuery {
   page: number;
   pageSize: number;
   pgc: number | null;
+  recordId: string | null;
   uploadStatus: UploadStatus | null;
 }
 
 interface AppliedFilters {
   tableName: string;
   pgc: string;
+  recordId: string;
   uploadStatus: string;
   pageSize: number;
 }
@@ -225,6 +227,7 @@ function recordRows(
 interface RecordsFiltersProps {
   tableName: string;
   pgc: string;
+  recordId: string;
   uploadStatus: string;
   pageSize: number;
   onApply: (filters: AppliedFilters) => void;
@@ -233,21 +236,24 @@ interface RecordsFiltersProps {
 function RecordsFilters({
   tableName,
   pgc,
+  recordId,
   uploadStatus,
   pageSize,
   onApply,
 }: RecordsFiltersProps): ReactElement {
   const [localTableName, setLocalTableName] = useState(tableName);
   const [localPgc, setLocalPgc] = useState(pgc);
+  const [localRecordId, setLocalRecordId] = useState(recordId);
   const [localUploadStatus, setLocalUploadStatus] = useState(uploadStatus);
   const [localPageSize, setLocalPageSize] = useState(pageSize);
 
   useEffect(() => {
     setLocalTableName(tableName);
     setLocalPgc(pgc);
+    setLocalRecordId(recordId);
     setLocalUploadStatus(uploadStatus);
     setLocalPageSize(pageSize);
-  }, [tableName, pgc, uploadStatus, pageSize]);
+  }, [tableName, pgc, recordId, uploadStatus, pageSize]);
 
   const pgcActive = localPgc.trim() !== "";
   const uploadDisabled = pgcActive;
@@ -256,6 +262,7 @@ function RecordsFilters({
     onApply({
       tableName: localTableName,
       pgc: localPgc,
+      recordId: localRecordId,
       uploadStatus: uploadDisabled ? "all" : localUploadStatus,
       pageSize: localPageSize,
     });
@@ -268,6 +275,14 @@ function RecordsFilters({
         value={localTableName}
         onChange={setLocalTableName}
         placeholder="All tables"
+        onEnter={applyFilters}
+        defaultValue=""
+      />
+      <TextFilter
+        title="Record ID"
+        value={localRecordId}
+        onChange={setLocalRecordId}
+        placeholder="Exact record ID"
         onEnter={applyFilters}
         defaultValue=""
       />
@@ -312,6 +327,7 @@ async function fetchRecords(
     page: query.page,
     page_size: query.pageSize,
     pgc: query.pgc,
+    record_id: query.recordId,
     upload_status: query.uploadStatus,
   } as GetRecordsData["query"];
 
@@ -383,6 +399,7 @@ export function RecordsPage(): ReactElement {
   const skyViewerRef = useRef<SkyViewerHandle>(null);
 
   const tableName = searchParams.get("table_name")?.trim() ?? "";
+  const recordId = searchParams.get("record_id")?.trim() ?? "";
   const pgcParam = searchParams.get("pgc");
   const pgc = parsePgc(pgcParam);
   const pgcInvalid = Boolean(pgcParam?.trim()) && pgc === null;
@@ -398,6 +415,7 @@ export function RecordsPage(): ReactElement {
         page,
         pageSize,
         pgc,
+        recordId: recordId || null,
         uploadStatus,
       };
 
@@ -421,10 +439,14 @@ export function RecordsPage(): ReactElement {
   function handleApplyFilters(filters: AppliedFilters): void {
     const next = new URLSearchParams();
     const nextTableName = filters.tableName.trim();
+    const nextRecordId = filters.recordId.trim();
     const nextPgc = filters.pgc.trim();
 
     if (nextTableName) {
       next.set("table_name", nextTableName);
+    }
+    if (nextRecordId) {
+      next.set("record_id", nextRecordId);
     }
     if (nextPgc) {
       next.set("pgc", nextPgc);
@@ -450,6 +472,7 @@ export function RecordsPage(): ReactElement {
       <RecordsFilters
         tableName={tableName}
         pgc={pgcParam ?? ""}
+        recordId={recordId}
         uploadStatus={
           parseUploadStatus(uploadStatusValue) ? uploadStatusValue : "all"
         }
