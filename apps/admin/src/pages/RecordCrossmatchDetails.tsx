@@ -3,22 +3,18 @@ import { useParams } from "react-router-dom";
 import classNames from "classnames";
 import { MdAdd, MdClose } from "react-icons/md";
 import { querySimple } from "@leda/lib/clients/backend";
-import type { Schema as BackendSchema } from "@leda/lib/clients/backend";
+import type {
+  PgcObject,
+  Schema as BackendSchema,
+} from "@leda/lib/clients/backend";
 import { backendClient } from "@leda/lib/clients";
 import { getRecords, setCrossmatchResults } from "../clients/admin";
 import type {
-  PgcCandidate,
   Record as ApiRecord,
+  RecordSchema,
   StatusesPayload,
 } from "../clients/admin";
 import { adminClient } from "../clients";
-import {
-  candidatesInRequestOrder,
-  crossmatchStatus,
-  recordCatalogsToCrossmatch,
-  schemaFromRecord,
-  type CrossmatchView,
-} from "./recordCrossmatchModel";
 import { isLoggedIn } from "../auth";
 import { getResource } from "../resources";
 import { publicObjectUrl, adminTableUrl } from "../origins";
@@ -59,13 +55,13 @@ function createDescription(
   return parts.join(", ");
 }
 
-function getCandidateLabel(candidate: PgcCandidate): string {
+function getCandidateLabel(candidate: PgcObject): string {
   return candidate.catalogs.designation?.name ?? `PGC ${candidate.pgc}`;
 }
 
 function convertCandidatesToAdditionalSources(
-  candidates: PgcCandidate[],
-  mainRecord: CrossmatchView,
+  candidates: PgcObject[],
+  record: ApiRecord,
 ) {
   const candidateSources = candidates
     .filter((candidate) => candidate.catalogs.coordinates?.equatorial)
@@ -79,13 +75,12 @@ function convertCandidatesToAdditionalSources(
       ),
     }));
 
-  const mainRecordSource = mainRecord.catalogs.coordinates?.equatorial
+  const icrs = record.catalogs.icrs;
+  const mainRecordSource = icrs
     ? {
-        ra: mainRecord.catalogs.coordinates.equatorial.ra,
-        dec: mainRecord.catalogs.coordinates.equatorial.dec,
-        label:
-          mainRecord.catalogs.designation?.name ||
-          `Record ${mainRecord.record_id}`,
+        ra: icrs.ra,
+        dec: icrs.dec,
+        label: record.catalogs.designation?.name || `Record ${record.id}`,
       }
     : null;
 
@@ -97,8 +92,9 @@ function convertCandidatesToAdditionalSources(
 type ResolutionChoice = "new" | number;
 
 interface ResolutionSelectorProps {
-  crossmatch: CrossmatchView;
-  candidates: PgcCandidate[];
+  matchedPgc: number | null;
+  markedNew: boolean;
+  candidates: PgcObject[];
   schema: BackendSchema;
   showResolveControls: boolean;
   resolving: ResolutionChoice | null;
@@ -110,7 +106,8 @@ interface ResolutionSelectorProps {
 }
 
 function ResolutionSelector({
-  crossmatch,
+  matchedPgc,
+  markedNew,
   candidates,
   schema,
   showResolveControls,
@@ -127,8 +124,6 @@ function ResolutionSelector({
     null,
   );
   const busy = resolving !== null || addingCandidate;
-  const matchedPgc =
-    crossmatch.status === "existing" ? crossmatch.metadata.pgc : null;
 
   async function submitNewCandidate(): Promise<void> {
     const pgc = Number.parseInt(pgcInput.trim(), 10);
@@ -150,7 +145,7 @@ function ResolutionSelector({
     }
   }
 
-  function renderCandidateSummary(candidate: PgcCandidate): ReactElement {
+  function renderCandidateSummary(candidate: PgcObject): ReactElement {
     const objectLink = publicObjectUrl(candidate.pgc);
     return (
       <ObjectSummary
@@ -188,7 +183,7 @@ function ResolutionSelector({
           </div>
         )}
 
-        {crossmatch.status === "new" && (
+        {markedNew && (
           <p className="text-sm text-muted">
             {getResource("crossmatch.action.mark_new").Title}
           </p>
@@ -333,11 +328,9 @@ function OriginalData({ data }: { data: OriginalDataFields }): ReactElement {
 }
 
 interface RecordCrossmatchDetailsData {
-  table_name: string;
-  crossmatch: CrossmatchView;
-  candidates: PgcCandidate[];
+  record: ApiRecord;
+  candidates: PgcObject[];
   schema: BackendSchema;
-  original_data: ApiRecord["original_data"] | null;
 }
 
 interface RecordCrossmatchDetailsProps {
@@ -351,27 +344,24 @@ function RecordCrossmatchDetails({
   const [resolving, setResolving] = useState<ResolutionChoice | null>(null);
   const [addingCandidate, setAddingCandidate] = useState(false);
   const [resolveError, setResolveError] = useState<string | null>(null);
-  const {
-    crossmatch,
-    candidates,
-    schema,
-    table_name: tableName,
-    original_data: originalData,
-  } = data;
+  const { record, candidates, schema } = data;
+  const icrs = record.catalogs.icrs;
+  const redshift = record.catalogs.redshift;
+  const triageStatus = record.crossmatch.triage_status;
+  const tableName = record.table_name ?? "";
   const showResolveControls = isLoggedIn();
   const candidateSources = convertCandidatesToAdditionalSources(
     candidates,
-    crossmatch,
+    record,
   );
   const triageBadgeType: BadgeType =
-    crossmatch.triage_status === "resolved" ? "success" : "warning";
+    triageStatus === "resolved" ? "success" : "warning";
   const triageBadgeLabel = getResource(
-    crossmatch.triage_status === "unprocessed"
+    triageStatus === "unprocessed"
       ? "crossmatch.status.unprocessed"
-      : `crossmatch.triage.verbose.${crossmatch.triage_status}`,
+      : `crossmatch.triage.verbose.${triageStatus}`,
   ).Title;
-  const objectName =
-    crossmatch.catalogs.designation?.name ?? `Record ${crossmatch.record_id}`;
+  const objectName = record.catalogs.designation?.name ?? `Record ${record.id}`;
 
   async function submitCrossmatchResolution(
     statuses: StatusesPayload,
@@ -394,7 +384,7 @@ function RecordCrossmatchDetails({
     try {
       await submitCrossmatchResolution({
         existing: {
-          record_ids: [crossmatch.record_id],
+          record_ids: [record.id],
           pgcs: [pgc],
           triage_statuses: ["resolved"],
         },
@@ -412,7 +402,7 @@ function RecordCrossmatchDetails({
     try {
       await submitCrossmatchResolution({
         new: {
-          record_ids: [crossmatch.record_id],
+          record_ids: [record.id],
           triage_statuses: ["resolved"],
         },
       });
@@ -430,7 +420,7 @@ function RecordCrossmatchDetails({
       const currentPgcs = candidates.map((candidate) => candidate.pgc);
       await submitCrossmatchResolution({
         collided: {
-          record_ids: [crossmatch.record_id],
+          record_ids: [record.id],
           possible_matches: [[...currentPgcs, pgc]],
           triage_statuses: ["pending"],
         },
@@ -453,16 +443,17 @@ function RecordCrossmatchDetails({
   }
 
   // SAFETY: Crossmatch original data is JSON scalar values keyed by column name.
-  const originalDataFields = originalData as OriginalDataFields | undefined;
+  const originalDataFields = record.original_data as
+    OriginalDataFields | undefined;
 
   return (
     <div className="space-y-6 rounded-lg">
       <div className="flex items-start gap-6">
-        {crossmatch.catalogs.coordinates?.equatorial && (
+        {icrs && (
           <SkyViewer
             backend="wwt"
-            ra={crossmatch.catalogs.coordinates.equatorial.ra}
-            dec={crossmatch.catalogs.coordinates.equatorial.dec}
+            ra={icrs.ra}
+            dec={icrs.dec}
             fov={0.02}
             className="w-96 h-96 shrink-0"
             additionalSources={candidateSources}
@@ -478,8 +469,8 @@ function RecordCrossmatchDetails({
             </h2>
             <p className="flex items-center gap-2">
               Record ID:{" "}
-              <CopyButton textToCopy={crossmatch.record_id}>
-                <span className="font-mono">{crossmatch.record_id}</span>
+              <CopyButton textToCopy={record.id}>
+                <span className="font-mono">{record.id}</span>
               </CopyButton>
             </p>
             <p>
@@ -500,7 +491,22 @@ function RecordCrossmatchDetails({
           <div className="rounded-lg border border-border bg-surface p-4">
             <h3 className="text-sm font-semibold mb-3">Object</h3>
             <ObjectSummary
-              catalogs={crossmatch.catalogs}
+              catalogs={{
+                coordinates: icrs
+                  ? {
+                      equatorial: {
+                        ra: icrs.ra,
+                        dec: icrs.dec,
+                        e_ra: icrs.ra_error,
+                        e_dec: icrs.dec_error,
+                      },
+                    }
+                  : null,
+                redshift: redshift
+                  ? { z: redshift.z, e_z: redshift.z_error }
+                  : null,
+                nature: record.catalogs.nature,
+              }}
               schema={schema}
               name={objectName}
             />
@@ -509,7 +515,8 @@ function RecordCrossmatchDetails({
       </div>
 
       <ResolutionSelector
-        crossmatch={crossmatch}
+        matchedPgc={candidates.length === 1 ? candidates[0].pgc : null}
+        markedNew={triageStatus !== "unprocessed" && candidates.length === 0}
         candidates={candidates}
         schema={schema}
         showResolveControls={showResolveControls}
@@ -534,6 +541,37 @@ function RecordCrossmatchDetails({
       )}
     </div>
   );
+}
+
+function schemaForRecord(recordSchema: RecordSchema): BackendSchema {
+  const units = recordSchema.catalogs.icrs.unit;
+  return {
+    units: {
+      coordinates: {
+        equatorial: {
+          ra: units.ra || "deg",
+          dec: units.dec || "deg",
+          e_ra: units.ra_error || "deg",
+          e_dec: units.dec_error || "deg",
+        },
+        galactic: {
+          lon: "deg",
+          lat: "deg",
+          e_lon: "arcsec",
+          e_lat: "arcsec",
+        },
+        supergalactic: {
+          lon: "deg",
+          lat: "deg",
+          e_lon: "arcsec",
+          e_lat: "arcsec",
+        },
+      },
+      velocity: {
+        heliocentric: { v: "km/s", e_v: "km/s" },
+      },
+    },
+  };
 }
 
 async function fetcher(
@@ -567,12 +605,8 @@ async function fetcher(
   const candidatePgcs = record.crossmatch.candidates.map(
     (candidate) => candidate.pgc,
   );
-  const status = crossmatchStatus(
-    record.crossmatch.triage_status,
-    candidatePgcs,
-  );
-  let candidates: PgcCandidate[] = [];
-  let schema = schemaFromRecord(response.data.data.schema);
+  let candidates: PgcObject[] = [];
+  let schema = schemaForRecord(response.data.data.schema);
 
   if (candidatePgcs.length > 0) {
     const objects = await querySimple({
@@ -589,25 +623,15 @@ async function fetcher(
       );
     }
     schema = objects.data.data.schema;
-    candidates = candidatesInRequestOrder(
-      candidatePgcs,
-      objects.data.data.objects,
+    const byPgc = new Map(
+      objects.data.data.objects.map((object) => [object.pgc, object]),
+    );
+    candidates = candidatePgcs.map(
+      (pgc) => byPgc.get(pgc) ?? { pgc, catalogs: {} },
     );
   }
 
-  return {
-    table_name: record.table_name ?? "",
-    original_data: record.original_data,
-    schema,
-    candidates,
-    crossmatch: {
-      record_id: record.id,
-      status: status.status,
-      triage_status: record.crossmatch.triage_status,
-      metadata: status.metadata,
-      catalogs: recordCatalogsToCrossmatch(record.catalogs),
-    },
-  };
+  return { record, candidates, schema };
 }
 
 export function RecordCrossmatchDetailsPage(): ReactElement {
@@ -619,7 +643,7 @@ export function RecordCrossmatchDetailsPage(): ReactElement {
   );
 
   useEffect(() => {
-    document.title = `Crossmatch - ${data?.crossmatch.catalogs.designation?.name ?? recordId} | LEDA`;
+    document.title = `Crossmatch - ${data?.record.catalogs.designation?.name ?? recordId} | LEDA`;
   }, [data, recordId]);
 
   if (loading) return <Loading />;
