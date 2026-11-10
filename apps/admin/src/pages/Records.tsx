@@ -230,7 +230,7 @@ function getCandidatePgcs(record: ApiRecord): number[] {
       (pgc): pgc is number => Number.isFinite(pgc) && Number.isInteger(pgc),
     );
 
-  const recordPgc = record.pgc;
+  const recordPgc = record.pgc ?? null;
   if (
     recordPgc === null ||
     !Number.isFinite(recordPgc) ||
