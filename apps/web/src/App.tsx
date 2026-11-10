@@ -95,10 +95,7 @@ function App() {
           <Route path="/admin" element={<RedirectToAdminPage />} />
           <Route path="/admin/merge-pgc" element={<RedirectToAdminPage />} />
           <Route path="/crossmatch" element={<RedirectToAdminPage />} />
-          <Route
-            path="/records/:recordId"
-            element={<RedirectToAdminPage />}
-          />
+          <Route path="/records/:recordId" element={<RedirectToAdminPage />} />
           <Route
             path="/records/:recordId/crossmatch"
             element={<RedirectToAdminPage />}

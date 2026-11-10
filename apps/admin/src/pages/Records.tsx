@@ -136,11 +136,7 @@ function parseUploadStatus(value: string | null): UploadStatus | null {
 function parseTriageStatus(
   value: string | null,
 ): CrossmatchTriageStatus | null {
-  if (
-    value === "pending" ||
-    value === "resolved" ||
-    value === "unprocessed"
-  ) {
+  if (value === "pending" || value === "resolved" || value === "unprocessed") {
     return value;
   }
   return null;
