@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { MdMyLocation } from "react-icons/md";
 import { getRecords } from "../clients/admin";
 import type {
+  CrossmatchTriageStatus,
   GetRecordsData,
   GetRecordsResponse,
   Record as ApiRecord,
@@ -37,6 +38,13 @@ const UPLOAD_STATUS_OPTIONS = [
   { value: "all", label: "All" },
   { value: "uploaded", label: "Uploaded" },
   { value: "pending", label: "Pending" },
+];
+
+const TRIAGE_STATUS_OPTIONS = [
+  { value: "all", label: "All" },
+  { value: "pending", label: "Pending" },
+  { value: "resolved", label: "Resolved" },
+  { value: "unprocessed", label: "Unprocessed" },
 ];
 
 const PAGE_SIZES = [10, 25, 50, 100];
@@ -104,6 +112,7 @@ interface RecordsQuery {
   pgc: number | null;
   recordId: string | null;
   uploadStatus: UploadStatus | null;
+  triageStatus: CrossmatchTriageStatus | null;
 }
 
 interface AppliedFilters {
@@ -111,11 +120,25 @@ interface AppliedFilters {
   pgc: string;
   recordId: string;
   uploadStatus: string;
+  triageStatus: string;
   pageSize: number;
 }
 
 function parseUploadStatus(value: string | null): UploadStatus | null {
   if (value === "uploaded" || value === "pending") {
+    return value;
+  }
+  return null;
+}
+
+function parseTriageStatus(
+  value: string | null,
+): CrossmatchTriageStatus | null {
+  if (
+    value === "pending" ||
+    value === "resolved" ||
+    value === "unprocessed"
+  ) {
     return value;
   }
   return null;
@@ -287,6 +310,7 @@ interface RecordsFiltersProps {
   pgc: string;
   recordId: string;
   uploadStatus: string;
+  triageStatus: string;
   pageSize: number;
   onApply: (filters: AppliedFilters) => void;
 }
@@ -296,6 +320,7 @@ function RecordsFilters({
   pgc,
   recordId,
   uploadStatus,
+  triageStatus,
   pageSize,
   onApply,
 }: RecordsFiltersProps): ReactElement {
@@ -303,6 +328,7 @@ function RecordsFilters({
   const [localPgc, setLocalPgc] = useState(pgc);
   const [localRecordId, setLocalRecordId] = useState(recordId);
   const [localUploadStatus, setLocalUploadStatus] = useState(uploadStatus);
+  const [localTriageStatus, setLocalTriageStatus] = useState(triageStatus);
   const [localPageSize, setLocalPageSize] = useState(pageSize);
 
   useEffect(() => {
@@ -310,18 +336,22 @@ function RecordsFilters({
     setLocalPgc(pgc);
     setLocalRecordId(recordId);
     setLocalUploadStatus(uploadStatus);
+    setLocalTriageStatus(triageStatus);
     setLocalPageSize(pageSize);
-  }, [tableName, pgc, recordId, uploadStatus, pageSize]);
+  }, [tableName, pgc, recordId, uploadStatus, triageStatus, pageSize]);
 
   const pgcActive = localPgc.trim() !== "";
   const uploadDisabled = pgcActive;
+  const effectiveUploadStatus = uploadDisabled ? "all" : localUploadStatus;
+  const triageDisabled = pgcActive || effectiveUploadStatus === "uploaded";
 
   function applyFilters(): void {
     onApply({
       tableName: localTableName,
       pgc: localPgc,
       recordId: localRecordId,
-      uploadStatus: uploadDisabled ? "all" : localUploadStatus,
+      uploadStatus: effectiveUploadStatus,
+      triageStatus: triageDisabled ? "all" : localTriageStatus,
       pageSize: localPageSize,
     });
   }
@@ -355,9 +385,17 @@ function RecordsFilters({
       <DropdownFilter
         title="Upload status"
         options={UPLOAD_STATUS_OPTIONS}
-        value={uploadDisabled ? "all" : localUploadStatus}
+        value={effectiveUploadStatus}
         onChange={setLocalUploadStatus}
         disabled={uploadDisabled}
+        defaultValue="all"
+      />
+      <DropdownFilter
+        title="Manual check status"
+        options={TRIAGE_STATUS_OPTIONS}
+        value={triageDisabled ? "all" : localTriageStatus}
+        onChange={setLocalTriageStatus}
+        disabled={triageDisabled}
         defaultValue="all"
       />
       <PageSizeFilter
@@ -387,6 +425,7 @@ async function fetchRecords(
     pgc: query.pgc,
     record_id: query.recordId,
     upload_status: query.uploadStatus,
+    triage_status: query.triageStatus,
   } as GetRecordsData["query"];
 
   const response = await getRecords({
@@ -470,6 +509,10 @@ export function RecordsPage(): ReactElement {
   const pgcInvalid = Boolean(pgcParam?.trim()) && pgc === null;
   const uploadStatus =
     pgc === null ? parseUploadStatus(searchParams.get("upload_status")) : null;
+  const triageStatus =
+    pgc === null && uploadStatus !== "uploaded"
+      ? parseTriageStatus(searchParams.get("triage_status"))
+      : null;
   const page = parsePage(searchParams.get("page"));
   const pageSize = parsePageSize(searchParams.get("page_size"));
   const visibleColumns = parseVisibleColumns(searchParams.get("columns"));
@@ -483,6 +526,7 @@ export function RecordsPage(): ReactElement {
         pgc,
         recordId: recordId || null,
         uploadStatus,
+        triageStatus,
       };
 
   useEffect(() => {
@@ -522,8 +566,16 @@ export function RecordsPage(): ReactElement {
     }
     if (nextPgc) {
       next.set("pgc", nextPgc);
-    } else if (filters.uploadStatus !== "all") {
-      next.set("upload_status", filters.uploadStatus);
+    } else {
+      if (filters.uploadStatus !== "all") {
+        next.set("upload_status", filters.uploadStatus);
+      }
+      if (
+        filters.triageStatus !== "all" &&
+        filters.uploadStatus !== "uploaded"
+      ) {
+        next.set("triage_status", filters.triageStatus);
+      }
     }
     next.set("page_size", filters.pageSize.toString());
     next.set("page", "0");
@@ -532,6 +584,7 @@ export function RecordsPage(): ReactElement {
   }
 
   const uploadStatusValue = searchParams.get("upload_status") ?? "all";
+  const triageStatusValue = searchParams.get("triage_status") ?? "all";
   const skySources = recordSkySources(data?.records ?? []);
   const skyView = skyViewForSources(skySources);
 
@@ -548,6 +601,9 @@ export function RecordsPage(): ReactElement {
         recordId={recordId}
         uploadStatus={
           parseUploadStatus(uploadStatusValue) ? uploadStatusValue : "all"
+        }
+        triageStatus={
+          parseTriageStatus(triageStatusValue) ? triageStatusValue : "all"
         }
         pageSize={pageSize}
         onApply={handleApplyFilters}
