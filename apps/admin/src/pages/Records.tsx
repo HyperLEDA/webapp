@@ -222,13 +222,6 @@ const columns: Column[] = [
 
 const defaultVisibleColumns = ["Name", "Table", "PGC", "Redshift", "Nature"];
 
-function recordCoordinateCell(value: number | null | undefined): CellPrimitive {
-  if (value === null || value === undefined || !Number.isFinite(value)) {
-    return "—";
-  }
-  return value;
-}
-
 function recordRows(
   records: ApiRecord[],
   onLocate: (ra: number, dec: number) => void,
@@ -244,8 +237,8 @@ function recordRows(
       "—"
     ),
     PGC: renderPgc(record.pgc),
-    RA: recordCoordinateCell(record.catalogs.icrs?.ra),
-    Dec: recordCoordinateCell(record.catalogs.icrs?.dec),
+    RA: record.catalogs.icrs?.ra ?? "—",
+    Dec: record.catalogs.icrs?.dec ?? "—",
     Redshift: formatCatalogNumber(record.catalogs.redshift?.z, 4),
     Nature: record.catalogs.nature?.type_name || "—",
   }));
