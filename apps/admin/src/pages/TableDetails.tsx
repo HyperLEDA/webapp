@@ -675,7 +675,7 @@ function ColumnInfo(props: ColumnInfoProps): ReactElement {
 
   const tableActions: TableAction[] = [
     {
-      label: "Go to table data",
+      label: "View table data",
       onAction: (rows) => {
         const selectedNames = new Set(rows.map((row) => String(row.Name)));
         const selectedColumnInfo = props.table.column_info.filter((col) =>
