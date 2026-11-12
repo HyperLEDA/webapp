@@ -1,5 +1,7 @@
+import classNames from "classnames";
 import { ReactElement, ReactNode } from "react";
-import ReactMarkdown from "react-markdown";
+import ReactMarkdown, { type Components } from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { Link } from "@leda/lib/ui";
 
 function MarkdownLink({
@@ -26,15 +28,26 @@ function MarkdownParagraph({
   return <span>{children}</span>;
 }
 
-export function Markdown({ children }: { children: string }): ReactElement {
+export function Markdown({
+  children,
+  blocks = false,
+}: {
+  children: string;
+  blocks?: boolean;
+}): ReactElement {
+  const components: Components = { a: MarkdownLink };
+  if (!blocks) {
+    components.p = MarkdownParagraph;
+  }
+
   return (
-    <div className="prose prose-sm dark:prose-invert max-w-none prose-a:no-underline prose-p:my-0">
-      <ReactMarkdown
-        components={{
-          a: MarkdownLink,
-          p: MarkdownParagraph,
-        }}
-      >
+    <div
+      className={classNames(
+        "prose prose-sm dark:prose-invert max-w-none prose-a:no-underline",
+        !blocks && "prose-p:my-0",
+      )}
+    >
+      <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
         {children}
       </ReactMarkdown>
     </div>
