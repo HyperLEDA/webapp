@@ -166,7 +166,7 @@ function TableMeta(props: TableMetaProps): ReactElement {
   const navigate = useNavigate();
   const canEdit = isLoggedIn();
   const [savingField, setSavingField] = useState<
-    "name" | "description" | "datatype" | "status" | null
+    "name" | "description" | "note" | "datatype" | "status" | null
   >(null);
   const [patchError, setPatchError] = useState<string | null>(null);
   const [datatype, setDatatype] = useState(() =>
@@ -182,11 +182,12 @@ function TableMeta(props: TableMetaProps): ReactElement {
   }, [props.table.meta.datatype, props.table.meta.status]);
 
   async function runTablePatch(
-    field: "name" | "description" | "datatype" | "status",
+    field: "name" | "description" | "note" | "datatype" | "status",
     body: {
       table_name: string;
       new_table_name?: string;
       description?: string;
+      note?: string;
       datatype?: DataType;
       status?: TableStatus;
     },
@@ -231,6 +232,13 @@ function TableMeta(props: TableMetaProps): ReactElement {
     await runTablePatch("description", {
       table_name: props.tableName,
       description: trimmed,
+    });
+  }
+
+  async function commitNote(trimmed: string): Promise<void> {
+    await runTablePatch("note", {
+      table_name: props.tableName,
+      note: trimmed,
     });
   }
 
@@ -308,6 +316,26 @@ function TableMeta(props: TableMetaProps): ReactElement {
           />
         ) : (
           <span className="min-w-0">{props.table.description}</span>
+        )}
+      </Field>
+      <Field label="Note">
+        {canEdit ? (
+          <EditableField
+            value={props.table.note ?? ""}
+            editLabel="Edit table note"
+            saving={savingField === "note"}
+            emptyDisplayValue="—"
+            onSave={commitNote}
+          />
+        ) : (
+          <span
+            className={classNames(
+              "min-w-0 whitespace-pre-wrap",
+              !props.table.note && "text-muted",
+            )}
+          >
+            {props.table.note || "—"}
+          </span>
         )}
       </Field>
       <Field label="Slug">
