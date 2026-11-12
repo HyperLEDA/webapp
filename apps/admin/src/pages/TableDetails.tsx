@@ -3,7 +3,6 @@ import {
   ReactElement,
   useEffect,
   useLayoutEffect,
-  useMemo,
   useRef,
   useState,
 } from "react";
@@ -31,6 +30,7 @@ import {
   Link,
   Loading,
   Markdown,
+  type TableAction,
 } from "@leda/lib/ui";
 import { Badge, CopyButton, EditableField } from "../components/ui";
 import { TextFilter } from "../components/ui/filters";
@@ -589,8 +589,6 @@ interface ColumnInfoProps {
   table: GetTableResponse;
 }
 
-const COLUMN_SELECT_KEY = "";
-
 function columnMatchesSearch(
   col: GetTableResponse["column_info"][number],
   query: string,
@@ -613,37 +611,11 @@ function ColumnInfo(props: ColumnInfoProps): ReactElement {
   const navigate = useNavigate();
   const canEdit = isLoggedIn();
   const [query, setQuery] = useState("");
-  const [selectedColumns, setSelectedColumns] = useState<Set<string>>(
-    () => new Set(),
-  );
   const [saving, setSaving] = useState<{
     columnName: string;
     field: ColumnMetadataField;
   } | null>(null);
   const [patchError, setPatchError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setSelectedColumns(new Set());
-  }, [props.tableName]);
-
-  useEffect(() => {
-    setSelectedColumns((prev) => {
-      const names = new Set(props.table.column_info.map((col) => col.name));
-      return new Set([...prev].filter((name) => names.has(name)));
-    });
-  }, [props.table.column_info]);
-
-  function toggleColumn(name: string): void {
-    setSelectedColumns((prev) => {
-      const next = new Set(prev);
-      if (next.has(name)) {
-        next.delete(name);
-      } else {
-        next.add(name);
-      }
-      return next;
-    });
-  }
 
   async function commitColumnMetadata(
     columnName: string,
@@ -701,16 +673,14 @@ function ColumnInfo(props: ColumnInfoProps): ReactElement {
     );
   }
 
-  const selectedColumnInfo = useMemo(
-    () =>
-      props.table.column_info.filter((col) => selectedColumns.has(col.name)),
-    [props.table.column_info, selectedColumns],
-  );
-
-  const actions: CardAction[] = [
+  const tableActions: TableAction[] = [
     {
-      title: "View table data",
-      onClick: () => {
+      label: "Go to table data",
+      onAction: (rows) => {
+        const selectedNames = new Set(rows.map((row) => String(row.Name)));
+        const selectedColumnInfo = props.table.column_info.filter((col) =>
+          selectedNames.has(col.name),
+        );
         void navigate(
           originalDataCatalogLink(
             selectAllColumnsFromRawdataTable(
@@ -723,48 +693,24 @@ function ColumnInfo(props: ColumnInfoProps): ReactElement {
     },
   ];
 
-  const columns: Column[] = useMemo(
-    () => [
-      {
-        slug: COLUMN_SELECT_KEY,
-        renderCell: (value: CellPrimitive) => {
-          const columnName = String(value);
-          return (
-            <div className="flex justify-center">
-              <input
-                type="checkbox"
-                checked={selectedColumns.has(columnName)}
-                onChange={() => toggleColumn(columnName)}
-                onClick={(event) => event.stopPropagation()}
-                aria-label={`Select column ${columnName}`}
-                className="size-4 accent-accent cursor-pointer"
-              />
-            </div>
-          );
-        },
-      },
-      { slug: "Name", renderCell: renderColumnName },
-      { slug: "Description" },
-      { slug: "Unit" },
-      {
-        slug: "UCD",
-        hint: (
-          <p>
-            Unified Content Descriptor. Describes astronomical quantities in a
-            structured way. For more information see{" "}
-            <Link
-              href="https://www.ivoa.net/documents/latest/UCD.html"
-              external
-            >
-              IVOA Recommendation
-            </Link>
-            .
-          </p>
-        ),
-      },
-    ],
-    [selectedColumns],
-  );
+  const columns: Column[] = [
+    { slug: "Name", renderCell: renderColumnName },
+    { slug: "Description" },
+    { slug: "Unit" },
+    {
+      slug: "UCD",
+      hint: (
+        <p>
+          Unified Content Descriptor. Describes astronomical quantities in a
+          structured way. For more information see{" "}
+          <Link href="https://www.ivoa.net/documents/latest/UCD.html" external>
+            IVOA Recommendation
+          </Link>
+          .
+        </p>
+      ),
+    },
+  ];
 
   const values: Record<string, CellPrimitive>[] = [];
 
@@ -772,7 +718,6 @@ function ColumnInfo(props: ColumnInfoProps): ReactElement {
     .filter((col) => columnMatchesSearch(col, query))
     .forEach((col) => {
       values.push({
-        [COLUMN_SELECT_KEY]: col.name,
         Name: col.name,
         Description: renderMetadataCell(
           col.name,
@@ -787,7 +732,7 @@ function ColumnInfo(props: ColumnInfoProps): ReactElement {
     });
 
   return (
-    <Card title="Column information" variant="block" actions={actions}>
+    <Card title="Column information" variant="block">
       <div className="mb-4 max-w-md">
         <TextFilter
           value={query}
@@ -799,7 +744,7 @@ function ColumnInfo(props: ColumnInfoProps): ReactElement {
       {patchError ? (
         <p className="mb-4 text-sm text-danger">{patchError}</p>
       ) : null}
-      <CommonTable columns={columns} data={values} />
+      <CommonTable columns={columns} data={values} actions={tableActions} />
     </Card>
   );
 }
