@@ -8,6 +8,7 @@ import {
 } from "react";
 import {
   Bibliography,
+  ColumnProgress,
   DataType,
   GetTableResponse,
   TableProgress,
@@ -607,6 +608,54 @@ function columnMatchesSearch(
   );
 }
 
+type ColumnStatValue = NonNullable<ColumnProgress["min"]>;
+
+function formatColumnStatValue(
+  value: ColumnStatValue | null | undefined,
+): string {
+  if (value === null || value === undefined) {
+    return "—";
+  }
+  if (value === true) {
+    return "true";
+  }
+  if (value === false) {
+    return "false";
+  }
+  return String(value);
+}
+
+function hasColumnRange(progress: ColumnProgress): boolean {
+  return (
+    (progress.min !== null && progress.min !== undefined) ||
+    (progress.max !== null && progress.max !== undefined)
+  );
+}
+
+function renderNonNullCount(
+  progress: ColumnProgress | undefined,
+  totalRecords: number,
+): ReactElement {
+  if (!progress) {
+    return <span className="text-muted">—</span>;
+  }
+  return formatProgressValue(progress.non_null_count, totalRecords);
+}
+
+function renderColumnRange(progress: ColumnProgress | undefined): ReactElement {
+  if (!progress || !hasColumnRange(progress)) {
+    return <span className="text-muted">—</span>;
+  }
+
+  return (
+    <span className="whitespace-nowrap">
+      {formatColumnStatValue(progress.min)}
+      <span className="text-muted"> – </span>
+      {formatColumnStatValue(progress.max)}
+    </span>
+  );
+}
+
 function ColumnInfo(props: ColumnInfoProps): ReactElement {
   const navigate = useNavigate();
   const canEdit = isLoggedIn();
@@ -693,6 +742,9 @@ function ColumnInfo(props: ColumnInfoProps): ReactElement {
     },
   ];
 
+  const totalRecords = props.table.progress.total_records;
+  const columnProgress = props.table.progress.columns ?? {};
+
   const columns: Column[] = [
     { slug: "Name", renderCell: renderColumnName },
     { slug: "Description" },
@@ -710,6 +762,16 @@ function ColumnInfo(props: ColumnInfoProps): ReactElement {
         </p>
       ),
     },
+    {
+      slug: "Non-null",
+      width: "fit",
+      hint: <p>Number of rows where this column has a non-null value.</p>,
+    },
+    {
+      slug: "Range",
+      width: "fit",
+      hint: <p>Minimum and maximum values observed in this column.</p>,
+    },
   ];
 
   const values: Record<string, CellPrimitive>[] = [];
@@ -717,6 +779,7 @@ function ColumnInfo(props: ColumnInfoProps): ReactElement {
   props.table.column_info
     .filter((col) => columnMatchesSearch(col, query))
     .forEach((col) => {
+      const progress = columnProgress[col.name];
       values.push({
         Name: col.name,
         Description: renderMetadataCell(
@@ -728,6 +791,8 @@ function ColumnInfo(props: ColumnInfoProps): ReactElement {
         UCD: renderMetadataCell(col.name, "ucd", col.ucd, (ucd) =>
           renderUCD(ucd),
         ),
+        "Non-null": renderNonNullCount(progress, totalRecords),
+        Range: renderColumnRange(progress),
       });
     });
 
