@@ -1,5 +1,12 @@
 import classNames from "classnames";
-import { ReactElement, useEffect, useMemo, useState } from "react";
+import {
+  ReactElement,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   Bibliography,
   DataType,
@@ -23,6 +30,7 @@ import {
   Hint,
   Link,
   Loading,
+  Markdown,
 } from "@leda/lib/ui";
 import { Badge, CopyButton, EditableField } from "../components/ui";
 import { TextFilter } from "../components/ui/filters";
@@ -166,7 +174,7 @@ function TableMeta(props: TableMetaProps): ReactElement {
   const navigate = useNavigate();
   const canEdit = isLoggedIn();
   const [savingField, setSavingField] = useState<
-    "name" | "description" | "note" | "datatype" | "status" | null
+    "name" | "description" | "datatype" | "status" | null
   >(null);
   const [patchError, setPatchError] = useState<string | null>(null);
   const [datatype, setDatatype] = useState(() =>
@@ -182,12 +190,11 @@ function TableMeta(props: TableMetaProps): ReactElement {
   }, [props.table.meta.datatype, props.table.meta.status]);
 
   async function runTablePatch(
-    field: "name" | "description" | "note" | "datatype" | "status",
+    field: "name" | "description" | "datatype" | "status",
     body: {
       table_name: string;
       new_table_name?: string;
       description?: string;
-      note?: string;
       datatype?: DataType;
       status?: TableStatus;
     },
@@ -232,13 +239,6 @@ function TableMeta(props: TableMetaProps): ReactElement {
     await runTablePatch("description", {
       table_name: props.tableName,
       description: trimmed,
-    });
-  }
-
-  async function commitNote(trimmed: string): Promise<void> {
-    await runTablePatch("note", {
-      table_name: props.tableName,
-      note: trimmed,
     });
   }
 
@@ -318,26 +318,6 @@ function TableMeta(props: TableMetaProps): ReactElement {
           <span className="min-w-0">{props.table.description}</span>
         )}
       </Field>
-      <Field label="Note">
-        {canEdit ? (
-          <EditableField
-            value={props.table.note ?? ""}
-            editLabel="Edit table note"
-            saving={savingField === "note"}
-            emptyDisplayValue="—"
-            onSave={commitNote}
-          />
-        ) : (
-          <span
-            className={classNames(
-              "min-w-0 whitespace-pre-wrap",
-              !props.table.note && "text-muted",
-            )}
-          >
-            {props.table.note || "—"}
-          </span>
-        )}
-      </Field>
       <Field label="Slug">
         {canEdit ? (
           <EditableField
@@ -367,6 +347,90 @@ function TableMeta(props: TableMetaProps): ReactElement {
           <dd className="col-span-2 text-sm text-danger">{patchError}</dd>
         </>
       ) : null}
+    </Card>
+  );
+}
+
+const NOTE_COLLAPSED_MAX_HEIGHT_PX = 96;
+
+function NoteContent({ note }: { note: string }): ReactElement {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [expanded, setExpanded] = useState(false);
+  const [overflows, setOverflows] = useState(false);
+
+  useLayoutEffect(() => {
+    const element = contentRef.current;
+    if (element) {
+      setOverflows(element.scrollHeight > NOTE_COLLAPSED_MAX_HEIGHT_PX);
+    }
+  }, [note]);
+
+  return (
+    <div className="min-w-0">
+      <div
+        ref={contentRef}
+        className="overflow-hidden"
+        style={
+          expanded ? undefined : { maxHeight: NOTE_COLLAPSED_MAX_HEIGHT_PX }
+        }
+      >
+        <Markdown blocks>{note}</Markdown>
+      </div>
+      {overflows ? (
+        <button
+          type="button"
+          className="mt-1 text-xs text-muted hover:text-primary cursor-pointer"
+          onClick={() => setExpanded((value) => !value)}
+        >
+          {expanded ? "Show less" : "Show more"}
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
+function TableNote(props: {
+  tableName: string;
+  note: string | null | undefined;
+  className?: string;
+}): ReactElement {
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const note = props.note ?? "";
+
+  async function commitNote(value: string): Promise<void> {
+    setSaving(true);
+    setError(null);
+    try {
+      const response = await patchTable({
+        client: adminClient,
+        body: { table_name: props.tableName, note: value },
+      });
+      if (response.error) {
+        throw new Error(JSON.stringify(response.error));
+      }
+    } catch (err) {
+      setError(formatCaughtError(err));
+      throw err;
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Card title="Note" variant="block" className={props.className}>
+      <EditableField
+        value={note}
+        editLabel="Edit table note"
+        saving={saving}
+        align="start"
+        emptyDisplayValue="-"
+        input={{ kind: "textarea", rows: 8 }}
+        inputClassName="font-mono"
+        renderDisplay={(value) => <NoteContent note={value} />}
+        onSave={commitNote}
+      />
+      {error ? <p className="mt-1 text-sm text-danger">{error}</p> : null}
     </Card>
   );
 }
@@ -781,6 +845,11 @@ export function TableDetailsPage(): ReactElement {
         <TableMeta
           tableName={tableName ?? ""}
           table={table}
+          className="lg:col-span-6"
+        />
+        <TableNote
+          tableName={tableName ?? ""}
+          note={table.note}
           className="lg:col-span-6"
         />
         <TableProgressSummaryCard

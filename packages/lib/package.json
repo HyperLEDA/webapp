@@ -19,7 +19,8 @@
   "dependencies": {
     "classnames": "^2.5.1",
     "flowbite-react": "^0.12.17",
-    "react-markdown": "^10.1.0"
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1"
   },
   "peerDependencies": {
     "@monaco-editor/react": "^4.7.0",
