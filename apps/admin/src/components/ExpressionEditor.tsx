@@ -92,6 +92,8 @@ function registerExpressionLanguage(monaco: typeof Monaco): void {
   languageRegistered = true;
 }
 
+const EDITOR_HEIGHT_PX = 110;
+
 export function ExpressionEditor({
   value,
   onChange,
@@ -108,23 +110,15 @@ export function ExpressionEditor({
   return (
     <div className="overflow-hidden rounded border border-border bg-surface-2 focus-within:ring-2 focus-within:ring-accent focus-within:border-transparent">
       <Editor
-        height="42px"
+        height={`${EDITOR_HEIGHT_PX}px`}
         language={LANGUAGE_ID}
         theme={effectiveTheme === "dark" ? "vs-dark" : "light"}
-        value={value.replace(/\r?\n/g, "")}
+        value={value}
         onChange={(next) => {
-          onChange((next ?? "").replace(/\r?\n/g, ""));
+          onChange(next ?? "");
         }}
         beforeMount={(monaco) => {
           registerExpressionLanguage(monaco);
-        }}
-        onMount={(editorInstance, monaco) => {
-          editorInstance.onKeyDown((event) => {
-            if (event.keyCode === monaco.KeyCode.Enter) {
-              event.preventDefault();
-              event.stopPropagation();
-            }
-          });
         }}
         options={{
           ariaLabel,
@@ -136,7 +130,7 @@ export function ExpressionEditor({
           lineDecorationsWidth: 12,
           lineNumbersMinChars: 0,
           scrollBeyondLastLine: false,
-          wordWrap: "off",
+          wordWrap: "on",
           fontSize: 14,
           lineHeight: 22,
           padding: { top: 10, bottom: 10 },
@@ -144,8 +138,8 @@ export function ExpressionEditor({
           hideCursorInOverviewRuler: true,
           renderLineHighlight: "none",
           scrollbar: {
-            vertical: "hidden",
-            horizontal: "auto",
+            vertical: "auto",
+            horizontal: "hidden",
             alwaysConsumeMouseWheel: false,
           },
           quickSuggestions: { other: true, comments: false, strings: true },
@@ -157,7 +151,7 @@ export function ExpressionEditor({
           contextmenu: false,
           fixedOverflowWidgets: true,
         }}
-        loading={<div className="h-[42px]" />}
+        loading={<div style={{ height: EDITOR_HEIGHT_PX }} />}
       />
     </div>
   );

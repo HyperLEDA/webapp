@@ -184,11 +184,13 @@ function TableColumnsPanel({
   columns,
   loading,
   error,
+  maxHeight,
 }: {
   tableName: string;
   columns: ColumnDescription[];
   loading: boolean;
   error: string | null;
+  maxHeight: number | null;
 }): ReactElement {
   const [query, setQuery] = useState("");
   const filtered = useMemo(
@@ -209,8 +211,11 @@ function TableColumnsPanel({
   }
 
   return (
-    <aside className="w-full min-w-0 rounded border border-border bg-surface-2 p-4 flex flex-col gap-3 min-h-0 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)]">
-      <div>
+    <aside
+      className="w-full min-w-0 rounded border border-border bg-surface-2 p-4 flex flex-col gap-3 min-h-0 lg:sticky lg:top-4 overflow-hidden"
+      style={maxHeight !== null ? { maxHeight } : undefined}
+    >
+      <div className="shrink-0">
         <h3 className="font-semibold text-primary">Columns</h3>
         <p className="text-xs text-muted mt-1 break-all">{tableName.trim()}</p>
       </div>
@@ -220,7 +225,7 @@ function TableColumnsPanel({
         value={query}
         onChange={(event) => setQuery(event.target.value)}
         placeholder="Filter columns…"
-        className="w-full bg-surface border border-border rounded px-3 py-2 text-sm text-primary placeholder:text-muted"
+        className="w-full shrink-0 bg-surface border border-border rounded px-3 py-2 text-sm text-primary placeholder:text-muted"
       />
 
       {loading ? <p className="text-sm text-muted">Loading columns…</p> : null}
@@ -231,7 +236,7 @@ function TableColumnsPanel({
       ) : null}
 
       {!loading && !error ? (
-        <ul className="overflow-y-auto divide-y divide-border -mx-1">
+        <ul className="overflow-y-auto divide-y divide-border -mx-1 min-h-0">
           {filtered.length === 0 ? (
             <li className="px-1 py-3 text-sm text-muted">
               No matching columns.
@@ -282,9 +287,13 @@ export function AdminStructuredUploadPage(): ReactElement {
   const [previewErrors, setPreviewErrors] = useState(
     () => new Map<string, string>(),
   );
+  const formRef = useRef<HTMLFormElement>(null);
+  const previewRef = useRef<HTMLDivElement>(null);
+  const [formHeight, setFormHeight] = useState<number | null>(null);
 
   function clearPreview(): void {
     setPreviewRows(null);
+    setPreviewFields([]);
     setPreviewErrors(new Map());
   }
 
@@ -376,6 +385,24 @@ export function AdminStructuredUploadPage(): ReactElement {
     [catalogs, selectedCatalog],
   );
 
+  useEffect(() => {
+    const form = formRef.current;
+    if (!form) {
+      setFormHeight(null);
+      return;
+    }
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      setFormHeight(
+        entry.borderBoxSize[0]?.blockSize ?? entry.contentRect.height,
+      );
+    });
+    observer.observe(form);
+    return () => {
+      observer.disconnect();
+    };
+  }, [schema, catalogsLoading, catalogsError]);
+
   function handleCatalogChange(catalog: string): void {
     setSelectedCatalog(catalog);
     setSubmitError(null);
@@ -408,8 +435,6 @@ export function AdminStructuredUploadPage(): ReactElement {
         throw new Error(describeUnknownError(response.error));
       }
       const { rows, errors } = response.data.data;
-      setPreviewFields(Object.keys(sent));
-      setPreviewRows(rows);
       setPreviewErrors(
         new Map(
           errors.map((error) => [
@@ -420,6 +445,19 @@ export function AdminStructuredUploadPage(): ReactElement {
           ]),
         ),
       );
+      if (errors.length > 0) {
+        setPreviewRows(null);
+        setPreviewFields([]);
+        return;
+      }
+      setPreviewFields(Object.keys(sent));
+      setPreviewRows(rows);
+      requestAnimationFrame(() => {
+        previewRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+        });
+      });
     } catch (error) {
       setSubmitError(formatCaughtError(error));
     } finally {
@@ -491,7 +529,11 @@ export function AdminStructuredUploadPage(): ReactElement {
 
       {!catalogsLoading && !catalogsError ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start w-full">
-          <form onSubmit={handleSubmit} className="space-y-6 min-w-0 w-full">
+          <form
+            ref={formRef}
+            onSubmit={handleSubmit}
+            className="space-y-6 min-w-0 w-full"
+          >
             <div>
               <label htmlFor="catalog" className="block mb-1 text-subtle">
                 Catalog
@@ -637,12 +679,15 @@ export function AdminStructuredUploadPage(): ReactElement {
             columns={columns}
             loading={columnsLoading}
             error={columnsError}
+            maxHeight={formHeight}
           />
         </div>
       ) : null}
 
       {previewRows ? (
-        <StructuredUploadPreview rows={previewRows} fields={previewFields} />
+        <div ref={previewRef}>
+          <StructuredUploadPreview rows={previewRows} fields={previewFields} />
+        </div>
       ) : null}
     </div>
   );
