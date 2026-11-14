@@ -419,10 +419,6 @@ export function AdminStructuredUploadPage(): ReactElement {
   return (
     <div className="w-full">
       <h2 className="text-3xl font-bold mb-2">Structured upload</h2>
-      <p className="text-sm text-muted mb-6">
-        Start a Prefect upload task that evaluates expressions against a raw
-        table and writes into a layer 1 catalog.
-      </p>
 
       {catalogsLoading ? <p className="text-muted">Loading catalogs…</p> : null}
       {catalogsError ? (
