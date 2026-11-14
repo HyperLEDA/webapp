@@ -11,10 +11,12 @@ import {
   getCatalogs,
   getTable,
   getTableList,
+  previewStructuredUpload,
   startStructuredUpload,
   type CatalogField,
   type CatalogSchema,
   type ColumnDescription,
+  type PreviewRow,
   type StartStructuredUploadRequest,
   type TableListItem,
 } from "../clients/admin";
@@ -23,6 +25,7 @@ import { describeUnknownError, formatCaughtError } from "@leda/lib/tap";
 import { sameEnvTasksOrigin } from "@leda/lib/origins";
 import { Button, SuggestibleInput } from "@leda/lib/ui";
 import { ExpressionEditor } from "../components/ExpressionEditor";
+import { StructuredUploadPreview } from "../components/StructuredUploadPreview";
 
 const DEFAULT_BATCH_SIZE = 10_000;
 const TABLE_SEARCH_DEBOUNCE_MS = 300;
@@ -61,6 +64,12 @@ function buildUploadParams(
     params[field.name] = expressions.get(field.name) ?? "";
   }
   return params;
+}
+
+function nonEmptyExpressions(expressions: Map<string, string>) {
+  return Object.fromEntries(
+    [...expressions].filter(([, value]) => value.trim()),
+  );
 }
 
 function matchesColumnQuery(column: ColumnDescription, query: string): boolean {
@@ -267,6 +276,17 @@ export function AdminStructuredUploadPage(): ReactElement {
   const [batchSize, setBatchSize] = useState(DEFAULT_BATCH_SIZE);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [previewing, setPreviewing] = useState(false);
+  const [previewRows, setPreviewRows] = useState<PreviewRow[] | null>(null);
+  const [previewFields, setPreviewFields] = useState<string[]>([]);
+  const [previewErrors, setPreviewErrors] = useState(
+    () => new Map<string, string>(),
+  );
+
+  function clearPreview(): void {
+    setPreviewRows(null);
+    setPreviewErrors(new Map());
+  }
 
   useEffect(() => {
     document.title = "Structured upload | LEDA";
@@ -359,10 +379,52 @@ export function AdminStructuredUploadPage(): ReactElement {
   function handleCatalogChange(catalog: string): void {
     setSelectedCatalog(catalog);
     setSubmitError(null);
+    clearPreview();
     const next = catalogs.find((item) => item.catalog === catalog);
     setExpressions(
       new Map((next?.fields ?? []).map((field) => [field.name, ""])),
     );
+  }
+
+  async function handlePreview(): Promise<void> {
+    if (!schema) {
+      return;
+    }
+    const sent = nonEmptyExpressions(expressions);
+    setPreviewing(true);
+    setSubmitError(null);
+    clearPreview();
+
+    try {
+      const response = await previewStructuredUpload({
+        client: adminClient,
+        body: {
+          catalog: schema.catalog,
+          table_name: tableName.trim(),
+          expressions: sent,
+        },
+      });
+      if (response.error) {
+        throw new Error(describeUnknownError(response.error));
+      }
+      const { rows, errors } = response.data.data;
+      setPreviewFields(Object.keys(sent));
+      setPreviewRows(rows);
+      setPreviewErrors(
+        new Map(
+          errors.map((error) => [
+            error.field,
+            error.record_id
+              ? `${error.message} (record ${error.record_id})`
+              : error.message,
+          ]),
+        ),
+      );
+    } catch (error) {
+      setSubmitError(formatCaughtError(error));
+    } finally {
+      setPreviewing(false);
+    }
   }
 
   async function handleSubmit(
@@ -457,6 +519,7 @@ export function AdminStructuredUploadPage(): ReactElement {
                 onChange={(next) => {
                   setTableName(next);
                   setSubmitError(null);
+                  clearPreview();
                 }}
               />
             </div>
@@ -485,11 +548,22 @@ export function AdminStructuredUploadPage(): ReactElement {
                             next.set(field.name, value);
                             return next;
                           });
+                          setPreviewErrors((current) => {
+                            const next = new Map(current);
+                            next.delete(field.name);
+                            return next;
+                          });
                         }}
                       />
-                      <p className="text-xs text-muted mt-1">
-                        {fieldHint(field)}
-                      </p>
+                      {previewErrors.has(field.name) ? (
+                        <p className="text-xs text-danger mt-1" role="alert">
+                          {previewErrors.get(field.name)}
+                        </p>
+                      ) : (
+                        <p className="text-xs text-muted mt-1">
+                          {fieldHint(field)}
+                        </p>
+                      )}
                     </div>
                   );
                 })}
@@ -530,9 +604,24 @@ export function AdminStructuredUploadPage(): ReactElement {
                   />
                 </div>
 
-                <Button type="submit" disabled={submitting || !selectedCatalog}>
-                  {submitting ? "Starting…" : "Start upload"}
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="submit"
+                    disabled={submitting || !selectedCatalog}
+                  >
+                    {submitting ? "Starting…" : "Start upload"}
+                  </Button>
+                  <Button
+                    type="button"
+                    className="bg-transparent! border-border!"
+                    disabled={
+                      previewing || !selectedCatalog || !tableName.trim()
+                    }
+                    onClick={() => void handlePreview()}
+                  >
+                    {previewing ? "Testing…" : "Test"}
+                  </Button>
+                </div>
 
                 {submitError ? (
                   <p className="text-danger" role="alert">
@@ -550,6 +639,10 @@ export function AdminStructuredUploadPage(): ReactElement {
             error={columnsError}
           />
         </div>
+      ) : null}
+
+      {previewRows ? (
+        <StructuredUploadPreview rows={previewRows} fields={previewFields} />
       ) : null}
     </div>
   );
