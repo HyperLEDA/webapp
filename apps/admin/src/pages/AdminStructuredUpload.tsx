@@ -9,10 +9,12 @@ import {
 } from "react";
 import {
   getCatalogs,
+  getTable,
   getTableList,
   startStructuredUpload,
   type CatalogField,
   type CatalogSchema,
+  type ColumnDescription,
   type StartStructuredUploadRequest,
   type TableListItem,
 } from "../clients/admin";
@@ -24,6 +26,7 @@ import { ExpressionEditor } from "../components/ExpressionEditor";
 
 const DEFAULT_BATCH_SIZE = 10_000;
 const TABLE_SEARCH_DEBOUNCE_MS = 300;
+const TABLE_LOAD_DEBOUNCE_MS = 300;
 const TABLE_SEARCH_PAGE_SIZE = 20;
 
 function fieldRequired(field: CatalogField): boolean {
@@ -58,6 +61,22 @@ function buildUploadParams(
     params[field.name] = expressions.get(field.name) ?? "";
   }
   return params;
+}
+
+function matchesColumnQuery(column: ColumnDescription, query: string): boolean {
+  const needle = query.trim().toLowerCase();
+  if (!needle) {
+    return true;
+  }
+  const haystack = [
+    column.name,
+    column.data_type,
+    column.description ?? "",
+    column.unit ?? "",
+  ]
+    .join(" ")
+    .toLowerCase();
+  return haystack.includes(needle);
 }
 
 function TableNameInput({
@@ -151,12 +170,96 @@ function TableNameInput({
   );
 }
 
+function TableColumnsPanel({
+  tableName,
+  columns,
+  loading,
+  error,
+}: {
+  tableName: string;
+  columns: ColumnDescription[];
+  loading: boolean;
+  error: string | null;
+}): ReactElement {
+  const [query, setQuery] = useState("");
+  const filtered = useMemo(
+    () => columns.filter((column) => matchesColumnQuery(column, query)),
+    [columns, query],
+  );
+
+  useEffect(() => {
+    setQuery("");
+  }, [tableName]);
+
+  if (!tableName.trim()) {
+    return (
+      <aside className="rounded border border-border bg-surface-2 p-4 text-sm text-muted">
+        Select a table to browse its columns.
+      </aside>
+    );
+  }
+
+  return (
+    <aside className="rounded border border-border bg-surface-2 p-4 flex flex-col gap-3 min-h-0 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)]">
+      <div>
+        <h3 className="font-semibold text-primary">Columns</h3>
+        <p className="text-xs text-muted mt-1 break-all">{tableName.trim()}</p>
+      </div>
+
+      <input
+        type="search"
+        value={query}
+        onChange={(event) => setQuery(event.target.value)}
+        placeholder="Filter columns…"
+        className="w-full bg-surface border border-border rounded px-3 py-2 text-sm text-primary placeholder:text-muted"
+      />
+
+      {loading ? <p className="text-sm text-muted">Loading columns…</p> : null}
+      {error ? (
+        <p className="text-sm text-danger" role="alert">
+          {error}
+        </p>
+      ) : null}
+
+      {!loading && !error ? (
+        <ul className="overflow-y-auto divide-y divide-border -mx-1">
+          {filtered.length === 0 ? (
+            <li className="px-1 py-3 text-sm text-muted">
+              No matching columns.
+            </li>
+          ) : (
+            filtered.map((column) => (
+              <li key={column.name} className="px-1 py-3">
+                <div className="font-mono text-sm text-primary">
+                  {column.name}
+                </div>
+                <div className="text-xs text-muted mt-0.5">
+                  {column.data_type}
+                  {column.unit ? ` · ${column.unit}` : ""}
+                </div>
+                {column.description ? (
+                  <p className="text-xs text-subtle mt-1">
+                    {column.description}
+                  </p>
+                ) : null}
+              </li>
+            ))
+          )}
+        </ul>
+      ) : null}
+    </aside>
+  );
+}
+
 export function AdminStructuredUploadPage(): ReactElement {
   const [catalogs, setCatalogs] = useState<CatalogSchema[]>([]);
   const [catalogsError, setCatalogsError] = useState<string | null>(null);
   const [catalogsLoading, setCatalogsLoading] = useState(true);
   const [selectedCatalog, setSelectedCatalog] = useState("");
   const [tableName, setTableName] = useState("");
+  const [columns, setColumns] = useState<ColumnDescription[]>([]);
+  const [columnsLoading, setColumnsLoading] = useState(false);
+  const [columnsError, setColumnsError] = useState<string | null>(null);
   const [expressions, setExpressions] = useState(
     () => new Map<string, string>(),
   );
@@ -202,6 +305,51 @@ export function AdminStructuredUploadPage(): ReactElement {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    const trimmed = tableName.trim();
+    if (!trimmed) {
+      setColumns([]);
+      setColumnsError(null);
+      setColumnsLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      void (async () => {
+        setColumnsLoading(true);
+        setColumnsError(null);
+        try {
+          const response = await getTable({
+            client: adminClient,
+            query: { table_name: trimmed },
+          });
+          if (cancelled) {
+            return;
+          }
+          if (response.error) {
+            throw new Error(describeUnknownError(response.error));
+          }
+          setColumns(response.data.data.column_info);
+        } catch (error) {
+          if (!cancelled) {
+            setColumns([]);
+            setColumnsError(formatCaughtError(error));
+          }
+        } finally {
+          if (!cancelled) {
+            setColumnsLoading(false);
+          }
+        }
+      })();
+    }, TABLE_LOAD_DEBOUNCE_MS);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [tableName]);
 
   const schema = useMemo(
     () => catalogs.find((item) => item.catalog === selectedCatalog) ?? null,
@@ -269,7 +417,7 @@ export function AdminStructuredUploadPage(): ReactElement {
   }
 
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-6xl">
       <h2 className="text-3xl font-bold mb-2">Structured upload</h2>
       <p className="text-sm text-muted mb-6">
         Start a Prefect upload task that evaluates expressions against a raw
@@ -284,116 +432,128 @@ export function AdminStructuredUploadPage(): ReactElement {
       ) : null}
 
       {!catalogsLoading && !catalogsError ? (
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label htmlFor="catalog" className="block mb-1 text-subtle">
-              Catalog
-            </label>
-            <select
-              id="catalog"
-              value={selectedCatalog}
-              onChange={(event) => handleCatalogChange(event.target.value)}
-              className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-primary"
-            >
-              <option value="">Select a catalog…</option>
-              {catalogs.map((item) => (
-                <option key={item.catalog} value={item.catalog}>
-                  {item.title}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block mb-1 text-subtle">Table name</label>
-            <TableNameInput
-              value={tableName}
-              disabled={submitting}
-              onChange={(next) => {
-                setTableName(next);
-                setSubmitError(null);
-              }}
-            />
-          </div>
-
-          {schema ? (
-            <div className="space-y-4">
-              <p className="text-sm text-muted">{schema.description}</p>
-
-              {schema.fields.map((field) => {
-                const required = fieldRequired(field);
-                return (
-                  <div key={field.name}>
-                    <label className="block mb-1 text-subtle">
-                      {field.name}
-                      {required ? null : (
-                        <span className="text-muted"> (optional)</span>
-                      )}
-                    </label>
-                    <ExpressionEditor
-                      ariaLabel={field.name}
-                      value={expressions.get(field.name) ?? ""}
-                      disabled={submitting}
-                      onChange={(value) => {
-                        setExpressions((current) => {
-                          const next = new Map(current);
-                          next.set(field.name, value);
-                          return next;
-                        });
-                      }}
-                    />
-                    <p className="text-xs text-muted mt-1">
-                      {fieldHint(field)}
-                    </p>
-                  </div>
-                );
-              })}
-
-              <div className="flex items-center gap-2">
-                <input
-                  id="write"
-                  type="checkbox"
-                  checked={write}
-                  onChange={(event) => setWrite(event.target.checked)}
-                  className="rounded border-border"
-                />
-                <label htmlFor="write" className="text-subtle">
-                  Write rows into the catalog
-                </label>
-              </div>
-
-              <div>
-                <label htmlFor="batch_size" className="block mb-1 text-subtle">
-                  Batch size
-                </label>
-                <input
-                  id="batch_size"
-                  type="number"
-                  min={1}
-                  max={500_000}
-                  required
-                  value={batchSize}
-                  onChange={(event) =>
-                    setBatchSize(
-                      Number(event.target.value) || DEFAULT_BATCH_SIZE,
-                    )
-                  }
-                  className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-primary"
-                />
-              </div>
-
-              <Button type="submit" disabled={submitting || !selectedCatalog}>
-                {submitting ? "Starting…" : "Start upload"}
-              </Button>
-
-              {submitError ? (
-                <p className="text-danger" role="alert">
-                  {submitError}
-                </p>
-              ) : null}
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_22rem] gap-8 items-start">
+          <form onSubmit={handleSubmit} className="space-y-6 min-w-0">
+            <div>
+              <label htmlFor="catalog" className="block mb-1 text-subtle">
+                Catalog
+              </label>
+              <select
+                id="catalog"
+                value={selectedCatalog}
+                onChange={(event) => handleCatalogChange(event.target.value)}
+                className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-primary"
+              >
+                <option value="">Select a catalog…</option>
+                {catalogs.map((item) => (
+                  <option key={item.catalog} value={item.catalog}>
+                    {item.title}
+                  </option>
+                ))}
+              </select>
             </div>
-          ) : null}
-        </form>
+
+            <div>
+              <label className="block mb-1 text-subtle">Table name</label>
+              <TableNameInput
+                value={tableName}
+                disabled={submitting}
+                onChange={(next) => {
+                  setTableName(next);
+                  setSubmitError(null);
+                }}
+              />
+            </div>
+
+            {schema ? (
+              <div className="space-y-4">
+                <p className="text-sm text-muted">{schema.description}</p>
+
+                {schema.fields.map((field) => {
+                  const required = fieldRequired(field);
+                  return (
+                    <div key={field.name}>
+                      <label className="block mb-1 text-subtle">
+                        {field.name}
+                        {required ? null : (
+                          <span className="text-muted"> (optional)</span>
+                        )}
+                      </label>
+                      <ExpressionEditor
+                        ariaLabel={field.name}
+                        value={expressions.get(field.name) ?? ""}
+                        disabled={submitting}
+                        onChange={(value) => {
+                          setExpressions((current) => {
+                            const next = new Map(current);
+                            next.set(field.name, value);
+                            return next;
+                          });
+                        }}
+                      />
+                      <p className="text-xs text-muted mt-1">
+                        {fieldHint(field)}
+                      </p>
+                    </div>
+                  );
+                })}
+
+                <div className="flex items-center gap-2">
+                  <input
+                    id="write"
+                    type="checkbox"
+                    checked={write}
+                    onChange={(event) => setWrite(event.target.checked)}
+                    className="rounded border-border"
+                  />
+                  <label htmlFor="write" className="text-subtle">
+                    Write rows into the catalog
+                  </label>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="batch_size"
+                    className="block mb-1 text-subtle"
+                  >
+                    Batch size
+                  </label>
+                  <input
+                    id="batch_size"
+                    type="number"
+                    min={1}
+                    max={500_000}
+                    required
+                    value={batchSize}
+                    onChange={(event) =>
+                      setBatchSize(
+                        Number(event.target.value) || DEFAULT_BATCH_SIZE,
+                      )
+                    }
+                    className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-primary"
+                  />
+                </div>
+
+                <Button type="submit" disabled={submitting || !selectedCatalog}>
+                  {submitting ? "Starting…" : "Start upload"}
+                </Button>
+
+                {submitError ? (
+                  <p className="text-danger" role="alert">
+                    {submitError}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+          </form>
+
+          <TableColumnsPanel
+            tableName={tableName}
+            columns={columns}
+            loading={columnsLoading}
+            error={columnsError}
+          />
+        </div>
       ) : null}
     </div>
   );
