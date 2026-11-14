@@ -18,8 +18,6 @@ import {
   MdSchedule,
   MdTableChart,
 } from "react-icons/md";
-import { LoginPage } from "./pages/Login";
-import { isLoggedIn, useIsLoggedIn, clearAuthToken } from "./auth";
 import { AuthNavControl } from "./components/AuthNavControl";
 import { sameEnvTasksOrigin, sameEnvWebOrigin } from "@leda/lib/origins";
 import {
@@ -85,17 +83,7 @@ function openCurrentPathOnOrigin(targetInput: string): void {
   );
 }
 
-function RequireAuth() {
-  const location = useLocation();
-  if (!isLoggedIn()) {
-    const next = `${location.pathname}${location.search}${location.hash}`;
-    return <Navigate to={`/login?next=${encodeURIComponent(next)}`} replace />;
-  }
-  return <Outlet />;
-}
-
 function Layout() {
-  const loggedIn = useIsLoggedIn();
   const showOpenProductionButton = useMemo(() => {
     try {
       return window.location.origin !== new URL(productionAdmin).origin;
@@ -110,7 +98,7 @@ function Layout() {
         <NavRail
           footer={
             <>
-              {loggedIn && showOpenProductionButton ? (
+              {showOpenProductionButton ? (
                 <NavButton
                   label="Open this page on production"
                   onClick={() => openCurrentPathOnOrigin(productionAdmin)}
@@ -118,64 +106,54 @@ function Layout() {
                   <MdOpenInNew size={20} />
                 </NavButton>
               ) : null}
-              {loggedIn ? (
-                <NavButton
-                  label="Open public interface"
-                  onClick={() => {
-                    window.open(
-                      sameEnvWebOrigin(),
-                      "_blank",
-                      "noopener,noreferrer",
-                    );
-                  }}
-                >
-                  <MdPublic size={20} />
-                </NavButton>
-              ) : null}
-              {loggedIn ? (
-                <NavButton
-                  label="Open tasks"
-                  onClick={() => {
-                    window.open(
-                      sameEnvTasksOrigin(),
-                      "_blank",
-                      "noopener,noreferrer",
-                    );
-                  }}
-                >
-                  <MdSchedule size={20} />
-                </NavButton>
-              ) : null}
+              <NavButton
+                label="Open public interface"
+                onClick={() => {
+                  window.open(
+                    sameEnvWebOrigin(),
+                    "_blank",
+                    "noopener,noreferrer",
+                  );
+                }}
+              >
+                <MdPublic size={20} />
+              </NavButton>
+              <NavButton
+                label="Open tasks"
+                onClick={() => {
+                  window.open(
+                    sameEnvTasksOrigin(),
+                    "_blank",
+                    "noopener,noreferrer",
+                  );
+                }}
+              >
+                <MdSchedule size={20} />
+              </NavButton>
               <AuthNavControl />
-              {import.meta.env.DEV ? (
-                <BackendSwitcher onBeforeSwitch={clearAuthToken} />
-              ) : null}
+              {import.meta.env.DEV ? <BackendSwitcher /> : null}
               <ThemeSwitcher />
             </>
           }
         >
-          {loggedIn ? (
-            <>
-              <NavItem to="/tables" label="Tables">
-                <MdTableChart size={20} />
-              </NavItem>
-              <NavItem to="/records" label="Records">
-                <MdListAlt size={20} />
-              </NavItem>
-              <NavItem to="/data-catalog" label="Data catalog">
-                <MdAccountTree size={20} />
-              </NavItem>
-              <NavItem to="/references" label="References">
-                <MdLibraryBooks size={20} />
-              </NavItem>
-              <NavItem to="/sql" label="SQL">
-                <MdCode size={20} />
-              </NavItem>
-              <NavItem to="/tasks" label="Tasks">
-                <MdAdminPanelSettings size={20} />
-              </NavItem>
-            </>
-          ) : null}
+          <NavItem to="/tables" label="Tables">
+            <MdTableChart size={20} />
+          </NavItem>
+          <NavItem to="/records" label="Records">
+            <MdListAlt size={20} />
+          </NavItem>
+          <NavItem to="/data-catalog" label="Data catalog">
+            <MdAccountTree size={20} />
+          </NavItem>
+          <NavItem to="/references" label="References">
+            <MdLibraryBooks size={20} />
+          </NavItem>
+          <NavItem to="/sql" label="SQL">
+            <MdCode size={20} />
+          </NavItem>
+          <NavItem to="/tasks" label="Tasks">
+            <MdAdminPanelSettings size={20} />
+          </NavItem>
         </NavRail>
       }
     >
@@ -196,42 +174,39 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route element={<Layout />}>
-          <Route path="/login" element={<LoginPage />} />
-          <Route element={<RequireAuth />}>
-            <Route path="/" element={<Navigate to="/tables" replace />} />
-            <Route path="/tasks" element={<AdminPage />} />
-            <Route path="/merge-pgc" element={<AdminMergePgcPage />} />
-            <Route
-              path="/structured-upload"
-              element={<AdminStructuredUploadPage />}
-            />
-            <Route path="/tables" element={<TablesPage />} />
-            <Route path="/records" element={<RecordsPage />} />
-            <Route path="/tables/upload" element={<TableUploadPage />} />
-            <Route path="/references" element={<ReferencesPage />} />
-            <Route
-              path="/references/:schema/:table"
-              element={<ReferenceDetailsPage />}
-            />
-            <Route path="/sql" element={<SqlQueryPage />} />
-            <Route path="/data-catalog" element={<DataCatalogPage />} />
-            <Route path="/data-catalog/query" element={<DataCatalogPage />} />
-            <Route
-              path="/data-catalog/:schemaName/:tableName"
-              element={<DataCatalogPage />}
-            />
-            <Route path="/table/:tableName" element={<TableDetailsPage />} />
-            <Route path="/crossmatch" element={<RedirectCrossmatchList />} />
-            <Route
-              path="/records/:recordId"
-              element={<RecordCrossmatchDetailsPage />}
-            />
-            <Route
-              path="/records/:recordId/crossmatch"
-              element={<Navigate to=".." relative="path" replace />}
-            />
-          </Route>
-          <Route path="*" element={<Navigate to="/login" replace />} />
+          <Route path="/" element={<Navigate to="/tables" replace />} />
+          <Route path="/tasks" element={<AdminPage />} />
+          <Route path="/merge-pgc" element={<AdminMergePgcPage />} />
+          <Route
+            path="/structured-upload"
+            element={<AdminStructuredUploadPage />}
+          />
+          <Route path="/tables" element={<TablesPage />} />
+          <Route path="/records" element={<RecordsPage />} />
+          <Route path="/tables/upload" element={<TableUploadPage />} />
+          <Route path="/references" element={<ReferencesPage />} />
+          <Route
+            path="/references/:schema/:table"
+            element={<ReferenceDetailsPage />}
+          />
+          <Route path="/sql" element={<SqlQueryPage />} />
+          <Route path="/data-catalog" element={<DataCatalogPage />} />
+          <Route path="/data-catalog/query" element={<DataCatalogPage />} />
+          <Route
+            path="/data-catalog/:schemaName/:tableName"
+            element={<DataCatalogPage />}
+          />
+          <Route path="/table/:tableName" element={<TableDetailsPage />} />
+          <Route path="/crossmatch" element={<RedirectCrossmatchList />} />
+          <Route
+            path="/records/:recordId"
+            element={<RecordCrossmatchDetailsPage />}
+          />
+          <Route
+            path="/records/:recordId/crossmatch"
+            element={<Navigate to=".." relative="path" replace />}
+          />
+          <Route path="*" element={<Navigate to="/tables" replace />} />
         </Route>
       </Routes>
     </BrowserRouter>

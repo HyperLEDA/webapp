@@ -1,41 +1,24 @@
-import { ReactElement, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { MdLogin, MdLogout } from "react-icons/md";
-import { clearAuthToken, useIsLoggedIn } from "../auth";
-import { logout } from "../clients/admin/sdk.gen";
-import { adminClient } from "../clients/index";
-import { NavButton, NavItem } from "@leda/lib/ui";
+import { ReactElement } from "react";
+import { MdLogout } from "react-icons/md";
+import { NavButton } from "@leda/lib/ui";
+
+function autheliaLogoutUrl(): string {
+  const { origin, hostname } = window.location;
+  const match = /^admin\.(.+)$/.exec(hostname);
+  if (match) {
+    return `https://auth.${match[1]}/logout?rd=${encodeURIComponent(origin)}`;
+  }
+  const parentDomain = hostname.split(".").slice(1).join(".");
+  return `${window.location.protocol}//auth.${parentDomain}/logout?rd=${encodeURIComponent(origin)}`;
+}
 
 export function AuthNavControl(): ReactElement {
-  const navigate = useNavigate();
-  const loggedIn = useIsLoggedIn();
-  const [loggingOut, setLoggingOut] = useState(false);
-
-  async function handleLogout(): Promise<void> {
-    setLoggingOut(true);
-    try {
-      await logout({
-        client: adminClient,
-        body: {},
-      });
-    } finally {
-      clearAuthToken();
-      void navigate("/login");
-      setLoggingOut(false);
-    }
-  }
-
-  if (loggedIn) {
-    return (
-      <NavButton label="Logout" onClick={handleLogout} disabled={loggingOut}>
-        <MdLogout size={20} />
-      </NavButton>
-    );
-  }
-
   return (
-    <NavItem to="/login" end label="Login">
-      <MdLogin size={20} />
-    </NavItem>
+    <NavButton
+      label="Logout"
+      onClick={() => window.location.assign(autheliaLogoutUrl())}
+    >
+      <MdLogout size={20} />
+    </NavButton>
   );
 }
