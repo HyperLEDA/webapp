@@ -1,6 +1,7 @@
+import { config } from "./config";
+
 const localWebOrigin = "http://localhost:5173";
 const localAdminOrigin = "http://localhost:5174";
-const localTasksOrigin = "http://localhost:4200";
 
 export function sameEnvWebOrigin(): string {
   const { protocol, hostname } = window.location;
@@ -27,7 +28,8 @@ export function sameEnvAdminOrigin(): string {
 export function sameEnvTasksOrigin(): string {
   const { protocol, hostname } = window.location;
   if (hostname === "localhost" || hostname === "127.0.0.1") {
-    return localTasksOrigin;
+    const backend = new URL(config.backendBaseUrl);
+    return `${backend.protocol}//tasks.${backend.hostname}`;
   }
   const baseHost = hostname.startsWith("admin.")
     ? hostname.slice("admin.".length)
