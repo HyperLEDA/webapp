@@ -193,14 +193,14 @@ function TableColumnsPanel({
 
   if (!tableName.trim()) {
     return (
-      <aside className="rounded border border-border bg-surface-2 p-4 text-sm text-muted">
+      <aside className="w-full min-w-0 rounded border border-border bg-surface-2 p-4 text-sm text-muted">
         Select a table to browse its columns.
       </aside>
     );
   }
 
   return (
-    <aside className="rounded border border-border bg-surface-2 p-4 flex flex-col gap-3 min-h-0 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)]">
+    <aside className="w-full min-w-0 rounded border border-border bg-surface-2 p-4 flex flex-col gap-3 min-h-0 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)]">
       <div>
         <h3 className="font-semibold text-primary">Columns</h3>
         <p className="text-xs text-muted mt-1 break-all">{tableName.trim()}</p>
@@ -417,7 +417,7 @@ export function AdminStructuredUploadPage(): ReactElement {
   }
 
   return (
-    <div className="max-w-6xl">
+    <div className="w-full">
       <h2 className="text-3xl font-bold mb-2">Structured upload</h2>
       <p className="text-sm text-muted mb-6">
         Start a Prefect upload task that evaluates expressions against a raw
@@ -432,8 +432,8 @@ export function AdminStructuredUploadPage(): ReactElement {
       ) : null}
 
       {!catalogsLoading && !catalogsError ? (
-        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_22rem] gap-8 items-start">
-          <form onSubmit={handleSubmit} className="space-y-6 min-w-0">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start w-full">
+          <form onSubmit={handleSubmit} className="space-y-6 min-w-0 w-full">
             <div>
               <label htmlFor="catalog" className="block mb-1 text-subtle">
                 Catalog
