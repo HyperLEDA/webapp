@@ -24,6 +24,7 @@ import { adminClient } from "../clients";
 import { describeUnknownError, formatCaughtError } from "@leda/lib/tap";
 import { sameEnvTasksOrigin } from "@leda/lib/origins";
 import { Button, SuggestibleInput } from "@leda/lib/ui";
+import { MdCheck } from "react-icons/md";
 import { ExpressionEditor } from "../components/ExpressionEditor";
 import { StructuredUploadPreview } from "../components/StructuredUploadPreview";
 
@@ -275,9 +276,15 @@ function TableColumnsPanel({
                   type="button"
                   onClick={() => void copyColumnName(column.name)}
                   title={`Copy ${column.name}`}
-                  className="font-mono text-sm text-left text-primary hover:text-accent cursor-pointer"
+                  className="inline-flex items-center gap-1.5 font-mono text-sm text-left text-primary hover:text-accent cursor-pointer"
                 >
-                  {copiedName === column.name ? "Copied" : column.name}
+                  {column.name}
+                  <MdCheck
+                    aria-hidden
+                    className={`size-3.5 text-accent transition-opacity duration-150 ${
+                      copiedName === column.name ? "opacity-100" : "opacity-0"
+                    }`}
+                  />
                 </button>
                 <div className="text-xs text-muted mt-0.5">
                   {column.data_type}
