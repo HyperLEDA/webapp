@@ -36,6 +36,11 @@ const AdminMergePgcPage = lazy(() =>
     default: m.AdminMergePgcPage,
   })),
 );
+const AdminStructuredUploadPage = lazy(() =>
+  import("./pages/AdminStructuredUpload").then((m) => ({
+    default: m.AdminStructuredUploadPage,
+  })),
+);
 const AdminPage = lazy(() =>
   import("./pages/Admin").then((m) => ({ default: m.AdminPage })),
 );
@@ -196,6 +201,10 @@ function App() {
             <Route path="/" element={<Navigate to="/tables" replace />} />
             <Route path="/tasks" element={<AdminPage />} />
             <Route path="/merge-pgc" element={<AdminMergePgcPage />} />
+            <Route
+              path="/structured-upload"
+              element={<AdminStructuredUploadPage />}
+            />
             <Route path="/tables" element={<TablesPage />} />
             <Route path="/records" element={<RecordsPage />} />
             <Route path="/tables/upload" element={<TableUploadPage />} />

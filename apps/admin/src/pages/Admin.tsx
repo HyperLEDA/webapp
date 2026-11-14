@@ -8,6 +8,12 @@ const tasks = [
     description:
       "Reassign all records from a source PGC onto a surviving target PGC.",
   },
+  {
+    to: "/structured-upload",
+    title: "Structured upload",
+    description:
+      "Start a Prefect task that uploads expression-mapped raw data into a layer 1 catalog.",
+  },
 ];
 
 export function AdminPage(): ReactElement {
