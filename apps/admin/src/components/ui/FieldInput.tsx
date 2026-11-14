@@ -39,6 +39,7 @@ export interface FieldInputProps {
   disabled?: boolean;
   autoFocus?: boolean;
   className?: string;
+  placeholder?: string;
   appearance?: "form" | "inline";
   onSave?: () => void;
   onCancel?: () => void;
@@ -212,6 +213,7 @@ interface AutocompleteInputProps {
   disabled?: boolean;
   autoFocus?: boolean;
   className?: string;
+  placeholder?: string;
   onSave?: () => void;
   onCancel?: () => void;
 }
@@ -223,6 +225,7 @@ function AutocompleteInput({
   disabled = false,
   autoFocus = false,
   className,
+  placeholder,
   onSave,
   onCancel,
 }: AutocompleteInputProps): ReactElement {
@@ -281,7 +284,8 @@ function AutocompleteInput({
         }
         return (
           option.label.toLowerCase().includes(needle) ||
-          option.value.toLowerCase().includes(needle)
+          option.value.toLowerCase().includes(needle) ||
+          (option.description ?? "").toLowerCase().includes(needle)
         );
       })
       .map((option) => (
@@ -315,6 +319,7 @@ function AutocompleteInput({
         disabled={disabled}
         autoFocus={autoFocus}
         className={className}
+        placeholder={placeholder}
         onKeyDown={(event) => handleSingleLineKeyDown(event, onSave, onCancel)}
         onFocus={() => scheduleOptionsLoad(value)}
       />
@@ -332,6 +337,7 @@ export function FieldInput({
   disabled = false,
   autoFocus = false,
   className,
+  placeholder,
   appearance = "form",
   onSave,
   onCancel,
@@ -373,6 +379,7 @@ export function FieldInput({
         disabled={disabled}
         autoFocus={autoFocus}
         className={resolvedClassName}
+        placeholder={placeholder}
         onSave={onSave}
         onCancel={onCancel}
       />
@@ -414,6 +421,7 @@ export function FieldInput({
       value={value}
       disabled={disabled}
       autoFocus={autoFocus}
+      placeholder={placeholder}
       onChange={(event) => onChange(event.target.value)}
       onKeyDown={(event) => handleSingleLineKeyDown(event, onSave, onCancel)}
       className={resolvedClassName}

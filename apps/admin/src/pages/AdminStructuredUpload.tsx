@@ -1,7 +1,6 @@
 import {
   FormEvent,
   ReactElement,
-  ReactNode,
   useEffect,
   useMemo,
   useRef,
@@ -18,18 +17,16 @@ import {
   type ColumnDescription,
   type PreviewRow,
   type StartStructuredUploadRequest,
-  type TableListItem,
 } from "../clients/admin";
 import { adminClient } from "../clients";
 import { describeUnknownError, formatCaughtError } from "@leda/lib/tap";
 import { sameEnvTasksOrigin } from "@leda/lib/origins";
-import { Button, SuggestibleInput } from "@leda/lib/ui";
-import { MdCheck, MdContentCopy } from "react-icons/md";
+import { Button } from "@leda/lib/ui";
 import { ExpressionEditor } from "../components/ExpressionEditor";
 import { StructuredUploadPreview } from "../components/StructuredUploadPreview";
+import { CopyButton, FieldInput } from "../components/ui";
 
 const DEFAULT_BATCH_SIZE = 10_000;
-const TABLE_SEARCH_DEBOUNCE_MS = 300;
 const TABLE_LOAD_DEBOUNCE_MS = 300;
 const TABLE_SEARCH_PAGE_SIZE = 20;
 const DRAFT_STORAGE_KEY = "leda.admin.structured-upload.draft";
@@ -93,10 +90,6 @@ function clearDraft(): void {
   window.localStorage.removeItem(DRAFT_STORAGE_KEY);
 }
 
-function fieldRequired(field: CatalogField): boolean {
-  return field.required !== false;
-}
-
 function fieldHint(field: CatalogField): string {
   const parts: string[] = [];
   if (field.description) {
@@ -149,95 +142,23 @@ function matchesColumnQuery(column: ColumnDescription, query: string): boolean {
   return haystack.includes(needle);
 }
 
-function TableNameInput({
-  value,
-  disabled,
-  onChange,
-}: {
-  value: string;
-  disabled?: boolean;
-  onChange: (value: string) => void;
-}): ReactElement {
-  const [suggestions, setSuggestions] = useState<TableListItem[]>([]);
-  const requestId = useRef(0);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(
-    () => () => {
-      if (timer.current) {
-        clearTimeout(timer.current);
-      }
+async function loadTableNameOptions(query: string) {
+  const response = await getTableList({
+    client: adminClient,
+    query: {
+      query: query.trim() || undefined,
+      page: 0,
+      page_size: TABLE_SEARCH_PAGE_SIZE,
     },
-    [],
-  );
-
-  async function load(query: string): Promise<void> {
-    const id = requestId.current + 1;
-    requestId.current = id;
-    try {
-      const response = await getTableList({
-        client: adminClient,
-        query: {
-          query: query.trim() || undefined,
-          page: 0,
-          page_size: TABLE_SEARCH_PAGE_SIZE,
-        },
-      });
-      if (id !== requestId.current) {
-        return;
-      }
-      if (response.error) {
-        throw new Error(describeUnknownError(response.error));
-      }
-      setSuggestions(response.data.data.tables);
-    } catch {
-      if (id === requestId.current) {
-        setSuggestions([]);
-      }
-    }
+  });
+  if (response.error) {
+    throw new Error(describeUnknownError(response.error));
   }
-
-  function schedule(query: string): void {
-    if (timer.current) {
-      clearTimeout(timer.current);
-    }
-    timer.current = setTimeout(() => {
-      void load(query);
-    }, TABLE_SEARCH_DEBOUNCE_MS);
-  }
-
-  function suggestionNodes(): ReactNode[] {
-    return suggestions.map((item) => (
-      <button
-        key={item.name}
-        type="button"
-        className="w-full px-3 py-2 text-left text-sm hover:bg-surface-2"
-        onMouseDown={(event) => event.preventDefault()}
-        onClick={() => onChange(item.name)}
-      >
-        <div>{item.name}</div>
-        {item.description ? (
-          <div className="text-xs text-muted">{item.description}</div>
-        ) : null}
-      </button>
-    ));
-  }
-
-  return (
-    <SuggestibleInput
-      value={value}
-      disabled={disabled}
-      placeholder="rawdata table name"
-      onChange={(next) => {
-        onChange(next);
-        schedule(next);
-      }}
-      onFocus={() => {
-        void load(value);
-      }}
-      getSuggestions={suggestionNodes}
-    />
-  );
+  return response.data.data.tables.map((item) => ({
+    value: item.name,
+    label: item.name,
+    description: item.description,
+  }));
 }
 
 function TableColumnsPanel({
@@ -245,17 +166,13 @@ function TableColumnsPanel({
   columns,
   loading,
   error,
-  maxHeight,
 }: {
   tableName: string;
   columns: ColumnDescription[];
   loading: boolean;
   error: string | null;
-  maxHeight: number | null;
 }): ReactElement {
   const [query, setQuery] = useState("");
-  const [copiedName, setCopiedName] = useState<string | null>(null);
-  const copiedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const filtered = useMemo(
     () => columns.filter((column) => matchesColumnQuery(column, query)),
     [columns, query],
@@ -263,32 +180,7 @@ function TableColumnsPanel({
 
   useEffect(() => {
     setQuery("");
-    setCopiedName(null);
   }, [tableName]);
-
-  useEffect(
-    () => () => {
-      if (copiedTimer.current) {
-        clearTimeout(copiedTimer.current);
-      }
-    },
-    [],
-  );
-
-  async function copyColumnName(name: string): Promise<void> {
-    try {
-      await navigator.clipboard.writeText(name);
-      setCopiedName(name);
-      if (copiedTimer.current) {
-        clearTimeout(copiedTimer.current);
-      }
-      copiedTimer.current = setTimeout(() => {
-        setCopiedName(null);
-      }, 1000);
-    } catch {
-      setCopiedName(null);
-    }
-  }
 
   if (!tableName.trim()) {
     return (
@@ -298,14 +190,8 @@ function TableColumnsPanel({
     );
   }
 
-  const panelHeight =
-    maxHeight !== null && maxHeight > 0 ? Math.max(maxHeight, 240) : undefined;
-
   return (
-    <aside
-      className="w-full min-w-0 rounded border border-border bg-surface-2 p-4 flex flex-col gap-3 min-h-0 lg:sticky lg:top-4 overflow-hidden"
-      style={panelHeight !== undefined ? { height: panelHeight } : undefined}
-    >
+    <aside className="w-full min-w-0 rounded border border-border bg-surface-2 p-4 flex flex-col gap-3 overflow-hidden lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)]">
       <div className="shrink-0">
         <h3 className="font-semibold text-primary">Columns</h3>
         <p className="text-xs text-muted mt-1 break-all">{tableName.trim()}</p>
@@ -337,22 +223,9 @@ function TableColumnsPanel({
           ) : (
             filtered.map((column) => (
               <li key={column.name} className="px-1 py-3">
-                <button
-                  type="button"
-                  onClick={() => void copyColumnName(column.name)}
-                  title={`Copy ${column.name}`}
-                  className="group inline-flex items-center gap-1.5 font-mono text-sm text-left text-primary hover:text-accent cursor-pointer"
-                >
-                  {column.name}
-                  {copiedName === column.name ? (
-                    <MdCheck aria-hidden className="size-3.5 text-accent" />
-                  ) : (
-                    <MdContentCopy
-                      aria-hidden
-                      className="size-3.5 text-muted opacity-0 transition-opacity duration-150 group-hover:opacity-100"
-                    />
-                  )}
-                </button>
+                <CopyButton textToCopy={column.name}>
+                  <p className="text-sm text-primary">{column.name}</p>
+                </CopyButton>
                 <div className="text-xs text-muted mt-0.5">
                   {column.data_type}
                   {column.unit ? ` · ${column.unit}` : ""}
@@ -394,9 +267,7 @@ export function AdminStructuredUploadPage(): ReactElement {
     () => new Map<string, string>(),
   );
   const [draftReady, setDraftReady] = useState(false);
-  const formRef = useRef<HTMLFormElement>(null);
   const previewRef = useRef<HTMLDivElement>(null);
-  const [formHeight, setFormHeight] = useState<number | null>(null);
 
   function clearPreview(): void {
     setPreviewRows(null);
@@ -542,24 +413,6 @@ export function AdminStructuredUploadPage(): ReactElement {
     [catalogs, selectedCatalog],
   );
 
-  useEffect(() => {
-    const form = formRef.current;
-    if (!form) {
-      setFormHeight(null);
-      return;
-    }
-    const observer = new ResizeObserver((entries) => {
-      const entry = entries[0];
-      const box = entry.borderBoxSize;
-      const size = Array.isArray(box) ? box[0] : box;
-      setFormHeight(size?.blockSize ?? entry.contentRect.height);
-    });
-    observer.observe(form);
-    return () => {
-      observer.disconnect();
-    };
-  }, [schema, catalogsLoading, catalogsError]);
-
   function handleCatalogChange(catalog: string): void {
     setSelectedCatalog(catalog);
     setSubmitError(null);
@@ -636,7 +489,8 @@ export function AdminStructuredUploadPage(): ReactElement {
     const missing = schema.fields
       .filter(
         (field) =>
-          fieldRequired(field) && !(expressions.get(field.name) ?? "").trim(),
+          field.required !== false &&
+          !(expressions.get(field.name) ?? "").trim(),
       )
       .map((field) => field.name);
     if (missing.length > 0) {
@@ -687,11 +541,7 @@ export function AdminStructuredUploadPage(): ReactElement {
 
       {!catalogsLoading && !catalogsError ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start w-full">
-          <form
-            ref={formRef}
-            onSubmit={handleSubmit}
-            className="space-y-6 min-w-0 w-full"
-          >
+          <form onSubmit={handleSubmit} className="space-y-6 min-w-0 w-full">
             <div>
               <label htmlFor="catalog" className="block mb-1 text-subtle">
                 Catalog
@@ -713,9 +563,14 @@ export function AdminStructuredUploadPage(): ReactElement {
 
             <div>
               <label className="block mb-1 text-subtle">Table name</label>
-              <TableNameInput
+              <FieldInput
+                input={{
+                  kind: "autocomplete",
+                  loadOptions: loadTableNameOptions,
+                }}
                 value={tableName}
                 disabled={submitting}
+                placeholder="rawdata table name"
                 onChange={(next) => {
                   setTableName(next);
                   setSubmitError(null);
@@ -729,7 +584,7 @@ export function AdminStructuredUploadPage(): ReactElement {
                 <p className="text-sm text-muted">{schema.description}</p>
 
                 {schema.fields.map((field) => {
-                  const required = fieldRequired(field);
+                  const required = field.required !== false;
                   return (
                     <div key={field.name}>
                       <label className="block mb-1 text-subtle">
@@ -837,7 +692,6 @@ export function AdminStructuredUploadPage(): ReactElement {
             columns={columns}
             loading={columnsLoading}
             error={columnsError}
-            maxHeight={formHeight}
           />
         </div>
       ) : null}

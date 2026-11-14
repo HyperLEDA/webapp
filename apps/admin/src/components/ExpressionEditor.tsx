@@ -3,18 +3,11 @@ import type * as Monaco from "monaco-editor";
 import type { editor, Position } from "monaco-editor";
 import { ReactElement } from "react";
 import { useTheme } from "@leda/lib/ui";
-import { EXPRESSION_TOKENS, type ExpressionToken } from "./expressionTokens";
+import { EXPRESSION_TOKENS } from "./expressionTokens";
 
 const LANGUAGE_ID = "hyperleda-expression";
 
 let languageRegistered = false;
-
-function findToken(
-  word: string,
-  tokens: ExpressionToken[],
-): ExpressionToken | undefined {
-  return tokens.find((token) => token.label === word);
-}
 
 function registerExpressionLanguage(monaco: typeof Monaco): void {
   if (languageRegistered) {
@@ -74,7 +67,7 @@ function registerExpressionLanguage(monaco: typeof Monaco): void {
       if (!word) {
         return null;
       }
-      const token = findToken(word.word, EXPRESSION_TOKENS);
+      const token = EXPRESSION_TOKENS.find((item) => item.label === word.word);
       if (!token) {
         return null;
       }
