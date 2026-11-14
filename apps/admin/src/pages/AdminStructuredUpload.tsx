@@ -193,6 +193,8 @@ function TableColumnsPanel({
   maxHeight: number | null;
 }): ReactElement {
   const [query, setQuery] = useState("");
+  const [copiedName, setCopiedName] = useState<string | null>(null);
+  const copiedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const filtered = useMemo(
     () => columns.filter((column) => matchesColumnQuery(column, query)),
     [columns, query],
@@ -200,7 +202,32 @@ function TableColumnsPanel({
 
   useEffect(() => {
     setQuery("");
+    setCopiedName(null);
   }, [tableName]);
+
+  useEffect(
+    () => () => {
+      if (copiedTimer.current) {
+        clearTimeout(copiedTimer.current);
+      }
+    },
+    [],
+  );
+
+  async function copyColumnName(name: string): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(name);
+      setCopiedName(name);
+      if (copiedTimer.current) {
+        clearTimeout(copiedTimer.current);
+      }
+      copiedTimer.current = setTimeout(() => {
+        setCopiedName(null);
+      }, 1000);
+    } catch {
+      setCopiedName(null);
+    }
+  }
 
   if (!tableName.trim()) {
     return (
@@ -244,9 +271,14 @@ function TableColumnsPanel({
           ) : (
             filtered.map((column) => (
               <li key={column.name} className="px-1 py-3">
-                <div className="font-mono text-sm text-primary">
-                  {column.name}
-                </div>
+                <button
+                  type="button"
+                  onClick={() => void copyColumnName(column.name)}
+                  title={`Copy ${column.name}`}
+                  className="font-mono text-sm text-left text-primary hover:text-accent cursor-pointer"
+                >
+                  {copiedName === column.name ? "Copied" : column.name}
+                </button>
                 <div className="text-xs text-muted mt-0.5">
                   {column.data_type}
                   {column.unit ? ` · ${column.unit}` : ""}
