@@ -32,6 +32,66 @@ const DEFAULT_BATCH_SIZE = 10_000;
 const TABLE_SEARCH_DEBOUNCE_MS = 300;
 const TABLE_LOAD_DEBOUNCE_MS = 300;
 const TABLE_SEARCH_PAGE_SIZE = 20;
+const DRAFT_STORAGE_KEY = "leda.admin.structured-upload.draft";
+const DRAFT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const DRAFT_SAVE_DEBOUNCE_MS = 300;
+
+interface StructuredUploadDraft {
+  savedAt: number;
+  catalog: string;
+  tableName: string;
+  expressions: Record<string, string>;
+  write: boolean;
+  batchSize: number;
+}
+
+function readDraft(): StructuredUploadDraft | null {
+  try {
+    const raw = window.localStorage.getItem(DRAFT_STORAGE_KEY);
+    if (!raw) {
+      return null;
+    }
+    // SAFETY: writeDraft is the only writer; savedAt expiry rejects stale or corrupt payloads.
+    const draft = JSON.parse(raw) as StructuredUploadDraft;
+    if (
+      !Number.isFinite(draft.savedAt) ||
+      Date.now() - draft.savedAt > DRAFT_TTL_MS
+    ) {
+      window.localStorage.removeItem(DRAFT_STORAGE_KEY);
+      return null;
+    }
+    return {
+      savedAt: draft.savedAt,
+      catalog: String(draft.catalog || ""),
+      tableName: String(draft.tableName || ""),
+      expressions:
+        draft.expressions instanceof Object && !Array.isArray(draft.expressions)
+          ? Object.fromEntries(
+              Object.entries(draft.expressions).map(([key, value]) => [
+                key,
+                String(value || ""),
+              ]),
+            )
+          : {},
+      write: draft.write !== false,
+      batchSize: Number.isFinite(draft.batchSize)
+        ? Number(draft.batchSize)
+        : DEFAULT_BATCH_SIZE,
+    };
+  } catch {
+    window.localStorage.removeItem(DRAFT_STORAGE_KEY);
+    return null;
+  }
+}
+
+function writeDraft(draft: Omit<StructuredUploadDraft, "savedAt">): void {
+  const payload: StructuredUploadDraft = { ...draft, savedAt: Date.now() };
+  window.localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(payload));
+}
+
+function clearDraft(): void {
+  window.localStorage.removeItem(DRAFT_STORAGE_KEY);
+}
 
 function fieldRequired(field: CatalogField): boolean {
   return field.required !== false;
@@ -333,6 +393,7 @@ export function AdminStructuredUploadPage(): ReactElement {
   const [previewErrors, setPreviewErrors] = useState(
     () => new Map<string, string>(),
   );
+  const [draftReady, setDraftReady] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const previewRef = useRef<HTMLDivElement>(null);
   const [formHeight, setFormHeight] = useState<number | null>(null);
@@ -361,12 +422,36 @@ export function AdminStructuredUploadPage(): ReactElement {
         if (!response.data) {
           throw new Error("Unknown error");
         }
-        if (!cancelled) {
-          setCatalogs(response.data.data.catalogs);
+        if (cancelled) {
+          return;
         }
+        const loaded = response.data.data.catalogs;
+        setCatalogs(loaded);
+        const draft = readDraft();
+        if (draft) {
+          const catalog = loaded.find((item) => item.catalog === draft.catalog);
+          if (catalog) {
+            setSelectedCatalog(catalog.catalog);
+            setTableName(draft.tableName);
+            setWrite(draft.write);
+            setBatchSize(draft.batchSize || DEFAULT_BATCH_SIZE);
+            setExpressions(
+              new Map(
+                catalog.fields.map((field) => [
+                  field.name,
+                  draft.expressions[field.name] ?? "",
+                ]),
+              ),
+            );
+          } else {
+            clearDraft();
+          }
+        }
+        setDraftReady(true);
       } catch (error) {
         if (!cancelled) {
           setCatalogsError(formatCaughtError(error));
+          setDraftReady(true);
         }
       } finally {
         if (!cancelled) {
@@ -380,6 +465,32 @@ export function AdminStructuredUploadPage(): ReactElement {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (!draftReady) {
+      return;
+    }
+    const timer = setTimeout(() => {
+      if (
+        !selectedCatalog &&
+        !tableName.trim() &&
+        ![...expressions.values()].some((value) => value.trim())
+      ) {
+        clearDraft();
+        return;
+      }
+      writeDraft({
+        catalog: selectedCatalog,
+        tableName,
+        expressions: Object.fromEntries(expressions),
+        write,
+        batchSize,
+      });
+    }, DRAFT_SAVE_DEBOUNCE_MS);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [draftReady, selectedCatalog, tableName, expressions, write, batchSize]);
 
   useEffect(() => {
     const trimmed = tableName.trim();
@@ -555,6 +666,7 @@ export function AdminStructuredUploadPage(): ReactElement {
         throw new Error(describeUnknownError(response.error));
       }
       const taskId = response.data.data.task_id;
+      clearDraft();
       window.location.assign(`${sameEnvTasksOrigin()}/runs/flow-run/${taskId}`);
     } catch (error) {
       setSubmitError(formatCaughtError(error));
