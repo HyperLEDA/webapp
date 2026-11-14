@@ -24,7 +24,7 @@ import { adminClient } from "../clients";
 import { describeUnknownError, formatCaughtError } from "@leda/lib/tap";
 import { sameEnvTasksOrigin } from "@leda/lib/origins";
 import { Button, SuggestibleInput } from "@leda/lib/ui";
-import { MdCheck } from "react-icons/md";
+import { MdContentCopy } from "react-icons/md";
 import { ExpressionEditor } from "../components/ExpressionEditor";
 import { StructuredUploadPreview } from "../components/StructuredUploadPreview";
 
@@ -279,7 +279,7 @@ function TableColumnsPanel({
                   className="inline-flex items-center gap-1.5 font-mono text-sm text-left text-primary hover:text-accent cursor-pointer"
                 >
                   {column.name}
-                  <MdCheck
+                  <MdContentCopy
                     aria-hidden
                     className={`size-3.5 text-accent transition-opacity duration-150 ${
                       copiedName === column.name ? "opacity-100" : "opacity-0"
