@@ -20,6 +20,7 @@ import { adminClient } from "../clients";
 import { describeUnknownError, formatCaughtError } from "@leda/lib/tap";
 import { sameEnvTasksOrigin } from "@leda/lib/origins";
 import { Button, SuggestibleInput } from "@leda/lib/ui";
+import { ExpressionEditor } from "../components/ExpressionEditor";
 
 const DEFAULT_BATCH_SIZE = 10_000;
 const TABLE_SEARCH_DEBOUNCE_MS = 300;
@@ -227,6 +228,16 @@ export function AdminStructuredUploadPage(): ReactElement {
       setSubmitError("Table name is required.");
       return;
     }
+    const missing = schema.fields
+      .filter(
+        (field) =>
+          fieldRequired(field) && !(expressions.get(field.name) ?? "").trim(),
+      )
+      .map((field) => field.name);
+    if (missing.length > 0) {
+      setSubmitError(`Required fields: ${missing.join(", ")}`);
+      return;
+    }
 
     setSubmitting(true);
     setSubmitError(null);
@@ -311,30 +322,25 @@ export function AdminStructuredUploadPage(): ReactElement {
 
               {schema.fields.map((field) => {
                 const required = fieldRequired(field);
-                const inputId = `field-${field.name}`;
                 return (
                   <div key={field.name}>
-                    <label htmlFor={inputId} className="block mb-1 text-subtle">
+                    <label className="block mb-1 text-subtle">
                       {field.name}
                       {required ? null : (
                         <span className="text-muted"> (optional)</span>
                       )}
                     </label>
-                    <textarea
-                      id={inputId}
-                      required={required}
-                      rows={2}
+                    <ExpressionEditor
+                      ariaLabel={field.name}
                       value={expressions.get(field.name) ?? ""}
-                      onChange={(event) => {
-                        const value = event.target.value;
+                      disabled={submitting}
+                      onChange={(value) => {
                         setExpressions((current) => {
                           const next = new Map(current);
                           next.set(field.name, value);
                           return next;
                         });
                       }}
-                      className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-primary placeholder:text-muted font-mono text-sm"
-                      placeholder='e.g. col("ra") * deg'
                     />
                     <p className="text-xs text-muted mt-1">
                       {fieldHint(field)}
