@@ -15,7 +15,6 @@ import type {
   StatusesPayload,
 } from "../clients/admin";
 import { adminClient } from "../clients";
-import { isLoggedIn } from "../auth";
 import { getResource } from "../resources";
 import { publicObjectUrl, adminTableUrl } from "../origins";
 import {
@@ -350,7 +349,7 @@ function RecordCrossmatchDetails({
   const triageStatus = record.crossmatch.triage_status;
   const tableName = record.table_name;
   const assignedPgc = record.pgc ?? null;
-  const canResolve = assignedPgc === null && isLoggedIn();
+  const canResolve = assignedPgc === null;
   const candidateSources = convertCandidatesToAdditionalSources(
     candidates,
     record,

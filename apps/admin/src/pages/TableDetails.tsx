@@ -18,7 +18,6 @@ import {
 } from "../clients/admin";
 import { useNavigate, useParams } from "react-router-dom";
 import { adminClient } from "../clients";
-import { isLoggedIn } from "../auth";
 import {
   Card,
   CardAction,
@@ -152,19 +151,6 @@ function renderColumnName(name: CellPrimitive): ReactElement {
 
 type ColumnMetadataField = "description" | "unit" | "ucd";
 
-function renderMetadataDisplay(
-  value: string | null | undefined,
-  renderDisplay?: (value: string) => ReactElement,
-): ReactElement {
-  if (value && renderDisplay) {
-    return renderDisplay(value);
-  }
-
-  return (
-    <span className={classNames(!value && "text-muted")}>{value || "—"}</span>
-  );
-}
-
 interface TableMetaProps {
   tableName: string;
   table: GetTableResponse;
@@ -173,7 +159,6 @@ interface TableMetaProps {
 
 function TableMeta(props: TableMetaProps): ReactElement {
   const navigate = useNavigate();
-  const canEdit = isLoggedIn();
   const [savingField, setSavingField] = useState<
     "name" | "description" | "datatype" | "status" | null
   >(null);
@@ -271,7 +256,7 @@ function TableMeta(props: TableMetaProps): ReactElement {
     );
   }
 
-  const datatypeControl = canEdit ? (
+  const datatypeControl = (
     <select
       value={datatype}
       onChange={(event) => void commitDatatype(asDataType(event.target.value))}
@@ -284,11 +269,9 @@ function TableMeta(props: TableMetaProps): ReactElement {
         </option>
       ))}
     </select>
-  ) : (
-    datatype.charAt(0).toUpperCase() + datatype.slice(1)
   );
 
-  const statusControl = canEdit ? (
+  const statusControl = (
     <select
       value={status}
       onChange={(event) => void commitStatus(asTableStatus(event.target.value))}
@@ -301,37 +284,27 @@ function TableMeta(props: TableMetaProps): ReactElement {
         </option>
       ))}
     </select>
-  ) : (
-    status.charAt(0).toUpperCase() + status.slice(1)
   );
 
   return (
     <Card title="Overview" variant="fields" className={props.className}>
       <Field label="Table name">
-        {canEdit ? (
-          <EditableField
-            value={props.table.description}
-            editLabel="Edit table name"
-            saving={savingField === "description"}
-            onSave={commitDescription}
-          />
-        ) : (
-          <span className="min-w-0">{props.table.description}</span>
-        )}
+        <EditableField
+          value={props.table.description}
+          editLabel="Edit table name"
+          saving={savingField === "description"}
+          onSave={commitDescription}
+        />
       </Field>
       <Field label="Slug">
-        {canEdit ? (
-          <EditableField
-            value={props.tableName}
-            editLabel="Edit table slug"
-            saving={savingField === "name"}
-            inputClassName="font-mono"
-            displayClassName="font-mono min-w-0 break-all"
-            onSave={commitSlug}
-          />
-        ) : (
-          <span className="font-mono min-w-0 break-all">{props.tableName}</span>
-        )}
+        <EditableField
+          value={props.tableName}
+          editLabel="Edit table slug"
+          saving={savingField === "name"}
+          inputClassName="font-mono"
+          displayClassName="font-mono min-w-0 break-all"
+          onSave={commitSlug}
+        />
       </Field>
       <Field label="Table ID">{props.table.id}</Field>
       <Field label="Source paper">
@@ -658,7 +631,6 @@ function renderColumnRange(progress: ColumnProgress | undefined): ReactElement {
 
 function ColumnInfo(props: ColumnInfoProps): ReactElement {
   const navigate = useNavigate();
-  const canEdit = isLoggedIn();
   const [query, setQuery] = useState("");
   const [saving, setSaving] = useState<{
     columnName: string;
@@ -702,10 +674,6 @@ function ColumnInfo(props: ColumnInfoProps): ReactElement {
     value: string | null | undefined,
     renderDisplay?: (displayValue: string) => ReactElement,
   ): ReactElement {
-    if (!canEdit) {
-      return renderMetadataDisplay(value, renderDisplay);
-    }
-
     const isSaving =
       saving?.columnName === columnName && saving.field === field;
 
