@@ -619,7 +619,7 @@ export function AdminStructuredUploadPage(): ReactElement {
                     }
                     onClick={() => void handlePreview()}
                   >
-                    {previewing ? "Testing…" : "Test"}
+                    {previewing ? "Previewing…" : "Preview"}
                   </Button>
                 </div>
 
