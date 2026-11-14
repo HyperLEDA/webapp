@@ -238,10 +238,13 @@ function TableColumnsPanel({
     );
   }
 
+  const panelHeight =
+    maxHeight !== null && maxHeight > 0 ? Math.max(maxHeight, 240) : undefined;
+
   return (
     <aside
       className="w-full min-w-0 rounded border border-border bg-surface-2 p-4 flex flex-col gap-3 min-h-0 lg:sticky lg:top-4 overflow-hidden"
-      style={maxHeight !== null ? { maxHeight } : undefined}
+      style={panelHeight !== undefined ? { height: panelHeight } : undefined}
     >
       <div className="shrink-0">
         <h3 className="font-semibold text-primary">Columns</h3>
@@ -256,15 +259,17 @@ function TableColumnsPanel({
         className="w-full shrink-0 bg-surface border border-border rounded px-3 py-2 text-sm text-primary placeholder:text-muted"
       />
 
-      {loading ? <p className="text-sm text-muted">Loading columns…</p> : null}
+      {loading ? (
+        <p className="text-sm text-muted shrink-0">Loading columns…</p>
+      ) : null}
       {error ? (
-        <p className="text-sm text-danger" role="alert">
+        <p className="text-sm text-danger shrink-0" role="alert">
           {error}
         </p>
       ) : null}
 
       {!loading && !error ? (
-        <ul className="overflow-y-auto divide-y divide-border -mx-1 min-h-0">
+        <ul className="flex-1 overflow-y-auto divide-y divide-border -mx-1 min-h-0">
           {filtered.length === 0 ? (
             <li className="px-1 py-3 text-sm text-muted">
               No matching columns.
@@ -280,10 +285,7 @@ function TableColumnsPanel({
                 >
                   {column.name}
                   {copiedName === column.name ? (
-                    <MdCheck
-                      aria-hidden
-                      className="size-3.5 text-accent"
-                    />
+                    <MdCheck aria-hidden className="size-3.5 text-accent" />
                   ) : (
                     <MdContentCopy
                       aria-hidden
@@ -437,9 +439,9 @@ export function AdminStructuredUploadPage(): ReactElement {
     }
     const observer = new ResizeObserver((entries) => {
       const entry = entries[0];
-      setFormHeight(
-        entry.borderBoxSize[0]?.blockSize ?? entry.contentRect.height,
-      );
+      const box = entry.borderBoxSize;
+      const size = Array.isArray(box) ? box[0] : box;
+      setFormHeight(size?.blockSize ?? entry.contentRect.height);
     });
     observer.observe(form);
     return () => {
