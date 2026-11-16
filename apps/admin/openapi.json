@@ -1,0 +1,3882 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "HyperLEDA API",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/admin/api/v1/table/data": {
+      "post": {
+        "summary": "Add new data to the table",
+        "description": "Inserts new data to the table.\nDeduplicates rows based on their contents.\nIf two rows were identical this method will only insert the last one.",
+        "operationId": "add_data",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddDataRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIOkResponse_AddDataResponse_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/api/v1/source": {
+      "post": {
+        "summary": "New internal source entry",
+        "description": "Creates new source entry in the database for internal communication and unpublished articles.",
+        "operationId": "create_source",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSourceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIOkResponse_CreateSourceResponse_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/api/v1/table": {
+      "post": {
+        "summary": "Get or create schema for the table.",
+        "description": "Creates new schema for the table which can later be used to upload data.\n**Important**: If the table with the specified name already exists, returns the ID of the\npreviously created table without altering its schema. The bibliography for the provided\nbibcode may still be created or updated.",
+        "operationId": "create_table",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTableRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIOkResponse_CreateTableResponse_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Retrieve table information",
+        "description": "Fetches details about a specific table using the provided table name",
+        "operationId": "get_table",
+        "parameters": [
+          {
+            "name": "table_name",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Table Name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIOkResponse_GetTableResponse_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Patch table schema",
+        "description": "Patches the schema of the table.\n\nOnly provided fields will be updated; omitted fields will remain unchanged.\n\n**Example 1**: Update column metadata (UCD and unit):\n```json\n{\n    \"table_name\": \"my_table\",\n    \"columns\": {\n        \"ra\": {\n            \"ucd\": \"pos.eq.ra\",\n            \"unit\": \"hourangle\"\n        },\n        \"dec\": {\n            \"ucd\": \"pos.eq.dec\",\n            \"unit\": \"deg\"\n        }\n    }\n}\n```\n\n**Example 2**: Add a column description:\n```json\n{\n    \"table_name\": \"my_table\",\n    \"columns\": {\n        \"vmag\": {\n            \"description\": \"Visual magnitude in the V band\"\n        }\n    }\n}\n```\n\n**Example 3**: Change the table description:\n```json\n{\n    \"table_name\": \"my_table\",\n    \"description\": \"Photometric catalog from Smith et al.\"\n}\n```\n\n**Example 4**: Change the table datatype:\n```json\n{\n    \"table_name\": \"my_table\",\n    \"datatype\": \"preliminary\"\n}\n```\n\n**Example 5**: Rename the table (updates `layer0.tables` and the physical `rawdata` relation):\n```json\n{\n    \"table_name\": \"my_table\",\n    \"new_table_name\": \"my_table_v2\"\n}\n```",
+        "operationId": "patch_table",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchTableRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIOkResponse_PatchTableResponse_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/api/v1/tables": {
+      "get": {
+        "summary": "List tables",
+        "description": "Returns a paginated list of tables matching the search query by name or description",
+        "operationId": "get_table_list",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Query"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 25,
+              "title": "Page Size"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "statuses",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/TableStatus"
+              },
+              "title": "Statuses"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIOkResponse_GetTableListResponse_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/api/v1/catalogs": {
+      "get": {
+        "summary": "List layer 1 catalog structures",
+        "description": "Returns the writable column structure of every layer 1 catalog.",
+        "operationId": "get_catalogs",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIOkResponse_GetCatalogsResponse_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/api/v1/records": {
+      "get": {
+        "summary": "List records",
+        "description": "Returns a paginated list of records for a table with their original data.",
+        "operationId": "get_records",
+        "parameters": [
+          {
+            "name": "table_name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Table Name"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 25,
+              "title": "Page Size"
+            }
+          },
+          {
+            "name": "pgc",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Pgc"
+            }
+          },
+          {
+            "name": "record_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Record Id"
+            }
+          },
+          {
+            "name": "upload_status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/UploadStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Upload Status"
+            }
+          },
+          {
+            "name": "triage_status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/CrossmatchTriageStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Triage Status"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIOkResponse_GetRecordsResponse_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/api/v1/records/crossmatch": {
+      "post": {
+        "summary": "Set crossmatch results",
+        "description": "Bulk write crossmatch results. Each entry contains only the fields needed for that status (no nulls).\nAt least one status block must be present.\n\n**Example 1 \u2013 minimal (all new objects):**\n```json\n{\n  \"statuses\": {\n    \"new\": { \"record_ids\": [\"uuid-1\", \"uuid-2\"] }\n  }\n}\n```\n\n**Example 2 \u2013 mixed statuses:**\n```json\n{\n  \"statuses\": {\n    \"new\": { \"record_ids\": [\"uuid-1\", \"uuid-2\"] },\n    \"existing\": { \"record_ids\": [\"uuid-3\"], \"pgcs\": [42] },\n    \"collided\": {\n      \"record_ids\": [\"uuid-4\"],\n      \"possible_matches\": [[40, 41, 42]],\n      \"triage_statuses\": [\"resolved\"]\n    }\n  }\n}\n```",
+        "operationId": "set_crossmatch_results",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetCrossmatchResultsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIOkResponse_SetCrossmatchResultsResponse_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/api/v1/records/pgcs": {
+      "post": {
+        "summary": "Assign PGCs to records",
+        "description": "Assigns PGC numbers to records. Provide exactly one of:\n\n- `record_ids`: finalize from resolved crossmatch metadata. Each record must already have\n  `POST /v1/records/crossmatch` results with `triage_status = resolved`. Only fills null\n  `records.pgc`. Pending or collided rows are rejected. All-or-nothing.\n- `assignments`: explicit `{record_id, pgc}` mappings. Overwrites existing assignments.\n  Non-null target PGCs must already exist. Null `pgc` values mint one shared new PGC\n  for all such records in the request. No crossmatch precondition.",
+        "operationId": "assign_record_pgcs",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignRecordPgcsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIOkResponse_AssignRecordPgcsResponse_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/api/v1/pgc/merge": {
+      "post": {
+        "summary": "Merge PGC objects",
+        "description": "Reassigns all layer0 records from one or more source PGCs to a target PGC.\nSource PGC identifiers themselves are not removed.",
+        "operationId": "merge_pgcs",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MergePgcsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIOkResponse_MergePgcsResponse_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/api/v1/data/structured": {
+      "post": {
+        "summary": "Write structured data to layer 1",
+        "description": "Bulk write columnar data into a layer 1 catalog table. Records are identified by\ninternal HyperLEDA IDs (must already be registered there). Use `catalog` to target `icrs`,\n`designation`, or `redshift`. Column names and units are given once; `data` is a 2D array of rows.\nFor every column that has unit metadata in the database, the request must include that column in\n`units`.\n\n**Example 1 \u2013 designation (no units):**\n```json\n{\n  \"catalog\": \"designation\",\n  \"columns\": [\"design\"],\n  \"units\": {},\n  \"ids\": [\"uuid-1\", \"uuid-2\"],\n  \"data\": [[\"NGC 1234\"], [\"NGC 5678\"]]\n}\n```\n\n**Example 2 \u2013 ICRS (with units, values in degrees):**\n```json\n{\n  \"catalog\": \"icrs\",\n  \"columns\": [\"ra\", \"dec\", \"e_ra\", \"e_dec\"],\n  \"units\": {\"ra\": \"deg\", \"dec\": \"deg\", \"e_ra\": \"deg\", \"e_dec\": \"deg\"},\n  \"ids\": [\"uuid-1\"],\n  \"data\": [[100.0, 20.0, 0.5, 0.5]]\n}\n```",
+        "operationId": "save_structured_data",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveStructuredDataRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIOkResponse_SaveStructuredDataResponse_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/api/v1/data/structured/upload": {
+      "post": {
+        "summary": "Start structured catalog upload",
+        "description": "Start a Prefect task to upload data from a layer 0 table into a layer 1 catalog.",
+        "operationId": "start_structured_upload",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartStructuredUploadRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIOkResponse_StartStructuredUploadResponse_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/api/v1/data/structured/preview": {
+      "post": {
+        "summary": "Preview structured catalog upload",
+        "description": "Evaluate catalog field expressions on a sample of rows of a layer 0 table without writing anything.\nSyntax errors and missing columns are reported per field in `errors`; other fields are still evaluated.",
+        "operationId": "preview_structured_upload",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreviewStructuredUploadRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIOkResponse_PreviewStructuredUploadResponse_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/api/v1/tap/sync": {
+      "get": {
+        "summary": "Execute an arbitrary SQL query (TAP /sync).",
+        "description": "Runs a read-only SQL query and returns a VOTable-like JSON payload.",
+        "operationId": "tap_sync",
+        "parameters": [
+          {
+            "name": "request",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/TAPRequestKind",
+              "default": "doQuery"
+            }
+          },
+          {
+            "name": "lang",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/TAPLang",
+              "default": "PostgreSQL"
+            }
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "SQL query to execute",
+              "title": "Query"
+            },
+            "description": "SQL query to execute"
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/TAPFormat",
+              "default": "json"
+            }
+          },
+          {
+            "name": "maxrec",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 1,
+              "default": 50,
+              "title": "Maxrec"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIOkResponse_TAPSyncResponse_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/api/v1/references": {
+      "get": {
+        "summary": "List editable reference tables",
+        "description": "Returns metadata for allowlisted reference tables used to render admin forms.",
+        "operationId": "list_references",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIOkResponse_ListReferencesResponse_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/api/v1/references/{schema}/{table}/rows": {
+      "get": {
+        "summary": "List reference table rows",
+        "description": "Returns paginated rows from an allowlisted reference table.",
+        "operationId": "list_reference_rows",
+        "parameters": [
+          {
+            "name": "schema",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Schema"
+            }
+          },
+          {
+            "name": "table",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Table"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 25,
+              "title": "Page Size"
+            }
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Query"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIOkResponse_ListReferenceRowsResponse_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a reference table row",
+        "description": "Creates a row in an allowlisted reference table.",
+        "operationId": "create_reference_row",
+        "parameters": [
+          {
+            "name": "schema",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Schema"
+            }
+          },
+          {
+            "name": "table",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Table"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateReferenceRowRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIOkResponse_CreateReferenceRowResponse_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update a reference table row",
+        "description": "Partially updates a row in an allowlisted reference table.",
+        "operationId": "patch_reference_row",
+        "parameters": [
+          {
+            "name": "schema",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Schema"
+            }
+          },
+          {
+            "name": "table",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Table"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchReferenceRowRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIOkResponse_PatchReferenceRowResponse_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/api/v1/references/{schema}/{table}/fields/{field}/options": {
+      "get": {
+        "summary": "List reference field options",
+        "description": "Returns paginated options for a foreign-key reference field.",
+        "operationId": "list_reference_field_options",
+        "parameters": [
+          {
+            "name": "schema",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Schema"
+            }
+          },
+          {
+            "name": "table",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Table"
+            }
+          },
+          {
+            "name": "field",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Field"
+            }
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Query"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 25,
+              "title": "Page Size"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIOkResponse_ListReferenceFieldOptionsResponse_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ping": {
+      "get": {
+        "summary": "Check that service is up and running",
+        "operationId": "_lambda__ping_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "APIOkResponse_AddDataResponse_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/AddDataResponse"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "APIOkResponse[AddDataResponse]"
+      },
+      "APIOkResponse_AssignRecordPgcsResponse_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/AssignRecordPgcsResponse"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "APIOkResponse[AssignRecordPgcsResponse]"
+      },
+      "APIOkResponse_CreateReferenceRowResponse_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CreateReferenceRowResponse"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "APIOkResponse[CreateReferenceRowResponse]"
+      },
+      "APIOkResponse_CreateSourceResponse_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CreateSourceResponse"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "APIOkResponse[CreateSourceResponse]"
+      },
+      "APIOkResponse_CreateTableResponse_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CreateTableResponse"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "APIOkResponse[CreateTableResponse]"
+      },
+      "APIOkResponse_GetCatalogsResponse_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/GetCatalogsResponse"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "APIOkResponse[GetCatalogsResponse]"
+      },
+      "APIOkResponse_GetRecordsResponse_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/GetRecordsResponse"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "APIOkResponse[GetRecordsResponse]"
+      },
+      "APIOkResponse_GetTableListResponse_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/GetTableListResponse"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "APIOkResponse[GetTableListResponse]"
+      },
+      "APIOkResponse_GetTableResponse_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/GetTableResponse"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "APIOkResponse[GetTableResponse]"
+      },
+      "APIOkResponse_ListReferenceFieldOptionsResponse_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ListReferenceFieldOptionsResponse"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "APIOkResponse[ListReferenceFieldOptionsResponse]"
+      },
+      "APIOkResponse_ListReferenceRowsResponse_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ListReferenceRowsResponse"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "APIOkResponse[ListReferenceRowsResponse]"
+      },
+      "APIOkResponse_ListReferencesResponse_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ListReferencesResponse"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "APIOkResponse[ListReferencesResponse]"
+      },
+      "APIOkResponse_MergePgcsResponse_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/MergePgcsResponse"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "APIOkResponse[MergePgcsResponse]"
+      },
+      "APIOkResponse_PatchReferenceRowResponse_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/PatchReferenceRowResponse"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "APIOkResponse[PatchReferenceRowResponse]"
+      },
+      "APIOkResponse_PatchTableResponse_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/PatchTableResponse"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "APIOkResponse[PatchTableResponse]"
+      },
+      "APIOkResponse_PreviewStructuredUploadResponse_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/PreviewStructuredUploadResponse"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "APIOkResponse[PreviewStructuredUploadResponse]"
+      },
+      "APIOkResponse_SaveStructuredDataResponse_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SaveStructuredDataResponse"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "APIOkResponse[SaveStructuredDataResponse]"
+      },
+      "APIOkResponse_SetCrossmatchResultsResponse_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SetCrossmatchResultsResponse"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "APIOkResponse[SetCrossmatchResultsResponse]"
+      },
+      "APIOkResponse_StartStructuredUploadResponse_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/StartStructuredUploadResponse"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "APIOkResponse[StartStructuredUploadResponse]"
+      },
+      "APIOkResponse_TAPSyncResponse_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/TAPSyncResponse"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "APIOkResponse[TAPSyncResponse]"
+      },
+      "AddDataRequest": {
+        "properties": {
+          "action_description": {
+            "type": "string",
+            "title": "Action Description",
+            "description": "Description of the script/run with input parameters (e.g. table name, column name, etc).",
+            "default": ""
+          },
+          "table_name": {
+            "type": "string",
+            "title": "Table Name"
+          },
+          "data": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Data",
+            "description": "Actual data to append. \nKeys in this dictionary must be a subset of the columns in the table. If not specified, column will be set to NULL.\nNaN and NULL are considered to be the same thing.",
+            "examples": [
+              [
+                {
+                  "dec": 41.269,
+                  "name": "M 31",
+                  "ra": 0.7123
+                },
+                {
+                  "dec": 30.6602,
+                  "name": "M 33",
+                  "ra": 1.5641
+                }
+              ]
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "table_name",
+          "data"
+        ],
+        "title": "AddDataRequest"
+      },
+      "AddDataResponse": {
+        "properties": {},
+        "type": "object",
+        "title": "AddDataResponse"
+      },
+      "AssignRecordPgcsRequest": {
+        "properties": {
+          "action_description": {
+            "type": "string",
+            "title": "Action Description",
+            "description": "Description of the script/run with input parameters (e.g. table name, column name, etc).",
+            "default": ""
+          },
+          "record_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Record Ids"
+          },
+          "assignments": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/RecordPgcAssignment"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assignments"
+          }
+        },
+        "type": "object",
+        "title": "AssignRecordPgcsRequest"
+      },
+      "AssignRecordPgcsResponse": {
+        "properties": {},
+        "type": "object",
+        "title": "AssignRecordPgcsResponse"
+      },
+      "Bibliography": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "authors": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Authors"
+          },
+          "year": {
+            "type": "integer",
+            "title": "Year"
+          },
+          "bibcode": {
+            "type": "string",
+            "title": "Bibcode"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "authors",
+          "year",
+          "bibcode"
+        ],
+        "title": "Bibliography"
+      },
+      "CatalogField": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "data_type": {
+            "$ref": "#/components/schemas/DatatypeEnum"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "required": {
+            "type": "boolean",
+            "title": "Required",
+            "default": true
+          },
+          "ucd": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ucd"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "data_type"
+        ],
+        "title": "CatalogField"
+      },
+      "CatalogProgress": {
+        "properties": {
+          "structured": {
+            "type": "integer",
+            "title": "Structured"
+          }
+        },
+        "type": "object",
+        "required": [
+          "structured"
+        ],
+        "title": "CatalogProgress"
+      },
+      "CatalogSchema": {
+        "properties": {
+          "catalog": {
+            "type": "string",
+            "title": "Catalog"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "fields": {
+            "items": {
+              "$ref": "#/components/schemas/CatalogField"
+            },
+            "type": "array",
+            "title": "Fields"
+          }
+        },
+        "type": "object",
+        "required": [
+          "catalog",
+          "title",
+          "description",
+          "fields"
+        ],
+        "title": "CatalogSchema"
+      },
+      "CollidedStatusPayload": {
+        "properties": {
+          "record_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Record Ids"
+          },
+          "possible_matches": {
+            "items": {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            "type": "array",
+            "title": "Possible Matches"
+          },
+          "triage_statuses": {
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/RecordTriageStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Triage Statuses",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "record_ids",
+          "possible_matches"
+        ],
+        "title": "CollidedStatusPayload"
+      },
+      "ColumnDescription": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "data_type": {
+            "$ref": "#/components/schemas/DatatypeEnum"
+          },
+          "ucd": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ucd"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "data_type"
+        ],
+        "title": "ColumnDescription"
+      },
+      "ColumnProgress": {
+        "properties": {
+          "non_null_count": {
+            "type": "integer",
+            "title": "Non Null Count"
+          },
+          "min": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min"
+          },
+          "max": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max"
+          }
+        },
+        "type": "object",
+        "required": [
+          "non_null_count"
+        ],
+        "title": "ColumnProgress"
+      },
+      "CreateReferenceRowRequest": {
+        "properties": {
+          "row": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                },
+                {
+                  "items": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "type": "array"
+                },
+                {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Row"
+          },
+          "action_description": {
+            "type": "string",
+            "title": "Action Description",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "row"
+        ],
+        "title": "CreateReferenceRowRequest"
+      },
+      "CreateReferenceRowResponse": {
+        "properties": {},
+        "type": "object",
+        "title": "CreateReferenceRowResponse"
+      },
+      "CreateSourceRequest": {
+        "properties": {
+          "action_description": {
+            "type": "string",
+            "title": "Action Description",
+            "description": "Description of the script/run with input parameters (e.g. table name, column name, etc).",
+            "default": ""
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "authors": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Authors",
+            "examples": [
+              [
+                "Ivanov V.",
+                "Johnson H."
+              ]
+            ]
+          },
+          "year": {
+            "type": "integer",
+            "title": "Year",
+            "examples": [
+              2006
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "authors",
+          "year"
+        ],
+        "title": "CreateSourceRequest"
+      },
+      "CreateSourceResponse": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code"
+        ],
+        "title": "CreateSourceResponse"
+      },
+      "CreateTableRequest": {
+        "properties": {
+          "action_description": {
+            "type": "string",
+            "title": "Action Description",
+            "description": "Description of the script/run with input parameters (e.g. table name, column name, etc).",
+            "default": ""
+          },
+          "table_name": {
+            "type": "string",
+            "title": "Table Name"
+          },
+          "columns": {
+            "items": {
+              "$ref": "#/components/schemas/ColumnDescription"
+            },
+            "type": "array",
+            "title": "Columns",
+            "description": "List of columns in the table",
+            "examples": [
+              [
+                {
+                  "data_type": "str",
+                  "name": "name",
+                  "ucd": "meta.id"
+                },
+                {
+                  "data_type": "float",
+                  "name": "ra",
+                  "ucd": "pos.eq.ra",
+                  "unit": "hourangle"
+                },
+                {
+                  "data_type": "float",
+                  "name": "dec",
+                  "ucd": "pos.eq.dec",
+                  "unit": "deg"
+                }
+              ]
+            ]
+          },
+          "bibcode": {
+            "type": "string",
+            "title": "Bibcode",
+            "description": "ADS bibcode of the article that published the data (or code of the internal communication)",
+            "examples": [
+              "2024PDU....4601628D"
+            ]
+          },
+          "datatype": {
+            "$ref": "#/components/schemas/DataType"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "description": "Human-readable description of the table"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note",
+            "description": "Longer free-form textual note about the table"
+          }
+        },
+        "type": "object",
+        "required": [
+          "table_name",
+          "columns",
+          "bibcode",
+          "datatype",
+          "description"
+        ],
+        "title": "CreateTableRequest"
+      },
+      "CreateTableResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "title": "CreateTableResponse"
+      },
+      "CrossmatchTriageStatus": {
+        "type": "string",
+        "enum": [
+          "unprocessed",
+          "pending",
+          "resolved"
+        ],
+        "title": "CrossmatchTriageStatus"
+      },
+      "DataType": {
+        "type": "string",
+        "enum": [
+          "regular",
+          "reprocessing",
+          "preliminary",
+          "compilation"
+        ],
+        "title": "DataType"
+      },
+      "DatatypeEnum": {
+        "type": "string",
+        "enum": [
+          "str",
+          "string",
+          "character varying",
+          "text",
+          "character",
+          "char",
+          "short",
+          "int",
+          "long",
+          "integer",
+          "smallint",
+          "float",
+          "double",
+          "double precision",
+          "real",
+          "timestamp without time zone",
+          "boolean",
+          "json",
+          "array",
+          "unsignedLong",
+          "unsignedInt",
+          "unsignedShort",
+          "unsignedByte",
+          "positiveInteger",
+          "number"
+        ],
+        "title": "DatatypeEnum"
+      },
+      "ExistingStatusPayload": {
+        "properties": {
+          "record_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Record Ids"
+          },
+          "pgcs": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Pgcs"
+          },
+          "triage_statuses": {
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/RecordTriageStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Triage Statuses",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "record_ids",
+          "pgcs"
+        ],
+        "title": "ExistingStatusPayload"
+      },
+      "GetCatalogsResponse": {
+        "properties": {
+          "catalogs": {
+            "items": {
+              "$ref": "#/components/schemas/CatalogSchema"
+            },
+            "type": "array",
+            "title": "Catalogs"
+          }
+        },
+        "type": "object",
+        "required": [
+          "catalogs"
+        ],
+        "title": "GetCatalogsResponse"
+      },
+      "GetRecordsResponse": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/components/schemas/Record"
+            },
+            "type": "array",
+            "title": "Records"
+          },
+          "schema": {
+            "$ref": "#/components/schemas/RecordSchema"
+          }
+        },
+        "type": "object",
+        "required": [
+          "records",
+          "schema"
+        ],
+        "title": "GetRecordsResponse"
+      },
+      "GetTableListResponse": {
+        "properties": {
+          "tables": {
+            "items": {
+              "$ref": "#/components/schemas/TableListItem"
+            },
+            "type": "array",
+            "title": "Tables"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tables"
+        ],
+        "title": "GetTableListResponse"
+      },
+      "GetTableResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "column_info": {
+            "items": {
+              "$ref": "#/components/schemas/ColumnDescription"
+            },
+            "type": "array",
+            "title": "Column Info"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Meta"
+          },
+          "bibliography": {
+            "$ref": "#/components/schemas/Bibliography"
+          },
+          "progress": {
+            "$ref": "#/components/schemas/TableProgress"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "description",
+          "column_info",
+          "meta",
+          "bibliography",
+          "progress"
+        ],
+        "title": "GetTableResponse"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "ListReferenceFieldOptionsResponse": {
+        "properties": {
+          "field": {
+            "type": "string",
+            "title": "Field"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ReferenceFieldOption"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "page_size": {
+            "type": "integer",
+            "title": "Page Size"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "field",
+          "items",
+          "page",
+          "page_size",
+          "total"
+        ],
+        "title": "ListReferenceFieldOptionsResponse"
+      },
+      "ListReferenceRowsResponse": {
+        "properties": {
+          "schema": {
+            "type": "string",
+            "title": "Schema"
+          },
+          "table": {
+            "type": "string",
+            "title": "Table"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ReferenceRowItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "page_size": {
+            "type": "integer",
+            "title": "Page Size"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "schema",
+          "table",
+          "items",
+          "page",
+          "page_size",
+          "total"
+        ],
+        "title": "ListReferenceRowsResponse"
+      },
+      "ListReferencesResponse": {
+        "properties": {
+          "references": {
+            "items": {
+              "$ref": "#/components/schemas/ReferenceResourceDescriptor"
+            },
+            "type": "array",
+            "title": "References"
+          }
+        },
+        "type": "object",
+        "required": [
+          "references"
+        ],
+        "title": "ListReferencesResponse"
+      },
+      "MergePgcsRequest": {
+        "properties": {
+          "action_description": {
+            "type": "string",
+            "title": "Action Description",
+            "description": "Description of the script/run with input parameters (e.g. table name, column name, etc).",
+            "default": ""
+          },
+          "target_pgc": {
+            "type": "integer",
+            "title": "Target Pgc"
+          },
+          "source_pgcs": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Source Pgcs"
+          }
+        },
+        "type": "object",
+        "required": [
+          "target_pgc",
+          "source_pgcs"
+        ],
+        "title": "MergePgcsRequest"
+      },
+      "MergePgcsResponse": {
+        "properties": {
+          "target_pgc": {
+            "type": "integer",
+            "title": "Target Pgc"
+          },
+          "merged_pgcs": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Merged Pgcs"
+          },
+          "reassigned_records": {
+            "type": "integer",
+            "title": "Reassigned Records"
+          }
+        },
+        "type": "object",
+        "required": [
+          "target_pgc",
+          "merged_pgcs",
+          "reassigned_records"
+        ],
+        "title": "MergePgcsResponse"
+      },
+      "NewStatusPayload": {
+        "properties": {
+          "record_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Record Ids"
+          },
+          "triage_statuses": {
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/RecordTriageStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Triage Statuses",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "record_ids"
+        ],
+        "title": "NewStatusPayload"
+      },
+      "PatchColumnSpec": {
+        "properties": {
+          "ucd": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ucd"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          }
+        },
+        "type": "object",
+        "title": "PatchColumnSpec"
+      },
+      "PatchReferenceRowRequest": {
+        "properties": {
+          "key": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                },
+                {
+                  "items": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "type": "array"
+                },
+                {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Key"
+          },
+          "changes": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                },
+                {
+                  "items": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "type": "array"
+                },
+                {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Changes"
+          },
+          "action_description": {
+            "type": "string",
+            "title": "Action Description",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "changes"
+        ],
+        "title": "PatchReferenceRowRequest"
+      },
+      "PatchReferenceRowResponse": {
+        "properties": {},
+        "type": "object",
+        "title": "PatchReferenceRowResponse"
+      },
+      "PatchTableRequest": {
+        "properties": {
+          "action_description": {
+            "type": "string",
+            "title": "Action Description",
+            "description": "Description of the script/run with input parameters (e.g. table name, column name, etc).",
+            "default": ""
+          },
+          "table_name": {
+            "type": "string",
+            "title": "Table Name"
+          },
+          "new_table_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "New Table Name",
+            "description": "When set, renames the table."
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "description": "When set, replaces the human-readable description of the table"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note",
+            "description": "When set, replaces the longer free-form note about the table"
+          },
+          "datatype": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DataType"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "When set, replaces the table datatype."
+          },
+          "status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TableStatus"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "When set, replaces the table status."
+          },
+          "columns": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/PatchColumnSpec"
+            },
+            "type": "object",
+            "title": "Columns",
+            "default": {}
+          }
+        },
+        "type": "object",
+        "required": [
+          "table_name"
+        ],
+        "title": "PatchTableRequest"
+      },
+      "PatchTableResponse": {
+        "properties": {},
+        "type": "object",
+        "title": "PatchTableResponse"
+      },
+      "PreviewFieldError": {
+        "properties": {
+          "field": {
+            "type": "string",
+            "title": "Field"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "record_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Record Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "field",
+          "message"
+        ],
+        "title": "PreviewFieldError"
+      },
+      "PreviewRow": {
+        "properties": {
+          "record_id": {
+            "type": "string",
+            "title": "Record Id"
+          },
+          "inputs": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Inputs"
+          },
+          "outputs": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Outputs"
+          },
+          "skipped_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Skipped Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "record_id",
+          "inputs",
+          "outputs"
+        ],
+        "title": "PreviewRow"
+      },
+      "PreviewStructuredUploadRequest": {
+        "properties": {
+          "catalog": {
+            "type": "string",
+            "title": "Catalog"
+          },
+          "table_name": {
+            "type": "string",
+            "title": "Table Name"
+          },
+          "expressions": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Expressions"
+          },
+          "row_filter": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Row Filter"
+          },
+          "limit": {
+            "type": "integer",
+            "maximum": 200.0,
+            "minimum": 1.0,
+            "title": "Limit",
+            "default": 20
+          }
+        },
+        "type": "object",
+        "required": [
+          "catalog",
+          "table_name",
+          "expressions"
+        ],
+        "title": "PreviewStructuredUploadRequest"
+      },
+      "PreviewStructuredUploadResponse": {
+        "properties": {
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/PreviewRow"
+            },
+            "type": "array",
+            "title": "Rows"
+          },
+          "errors": {
+            "items": {
+              "$ref": "#/components/schemas/PreviewFieldError"
+            },
+            "type": "array",
+            "title": "Errors"
+          },
+          "eligible_count": {
+            "type": "integer",
+            "title": "Eligible Count"
+          },
+          "total_count": {
+            "type": "integer",
+            "title": "Total Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "rows",
+          "errors",
+          "eligible_count",
+          "total_count"
+        ],
+        "title": "PreviewStructuredUploadResponse"
+      },
+      "Record": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "table_name": {
+            "type": "string",
+            "title": "Table Name"
+          },
+          "original_data": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Original Data"
+          },
+          "pgc": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pgc"
+          },
+          "crossmatch": {
+            "$ref": "#/components/schemas/RecordCrossmatchInfo"
+          },
+          "catalogs": {
+            "$ref": "#/components/schemas/RecordCatalogValues"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "table_name",
+          "original_data",
+          "pgc",
+          "crossmatch",
+          "catalogs"
+        ],
+        "title": "Record"
+      },
+      "RecordCatalogSchema": {
+        "properties": {
+          "designation": {
+            "$ref": "#/components/schemas/RecordDesignationCatalogSchema"
+          },
+          "icrs": {
+            "$ref": "#/components/schemas/RecordICRSCatalogSchema"
+          },
+          "redshift": {
+            "$ref": "#/components/schemas/RecordRedshiftCatalogSchema"
+          },
+          "nature": {
+            "$ref": "#/components/schemas/RecordNatureCatalogSchema"
+          }
+        },
+        "type": "object",
+        "required": [
+          "designation",
+          "icrs",
+          "redshift",
+          "nature"
+        ],
+        "title": "RecordCatalogSchema"
+      },
+      "RecordCatalogValues": {
+        "properties": {
+          "designation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RecordDesignationCatalog"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "icrs": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RecordICRSCatalog"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "redshift": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RecordRedshiftCatalog"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "nature": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RecordNatureCatalog"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "designation",
+          "icrs",
+          "redshift",
+          "nature"
+        ],
+        "title": "RecordCatalogValues"
+      },
+      "RecordCrossmatchCandidate": {
+        "properties": {
+          "pgc": {
+            "type": "integer",
+            "title": "Pgc"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pgc"
+        ],
+        "title": "RecordCrossmatchCandidate"
+      },
+      "RecordCrossmatchInfo": {
+        "properties": {
+          "triage_status": {
+            "$ref": "#/components/schemas/CrossmatchTriageStatus"
+          },
+          "candidates": {
+            "items": {
+              "$ref": "#/components/schemas/RecordCrossmatchCandidate"
+            },
+            "type": "array",
+            "title": "Candidates"
+          }
+        },
+        "type": "object",
+        "required": [
+          "triage_status",
+          "candidates"
+        ],
+        "title": "RecordCrossmatchInfo"
+      },
+      "RecordDesignationCatalog": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "RecordDesignationCatalog"
+      },
+      "RecordDesignationCatalogDescriptionSchema": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "RecordDesignationCatalogDescriptionSchema"
+      },
+      "RecordDesignationCatalogSchema": {
+        "properties": {
+          "description": {
+            "$ref": "#/components/schemas/RecordDesignationCatalogDescriptionSchema"
+          }
+        },
+        "type": "object",
+        "required": [
+          "description"
+        ],
+        "title": "RecordDesignationCatalogSchema"
+      },
+      "RecordICRSCatalog": {
+        "properties": {
+          "ra": {
+            "type": "number",
+            "title": "Ra"
+          },
+          "ra_error": {
+            "type": "number",
+            "title": "Ra Error"
+          },
+          "dec": {
+            "type": "number",
+            "title": "Dec"
+          },
+          "dec_error": {
+            "type": "number",
+            "title": "Dec Error"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ra",
+          "ra_error",
+          "dec",
+          "dec_error"
+        ],
+        "title": "RecordICRSCatalog"
+      },
+      "RecordICRSCatalogDescriptionSchema": {
+        "properties": {
+          "ra": {
+            "type": "string",
+            "title": "Ra"
+          },
+          "ra_error": {
+            "type": "string",
+            "title": "Ra Error"
+          },
+          "dec": {
+            "type": "string",
+            "title": "Dec"
+          },
+          "dec_error": {
+            "type": "string",
+            "title": "Dec Error"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ra",
+          "ra_error",
+          "dec",
+          "dec_error"
+        ],
+        "title": "RecordICRSCatalogDescriptionSchema"
+      },
+      "RecordICRSCatalogSchema": {
+        "properties": {
+          "unit": {
+            "$ref": "#/components/schemas/RecordICRSCatalogUnitSchema"
+          },
+          "description": {
+            "$ref": "#/components/schemas/RecordICRSCatalogDescriptionSchema"
+          }
+        },
+        "type": "object",
+        "required": [
+          "unit",
+          "description"
+        ],
+        "title": "RecordICRSCatalogSchema"
+      },
+      "RecordICRSCatalogUnitSchema": {
+        "properties": {
+          "ra": {
+            "type": "string",
+            "title": "Ra"
+          },
+          "ra_error": {
+            "type": "string",
+            "title": "Ra Error"
+          },
+          "dec": {
+            "type": "string",
+            "title": "Dec"
+          },
+          "dec_error": {
+            "type": "string",
+            "title": "Dec Error"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ra",
+          "ra_error",
+          "dec",
+          "dec_error"
+        ],
+        "title": "RecordICRSCatalogUnitSchema"
+      },
+      "RecordNatureCatalog": {
+        "properties": {
+          "type_name": {
+            "type": "string",
+            "title": "Type Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type_name"
+        ],
+        "title": "RecordNatureCatalog"
+      },
+      "RecordNatureCatalogDescriptionSchema": {
+        "properties": {
+          "type_name": {
+            "type": "string",
+            "title": "Type Name"
+          },
+          "types": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Types",
+            "description": "Mapping of type keys to their descriptions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type_name",
+          "types"
+        ],
+        "title": "RecordNatureCatalogDescriptionSchema"
+      },
+      "RecordNatureCatalogSchema": {
+        "properties": {
+          "description": {
+            "$ref": "#/components/schemas/RecordNatureCatalogDescriptionSchema"
+          }
+        },
+        "type": "object",
+        "required": [
+          "description"
+        ],
+        "title": "RecordNatureCatalogSchema"
+      },
+      "RecordOriginalDataSchema": {
+        "properties": {
+          "description": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Description"
+          },
+          "ucd": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Ucd"
+          },
+          "unit": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Unit"
+          }
+        },
+        "type": "object",
+        "required": [
+          "description",
+          "ucd",
+          "unit"
+        ],
+        "title": "RecordOriginalDataSchema"
+      },
+      "RecordPgcAssignment": {
+        "properties": {
+          "record_id": {
+            "type": "string",
+            "title": "Record Id"
+          },
+          "pgc": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pgc"
+          }
+        },
+        "type": "object",
+        "required": [
+          "record_id"
+        ],
+        "title": "RecordPgcAssignment"
+      },
+      "RecordRedshiftCatalog": {
+        "properties": {
+          "z": {
+            "type": "number",
+            "title": "Z"
+          },
+          "z_error": {
+            "type": "number",
+            "title": "Z Error"
+          }
+        },
+        "type": "object",
+        "required": [
+          "z",
+          "z_error"
+        ],
+        "title": "RecordRedshiftCatalog"
+      },
+      "RecordRedshiftCatalogDescriptionSchema": {
+        "properties": {
+          "z": {
+            "type": "string",
+            "title": "Z"
+          },
+          "z_error": {
+            "type": "string",
+            "title": "Z Error"
+          }
+        },
+        "type": "object",
+        "required": [
+          "z",
+          "z_error"
+        ],
+        "title": "RecordRedshiftCatalogDescriptionSchema"
+      },
+      "RecordRedshiftCatalogSchema": {
+        "properties": {
+          "description": {
+            "$ref": "#/components/schemas/RecordRedshiftCatalogDescriptionSchema"
+          }
+        },
+        "type": "object",
+        "required": [
+          "description"
+        ],
+        "title": "RecordRedshiftCatalogSchema"
+      },
+      "RecordSchema": {
+        "properties": {
+          "original_data": {
+            "$ref": "#/components/schemas/RecordOriginalDataSchema"
+          },
+          "catalogs": {
+            "$ref": "#/components/schemas/RecordCatalogSchema"
+          }
+        },
+        "type": "object",
+        "required": [
+          "original_data",
+          "catalogs"
+        ],
+        "title": "RecordSchema"
+      },
+      "RecordTriageStatus": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "resolved"
+        ],
+        "title": "RecordTriageStatus"
+      },
+      "ReferenceFieldDescriptor": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "data_type": {
+            "$ref": "#/components/schemas/DatatypeEnum"
+          },
+          "items_data_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DatatypeEnum"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "required": {
+            "type": "boolean",
+            "title": "Required"
+          },
+          "nullable": {
+            "type": "boolean",
+            "title": "Nullable"
+          },
+          "input": {
+            "$ref": "#/components/schemas/ReferenceInput"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "data_type",
+          "required",
+          "nullable",
+          "input"
+        ],
+        "title": "ReferenceFieldDescriptor"
+      },
+      "ReferenceFieldOption": {
+        "properties": {
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          }
+        },
+        "type": "object",
+        "required": [
+          "value",
+          "label"
+        ],
+        "title": "ReferenceFieldOption"
+      },
+      "ReferenceInput": {
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/ReferenceInputKind"
+          },
+          "options": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ReferenceSelectOption"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Options"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind"
+        ],
+        "title": "ReferenceInput"
+      },
+      "ReferenceInputKind": {
+        "type": "string",
+        "enum": [
+          "text",
+          "number",
+          "textarea",
+          "json",
+          "select",
+          "reference"
+        ],
+        "title": "ReferenceInputKind"
+      },
+      "ReferenceResourceDescriptor": {
+        "properties": {
+          "schema": {
+            "type": "string",
+            "title": "Schema"
+          },
+          "table": {
+            "type": "string",
+            "title": "Table"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "fields": {
+            "items": {
+              "$ref": "#/components/schemas/ReferenceFieldDescriptor"
+            },
+            "type": "array",
+            "title": "Fields"
+          }
+        },
+        "type": "object",
+        "required": [
+          "schema",
+          "table",
+          "fields"
+        ],
+        "title": "ReferenceResourceDescriptor"
+      },
+      "ReferenceRowItem": {
+        "properties": {
+          "key": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                },
+                {
+                  "items": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "type": "array"
+                },
+                {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Key"
+          },
+          "row": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                },
+                {
+                  "items": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "type": "array"
+                },
+                {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Row"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "row"
+        ],
+        "title": "ReferenceRowItem"
+      },
+      "ReferenceSelectOption": {
+        "properties": {
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          }
+        },
+        "type": "object",
+        "required": [
+          "value",
+          "label"
+        ],
+        "title": "ReferenceSelectOption"
+      },
+      "SaveStructuredDataRequest": {
+        "properties": {
+          "action_description": {
+            "type": "string",
+            "title": "Action Description",
+            "description": "Description of the script/run with input parameters (e.g. table name, column name, etc).",
+            "default": ""
+          },
+          "catalog": {
+            "type": "string",
+            "title": "Catalog"
+          },
+          "columns": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Columns"
+          },
+          "units": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Units",
+            "default": {}
+          },
+          "ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Ids"
+          },
+          "data": {
+            "items": {
+              "items": {},
+              "type": "array"
+            },
+            "type": "array",
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "catalog",
+          "columns",
+          "ids",
+          "data"
+        ],
+        "title": "SaveStructuredDataRequest"
+      },
+      "SaveStructuredDataResponse": {
+        "properties": {},
+        "type": "object",
+        "title": "SaveStructuredDataResponse"
+      },
+      "SetCrossmatchResultsRequest": {
+        "properties": {
+          "action_description": {
+            "type": "string",
+            "title": "Action Description",
+            "description": "Description of the script/run with input parameters (e.g. table name, column name, etc).",
+            "default": ""
+          },
+          "statuses": {
+            "$ref": "#/components/schemas/StatusesPayload"
+          }
+        },
+        "type": "object",
+        "required": [
+          "statuses"
+        ],
+        "title": "SetCrossmatchResultsRequest"
+      },
+      "SetCrossmatchResultsResponse": {
+        "properties": {},
+        "type": "object",
+        "title": "SetCrossmatchResultsResponse"
+      },
+      "StartStructuredUploadRequest": {
+        "properties": {
+          "action_description": {
+            "type": "string",
+            "title": "Action Description",
+            "description": "Description of the script/run with input parameters (e.g. table name, column name, etc).",
+            "default": ""
+          },
+          "catalog": {
+            "type": "string",
+            "title": "Catalog"
+          },
+          "params": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Params"
+          }
+        },
+        "type": "object",
+        "required": [
+          "catalog",
+          "params"
+        ],
+        "title": "StartStructuredUploadRequest"
+      },
+      "StartStructuredUploadResponse": {
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "title": "Task Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "task_id"
+        ],
+        "title": "StartStructuredUploadResponse"
+      },
+      "StatusesPayload": {
+        "properties": {
+          "new": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NewStatusPayload"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "existing": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ExistingStatusPayload"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "collided": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CollidedStatusPayload"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "StatusesPayload"
+      },
+      "TAPFormat": {
+        "type": "string",
+        "enum": [
+          "json"
+        ],
+        "title": "TAPFormat"
+      },
+      "TAPLang": {
+        "type": "string",
+        "enum": [
+          "PostgreSQL"
+        ],
+        "title": "TAPLang"
+      },
+      "TAPRequestKind": {
+        "type": "string",
+        "enum": [
+          "doQuery"
+        ],
+        "title": "TAPRequestKind"
+      },
+      "TAPSyncResponse": {
+        "properties": {
+          "resource": {
+            "$ref": "#/components/schemas/TAPVOTableResource"
+          }
+        },
+        "type": "object",
+        "required": [
+          "resource"
+        ],
+        "title": "TAPSyncResponse"
+      },
+      "TAPVOTableColumn": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "datatype": {
+            "type": "string",
+            "title": "Datatype"
+          },
+          "arraysize": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Arraysize"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "datatype"
+        ],
+        "title": "TAPVOTableColumn"
+      },
+      "TAPVOTableResource": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "default": "TAP Sync Result"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "table": {
+            "$ref": "#/components/schemas/TAPVOTableTable"
+          }
+        },
+        "type": "object",
+        "required": [
+          "table"
+        ],
+        "title": "TAPVOTableResource"
+      },
+      "TAPVOTableTable": {
+        "properties": {
+          "columns": {
+            "items": {
+              "$ref": "#/components/schemas/TAPVOTableColumn"
+            },
+            "type": "array",
+            "title": "Columns"
+          },
+          "data": {
+            "items": {
+              "items": {},
+              "type": "array"
+            },
+            "type": "array",
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "columns",
+          "data"
+        ],
+        "title": "TAPVOTableTable"
+      },
+      "TableListItem": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "num_entries": {
+            "type": "integer",
+            "title": "Num Entries"
+          },
+          "num_fields": {
+            "type": "integer",
+            "title": "Num Fields"
+          },
+          "modification_dt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Modification Dt"
+          },
+          "bibcode": {
+            "type": "string",
+            "title": "Bibcode"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TableStatus"
+          },
+          "progress": {
+            "$ref": "#/components/schemas/TableProgress"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "description",
+          "num_entries",
+          "num_fields",
+          "modification_dt",
+          "bibcode",
+          "status",
+          "progress"
+        ],
+        "title": "TableListItem"
+      },
+      "TableProgress": {
+        "properties": {
+          "total_records": {
+            "type": "integer",
+            "title": "Total Records"
+          },
+          "unprocessed": {
+            "type": "integer",
+            "title": "Unprocessed"
+          },
+          "pending_triage": {
+            "type": "integer",
+            "title": "Pending Triage"
+          },
+          "resolved_unsubmitted": {
+            "type": "integer",
+            "title": "Resolved Unsubmitted"
+          },
+          "submitted": {
+            "type": "integer",
+            "title": "Submitted"
+          },
+          "catalogs": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/CatalogProgress"
+            },
+            "type": "object",
+            "title": "Catalogs"
+          },
+          "columns": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ColumnProgress"
+            },
+            "type": "object",
+            "title": "Columns"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_records",
+          "unprocessed",
+          "pending_triage",
+          "resolved_unsubmitted",
+          "submitted",
+          "catalogs"
+        ],
+        "title": "TableProgress"
+      },
+      "TableStatus": {
+        "type": "string",
+        "enum": [
+          "initiated",
+          "archived"
+        ],
+        "title": "TableStatus"
+      },
+      "UploadStatus": {
+        "type": "string",
+        "enum": [
+          "uploaded",
+          "pending"
+        ],
+        "title": "UploadStatus"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}
