@@ -40,6 +40,7 @@ interface StructuredUploadDraft {
   expressions: Record<string, string>;
   write: boolean;
   batchSize: number;
+  rowFilter: string;
 }
 
 function readDraft(): StructuredUploadDraft | null {
@@ -74,6 +75,7 @@ function readDraft(): StructuredUploadDraft | null {
       batchSize: Number.isFinite(draft.batchSize)
         ? Number(draft.batchSize)
         : DEFAULT_BATCH_SIZE,
+      rowFilter: String(draft.rowFilter || ""),
     };
   } catch {
     window.localStorage.removeItem(DRAFT_STORAGE_KEY);
@@ -108,11 +110,13 @@ function buildUploadParams(
   expressions: Map<string, string>,
   write: boolean,
   batchSize: number,
+  rowFilter: string,
 ): StartStructuredUploadRequest["params"] {
   const params: StartStructuredUploadRequest["params"] = {
     table_name: tableName.trim(),
     write,
     batch_size: batchSize,
+    row_filter: rowFilter.trim(),
   };
   for (const field of schema.fields) {
     params[field.name] = expressions.get(field.name) ?? "";
@@ -258,10 +262,15 @@ export function AdminStructuredUploadPage(): ReactElement {
   );
   const [write, setWrite] = useState(true);
   const [batchSize, setBatchSize] = useState(DEFAULT_BATCH_SIZE);
+  const [rowFilter, setRowFilter] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [previewing, setPreviewing] = useState(false);
   const [previewRows, setPreviewRows] = useState<PreviewRow[] | null>(null);
+  const [previewCounts, setPreviewCounts] = useState<{
+    eligible: number;
+    total: number;
+  } | null>(null);
   const [previewFields, setPreviewFields] = useState<string[]>([]);
   const [previewErrors, setPreviewErrors] = useState(
     () => new Map<string, string>(),
@@ -271,6 +280,7 @@ export function AdminStructuredUploadPage(): ReactElement {
 
   function clearPreview(): void {
     setPreviewRows(null);
+    setPreviewCounts(null);
     setPreviewFields([]);
     setPreviewErrors(new Map());
   }
@@ -306,6 +316,7 @@ export function AdminStructuredUploadPage(): ReactElement {
             setTableName(draft.tableName);
             setWrite(draft.write);
             setBatchSize(draft.batchSize || DEFAULT_BATCH_SIZE);
+            setRowFilter(draft.rowFilter);
             setExpressions(
               new Map(
                 catalog.fields.map((field) => [
@@ -356,12 +367,21 @@ export function AdminStructuredUploadPage(): ReactElement {
         expressions: Object.fromEntries(expressions),
         write,
         batchSize,
+        rowFilter,
       });
     }, DRAFT_SAVE_DEBOUNCE_MS);
     return () => {
       clearTimeout(timer);
     };
-  }, [draftReady, selectedCatalog, tableName, expressions, write, batchSize]);
+  }, [
+    draftReady,
+    selectedCatalog,
+    tableName,
+    expressions,
+    write,
+    batchSize,
+    rowFilter,
+  ]);
 
   useEffect(() => {
     const trimmed = tableName.trim();
@@ -439,12 +459,15 @@ export function AdminStructuredUploadPage(): ReactElement {
           catalog: schema.catalog,
           table_name: tableName.trim(),
           expressions: sent,
+          row_filter: rowFilter.trim() || null,
         },
       });
       if (response.error) {
         throw new Error(describeUnknownError(response.error));
       }
-      const { rows, errors } = response.data.data;
+      const data = response.data.data;
+      const rows = data.rows;
+      const errors = data.errors;
       setPreviewErrors(
         new Map(
           errors.map((error) => [
@@ -461,6 +484,10 @@ export function AdminStructuredUploadPage(): ReactElement {
         return;
       }
       setPreviewFields(Object.keys(sent));
+      setPreviewCounts({
+        eligible: data.eligible_count,
+        total: data.total_count,
+      });
       setPreviewRows(rows);
       requestAnimationFrame(() => {
         previewRef.current?.scrollIntoView({
@@ -512,6 +539,7 @@ export function AdminStructuredUploadPage(): ReactElement {
             expressions,
             write,
             batchSize,
+            rowFilter,
           ),
           action_description: `structured upload ${schema.catalog} from ${tableName.trim()}`,
         },
@@ -576,6 +604,25 @@ export function AdminStructuredUploadPage(): ReactElement {
                   setSubmitError(null);
                   clearPreview();
                 }}
+              />
+            </div>
+
+            <div>
+              <label htmlFor="row_filter" className="block mb-1 text-subtle">
+                Row filter
+              </label>
+              <input
+                id="row_filter"
+                type="text"
+                value={rowFilter}
+                disabled={submitting}
+                placeholder="Empty is no filter"
+                onChange={(event) => {
+                  setRowFilter(event.target.value);
+                  setSubmitError(null);
+                  clearPreview();
+                }}
+                className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-primary"
               />
             </div>
 
@@ -696,9 +743,14 @@ export function AdminStructuredUploadPage(): ReactElement {
         </div>
       ) : null}
 
-      {previewRows ? (
+      {previewRows && previewCounts ? (
         <div ref={previewRef}>
-          <StructuredUploadPreview rows={previewRows} fields={previewFields} />
+          <StructuredUploadPreview
+            rows={previewRows}
+            fields={previewFields}
+            eligibleCount={previewCounts.eligible}
+            totalCount={previewCounts.total}
+          />
         </div>
       ) : null}
     </div>
