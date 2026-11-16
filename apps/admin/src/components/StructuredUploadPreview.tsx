@@ -5,9 +5,13 @@ import type { PreviewRow } from "../clients/admin";
 export function StructuredUploadPreview({
   rows,
   fields,
+  eligibleCount,
+  totalCount,
 }: {
   rows: PreviewRow[];
   fields: string[];
+  eligibleCount: number;
+  totalCount: number;
 }): ReactElement {
   const inputColumns = [
     ...new Set(rows.flatMap((row) => Object.keys(row.inputs))),
@@ -16,6 +20,9 @@ export function StructuredUploadPreview({
   return (
     <section className="mt-8 w-full min-w-0">
       <h3 className="font-semibold text-primary mb-2">Preview</h3>
+      <p className="text-sm text-muted mb-2">
+        {eligibleCount} / {totalCount} rows eligible
+      </p>
       {rows.length === 0 ? (
         <p className="text-sm text-muted">No rows returned.</p>
       ) : (
