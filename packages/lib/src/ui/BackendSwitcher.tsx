@@ -1,5 +1,5 @@
 import type { ReactElement } from "react";
-import { MdCloud, MdScience } from "react-icons/md";
+import { MdCloud, MdComputer, MdScience } from "react-icons/md";
 import {
   backendEnvironmentLabel,
   nextBackendEnvironment,
@@ -12,6 +12,18 @@ interface BackendSwitcherProps {
   onBeforeSwitch?: () => void;
 }
 
+function backendIcon(
+  environment: ReturnType<typeof readDevBackendEnvironment>,
+) {
+  if (environment === "local") {
+    return <MdComputer size={20} />;
+  }
+  if (environment === "test") {
+    return <MdScience size={20} />;
+  }
+  return <MdCloud size={20} />;
+}
+
 export function BackendSwitcher({
   onBeforeSwitch,
 }: BackendSwitcherProps): ReactElement | null {
@@ -22,12 +34,7 @@ export function BackendSwitcher({
   const currentEnvironment = readDevBackendEnvironment();
   const nextEnvironment = nextBackendEnvironment(currentEnvironment);
   const label = `Backend: ${backendEnvironmentLabel(currentEnvironment)} (click to switch to ${backendEnvironmentLabel(nextEnvironment)})`;
-  const icon =
-    currentEnvironment === "test" ? (
-      <MdScience size={20} />
-    ) : (
-      <MdCloud size={20} />
-    );
+  const icon = backendIcon(currentEnvironment);
 
   function handleSwitch(): void {
     onBeforeSwitch?.();
