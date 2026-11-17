@@ -30,8 +30,11 @@ const DEFAULT_BATCH_SIZE = 10_000;
 const TABLE_LOAD_DEBOUNCE_MS = 300;
 const TABLE_SEARCH_PAGE_SIZE = 20;
 const DRAFT_STORAGE_KEY = "leda.admin.structured-upload.draft";
+const HISTORY_STORAGE_KEY = "leda.admin.structured-upload.history";
 const DRAFT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const DRAFT_SAVE_DEBOUNCE_MS = 300;
+const HISTORY_MAX_ENTRIES = 20;
+const HISTORY_INPUT_TRUNCATE = 28;
 
 interface StructuredUploadDraft {
   savedAt: number;
@@ -42,6 +45,8 @@ interface StructuredUploadDraft {
   batchSize: number;
   rowFilter: string;
 }
+
+type StructuredUploadHistoryEntry = StructuredUploadDraft;
 
 function readDraft(): StructuredUploadDraft | null {
   try {
@@ -90,6 +95,93 @@ function writeDraft(draft: Omit<StructuredUploadDraft, "savedAt">): void {
 
 function clearDraft(): void {
   window.localStorage.removeItem(DRAFT_STORAGE_KEY);
+}
+
+function readHistory(): StructuredUploadHistoryEntry[] {
+  try {
+    const raw = window.localStorage.getItem(HISTORY_STORAGE_KEY);
+    if (!raw) {
+      return [];
+    }
+    // SAFETY: pushHistory is the only writer; malformed entries are dropped below.
+    const parsed = JSON.parse(raw) as StructuredUploadHistoryEntry[];
+    if (!Array.isArray(parsed)) {
+      window.localStorage.removeItem(HISTORY_STORAGE_KEY);
+      return [];
+    }
+    const entries: StructuredUploadHistoryEntry[] = [];
+    for (const entry of parsed) {
+      if (
+        !Number.isFinite(entry.savedAt) ||
+        !entry.catalog ||
+        !entry.tableName
+      ) {
+        continue;
+      }
+      entries.push({
+        savedAt: Number(entry.savedAt),
+        catalog: String(entry.catalog),
+        tableName: String(entry.tableName),
+        expressions:
+          entry.expressions instanceof Object &&
+          !Array.isArray(entry.expressions)
+            ? Object.fromEntries(
+                Object.entries(entry.expressions).map(([key, value]) => [
+                  key,
+                  String(value || ""),
+                ]),
+              )
+            : {},
+        write: entry.write !== false,
+        batchSize: Number.isFinite(entry.batchSize)
+          ? Number(entry.batchSize)
+          : DEFAULT_BATCH_SIZE,
+        rowFilter: String(entry.rowFilter || ""),
+      });
+      if (entries.length >= HISTORY_MAX_ENTRIES) {
+        break;
+      }
+    }
+    return entries;
+  } catch {
+    window.localStorage.removeItem(HISTORY_STORAGE_KEY);
+    return [];
+  }
+}
+
+function pushHistory(
+  entry: Omit<StructuredUploadHistoryEntry, "savedAt">,
+): StructuredUploadHistoryEntry[] {
+  const next: StructuredUploadHistoryEntry[] = [
+    { ...entry, savedAt: Date.now() },
+    ...readHistory(),
+  ].slice(0, HISTORY_MAX_ENTRIES);
+  window.localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(next));
+  return next;
+}
+
+function truncateText(text: string, max: number): string {
+  const trimmed = text.trim();
+  if (trimmed.length <= max) {
+    return trimmed;
+  }
+  return `${trimmed.slice(0, Math.max(0, max - 1))}…`;
+}
+
+function formatHistoryInputs(entry: StructuredUploadHistoryEntry): string {
+  const parts: string[] = [];
+  if (entry.rowFilter.trim()) {
+    parts.push(
+      `filter=${truncateText(entry.rowFilter, HISTORY_INPUT_TRUNCATE)}`,
+    );
+  }
+  for (const [name, value] of Object.entries(entry.expressions)) {
+    if (!value.trim()) {
+      continue;
+    }
+    parts.push(`${name}=${truncateText(value, HISTORY_INPUT_TRUNCATE)}`);
+  }
+  return parts.join(" · ");
 }
 
 function fieldHint(field: CatalogField): string {
@@ -163,6 +255,89 @@ async function loadTableNameOptions(query: string) {
     label: item.name,
     description: item.description,
   }));
+}
+
+function HistoryMenu({
+  history,
+  onSelect,
+}: {
+  history: StructuredUploadHistoryEntry[];
+  onSelect: (entry: StructuredUploadHistoryEntry) => void;
+}): ReactElement {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+    function handlePointerDown(event: MouseEvent): void {
+      const target = event.target;
+      // SAFETY: EventTarget from MouseEvent is a Node when dispatched from the document tree.
+      if (!(target instanceof Node) || !rootRef.current?.contains(target)) {
+        setOpen(false);
+      }
+    }
+    function handleKeyDown(event: KeyboardEvent): void {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
+
+  return (
+    <div ref={rootRef} className="relative">
+      <Button
+        type="button"
+        className="bg-transparent! border-border!"
+        aria-expanded={open}
+        aria-haspopup="listbox"
+        onClick={() => setOpen((current) => !current)}
+      >
+        History
+      </Button>
+      {open ? (
+        <ul
+          role="listbox"
+          className="absolute right-0 z-20 mt-2 w-[min(28rem,calc(100vw-2rem))] max-h-80 overflow-y-auto rounded border border-border bg-surface-2 shadow-lg"
+        >
+          {history.map((entry) => {
+            const inputs = formatHistoryInputs(entry);
+            return (
+              <li key={`${entry.savedAt}-${entry.catalog}-${entry.tableName}`}>
+                <button
+                  type="button"
+                  role="option"
+                  className="w-full text-left px-3 py-2 hover:bg-surface border-b border-border last:border-b-0"
+                  onClick={() => {
+                    onSelect(entry);
+                    setOpen(false);
+                  }}
+                >
+                  <div className="text-sm text-primary">
+                    {entry.catalog}
+                    <span className="text-muted"> · </span>
+                    {entry.tableName}
+                  </div>
+                  {inputs ? (
+                    <div className="text-[11px] leading-snug text-muted mt-0.5 break-all">
+                      {inputs}
+                    </div>
+                  ) : null}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
+    </div>
+  );
 }
 
 function TableColumnsPanel({
@@ -276,6 +451,7 @@ export function AdminStructuredUploadPage(): ReactElement {
     () => new Map<string, string>(),
   );
   const [draftReady, setDraftReady] = useState(false);
+  const [history, setHistory] = useState<StructuredUploadHistoryEntry[]>([]);
   const previewRef = useRef<HTMLDivElement>(null);
 
   function clearPreview(): void {
@@ -285,8 +461,35 @@ export function AdminStructuredUploadPage(): ReactElement {
     setPreviewErrors(new Map());
   }
 
+  function applyHistoryEntry(entry: StructuredUploadHistoryEntry): void {
+    const catalog = catalogs.find((item) => item.catalog === entry.catalog);
+    if (!catalog) {
+      setSubmitError(`Catalog ${entry.catalog} is no longer available.`);
+      return;
+    }
+    setSelectedCatalog(catalog.catalog);
+    setTableName(entry.tableName);
+    setWrite(entry.write);
+    setBatchSize(entry.batchSize || DEFAULT_BATCH_SIZE);
+    setRowFilter(entry.rowFilter);
+    setExpressions(
+      new Map(
+        catalog.fields.map((field) => [
+          field.name,
+          entry.expressions[field.name] ?? "",
+        ]),
+      ),
+    );
+    setSubmitError(null);
+    clearPreview();
+  }
+
   useEffect(() => {
     document.title = "Structured upload | LEDA";
+  }, []);
+
+  useEffect(() => {
+    setHistory(readHistory());
   }, []);
 
   useEffect(() => {
@@ -548,6 +751,16 @@ export function AdminStructuredUploadPage(): ReactElement {
         throw new Error(describeUnknownError(response.error));
       }
       const taskId = response.data.data.task_id;
+      setHistory(
+        pushHistory({
+          catalog: schema.catalog,
+          tableName: tableName.trim(),
+          expressions: Object.fromEntries(expressions),
+          write,
+          batchSize,
+          rowFilter,
+        }),
+      );
       clearDraft();
       window.location.assign(`${sameEnvTasksOrigin()}/runs/flow-run/${taskId}`);
     } catch (error) {
@@ -558,7 +771,12 @@ export function AdminStructuredUploadPage(): ReactElement {
 
   return (
     <div className="w-full">
-      <h2 className="text-3xl font-bold mb-2">Structured upload</h2>
+      <div className="flex items-start justify-between gap-4 mb-2">
+        <h2 className="text-3xl font-bold">Structured upload</h2>
+        {history.length > 0 ? (
+          <HistoryMenu history={history} onSelect={applyHistoryEntry} />
+        ) : null}
+      </div>
 
       {catalogsLoading ? <p className="text-muted">Loading catalogs…</p> : null}
       {catalogsError ? (

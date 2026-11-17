@@ -9,11 +9,15 @@ declare global {
   }
 }
 
-export type BackendEnvironment = "test" | "prod";
+export type BackendEnvironment = "local" | "test" | "prod";
 
 const DEV_BACKEND_ENV_STORAGE_KEY = "leda.backend-env";
 
 const backendEnvironmentUrls = {
+  local: {
+    backendBaseUrl: "http://localhost:8080",
+    adminBaseUrl: "http://localhost:8080",
+  },
   test: {
     backendBaseUrl: "https://leda.kraysent.dev",
     adminBaseUrl: "https://leda.kraysent.dev",
@@ -25,11 +29,12 @@ const backendEnvironmentUrls = {
 } satisfies Record<BackendEnvironment, AppConfig>;
 
 const backendEnvironmentLabels = {
+  local: "Local",
   test: "Test",
   prod: "Production",
 } satisfies Record<BackendEnvironment, string>;
 
-const backendEnvironmentCycle: BackendEnvironment[] = ["test", "prod"];
+const backendEnvironmentCycle: BackendEnvironment[] = ["local", "test", "prod"];
 
 export function readDevBackendEnvironment(): BackendEnvironment {
   if (!import.meta.env.DEV) {
@@ -37,8 +42,8 @@ export function readDevBackendEnvironment(): BackendEnvironment {
   }
 
   const stored = localStorage.getItem(DEV_BACKEND_ENV_STORAGE_KEY);
-  if (stored === "prod") {
-    return "prod";
+  if (stored === "prod" || stored === "local" || stored === "test") {
+    return stored;
   }
   return "test";
 }
