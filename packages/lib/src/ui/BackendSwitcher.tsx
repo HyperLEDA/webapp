@@ -12,7 +12,9 @@ interface BackendSwitcherProps {
   onBeforeSwitch?: () => void;
 }
 
-function backendIcon(environment: ReturnType<typeof readDevBackendEnvironment>) {
+function backendIcon(
+  environment: ReturnType<typeof readDevBackendEnvironment>,
+) {
   if (environment === "local") {
     return <MdComputer size={20} />;
   }
