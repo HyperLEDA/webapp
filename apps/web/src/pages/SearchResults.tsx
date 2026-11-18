@@ -257,7 +257,7 @@ function SearchResults({
     <div className="space-y-6">
       {skyView ? (
         <SkyViewer
-          backend="wwt"
+          backend="aladin"
           ref={aladinRef}
           ra={skyView.ra}
           dec={skyView.dec}

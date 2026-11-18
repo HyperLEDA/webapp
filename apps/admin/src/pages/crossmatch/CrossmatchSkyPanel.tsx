@@ -142,7 +142,7 @@ export function CrossmatchSkyPanel({
 
       <SkyViewer
         key={selected.record_id}
-        backend="wwt"
+        backend="aladin"
         ra={selected.ra}
         dec={selected.dec}
         fov={fovForRadius(radiusArcsec)}

@@ -474,7 +474,7 @@ export function AdminMergePgcPage(): ReactElement {
 
       {skyView ? (
         <SkyViewer
-          backend="wwt"
+          backend="aladin"
           ra={skyView.ra}
           dec={skyView.dec}
           fov={skyView.fov}

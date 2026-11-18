@@ -63,28 +63,12 @@ function loadAladinScript(): Promise<void> {
 
 const ALADIN_SURVEYS = [
   {
-    label: "DESI Legacy",
-    survey: "CDS/P/DESI-Legacy-Surveys/DR10/color",
-  },
-  {
-    label: "SDSS",
-    survey: "CDS/P/SDSS9/color",
-  },
-  {
-    label: "Pan-STARRS1",
-    survey: "CDS/P/PanSTARRS/DR1/color-i-r-g",
-  },
-  {
     label: "DSS",
-    survey: "CDS/P/DSS2/color",
+    survey: "https://skies.esac.esa.int/DSSColor",
   },
   {
     label: "2MASS",
-    survey: "CDS/P/2MASS/color",
-  },
-  {
-    label: "unWISE",
-    survey: "CDS/P/unWISE/color-W2-W1W2-W1",
+    survey: "https://skies.esac.esa.int/2MASS/Color",
   },
 ] as const;
 

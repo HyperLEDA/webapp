@@ -791,7 +791,7 @@ export function RecordsPage(): ReactElement {
         <div className="mb-4">
           <SkyViewer
             ref={skyViewerRef}
-            backend="wwt"
+            backend="aladin"
             ra={skyView.ra}
             dec={skyView.dec}
             fov={skyView.fov}
