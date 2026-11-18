@@ -11,6 +11,7 @@ export type SkySource = {
   label: string;
   id?: string | number;
   description?: string;
+  color?: string;
 };
 
 export type SkyViewerProps = {

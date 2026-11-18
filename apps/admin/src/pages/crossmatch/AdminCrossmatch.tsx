@@ -12,11 +12,90 @@ import { sameEnvTasksOrigin } from "@leda/lib/origins";
 import { Button } from "@leda/lib/ui";
 import { FieldInput } from "../../components/ui";
 import { CrossmatchPreview } from "./CrossmatchPreview";
+import {
+  CrossmatchSkyPanel,
+  useCrossmatchSkySelection,
+} from "./CrossmatchSkyPanel";
 
 const DEFAULT_RADIUS = 30;
 const DEFAULT_LIMIT = 20;
 const DEFAULT_BATCH_SIZE = 1000;
 const TABLE_SEARCH_PAGE_SIZE = 20;
+const DRAFT_STORAGE_KEY = "leda.admin.crossmatch.draft";
+const DRAFT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const DRAFT_SAVE_DEBOUNCE_MS = 300;
+
+interface CrossmatchDraft {
+  savedAt: number;
+  tableName: string;
+  radius: number;
+  pgcColumn: string;
+  redshiftTolerance: number;
+  limit: number;
+  batchSize: number;
+  printPending: boolean;
+  write: boolean;
+}
+
+function readDraft(): CrossmatchDraft | null {
+  try {
+    const raw = window.localStorage.getItem(DRAFT_STORAGE_KEY);
+    if (!raw) {
+      return null;
+    }
+    // SAFETY: writeDraft is the only writer; savedAt expiry rejects stale or corrupt payloads.
+    const draft = JSON.parse(raw) as CrossmatchDraft;
+    if (
+      !Number.isFinite(draft.savedAt) ||
+      Date.now() - draft.savedAt > DRAFT_TTL_MS
+    ) {
+      window.localStorage.removeItem(DRAFT_STORAGE_KEY);
+      return null;
+    }
+    return {
+      savedAt: draft.savedAt,
+      tableName: String(draft.tableName || ""),
+      radius: Number.isFinite(draft.radius)
+        ? Number(draft.radius)
+        : DEFAULT_RADIUS,
+      pgcColumn: String(draft.pgcColumn || ""),
+      redshiftTolerance: Number.isFinite(draft.redshiftTolerance)
+        ? Number(draft.redshiftTolerance)
+        : 0,
+      limit: Number.isFinite(draft.limit) ? Number(draft.limit) : DEFAULT_LIMIT,
+      batchSize: Number.isFinite(draft.batchSize)
+        ? Number(draft.batchSize)
+        : DEFAULT_BATCH_SIZE,
+      printPending: draft.printPending === true,
+      write: draft.write !== false,
+    };
+  } catch {
+    window.localStorage.removeItem(DRAFT_STORAGE_KEY);
+    return null;
+  }
+}
+
+function writeDraft(draft: Omit<CrossmatchDraft, "savedAt">): void {
+  const payload: CrossmatchDraft = { ...draft, savedAt: Date.now() };
+  window.localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(payload));
+}
+
+function clearDraft(): void {
+  window.localStorage.removeItem(DRAFT_STORAGE_KEY);
+}
+
+function isDefaultDraft(draft: Omit<CrossmatchDraft, "savedAt">): boolean {
+  return (
+    !draft.tableName.trim() &&
+    draft.radius === DEFAULT_RADIUS &&
+    !draft.pgcColumn.trim() &&
+    draft.redshiftTolerance === 0 &&
+    draft.limit === DEFAULT_LIMIT &&
+    draft.batchSize === DEFAULT_BATCH_SIZE &&
+    !draft.printPending &&
+    draft.write
+  );
+}
 
 async function loadTableNameOptions(query: string) {
   const response = await getTableList({
@@ -58,14 +137,22 @@ function buildStartParams(
 }
 
 export function AdminCrossmatchPage(): ReactElement {
-  const [tableName, setTableName] = useState("");
-  const [radius, setRadius] = useState(DEFAULT_RADIUS);
-  const [pgcColumn, setPgcColumn] = useState("");
-  const [redshiftTolerance, setRedshiftTolerance] = useState(0);
-  const [limit, setLimit] = useState(DEFAULT_LIMIT);
-  const [batchSize, setBatchSize] = useState(DEFAULT_BATCH_SIZE);
-  const [printPending, setPrintPending] = useState(false);
-  const [write, setWrite] = useState(true);
+  const [initialDraft] = useState(() => readDraft());
+  const [tableName, setTableName] = useState(initialDraft?.tableName ?? "");
+  const [radius, setRadius] = useState(initialDraft?.radius ?? DEFAULT_RADIUS);
+  const [pgcColumn, setPgcColumn] = useState(initialDraft?.pgcColumn ?? "");
+  const [redshiftTolerance, setRedshiftTolerance] = useState(
+    initialDraft?.redshiftTolerance ?? 0,
+  );
+  const [limit, setLimit] = useState(initialDraft?.limit ?? DEFAULT_LIMIT);
+  const [batchSize, setBatchSize] = useState(
+    initialDraft?.batchSize ?? DEFAULT_BATCH_SIZE,
+  );
+  const [printPending, setPrintPending] = useState(
+    initialDraft?.printPending ?? false,
+  );
+  const [write, setWrite] = useState(initialDraft?.write ?? true);
+  const [draftReady, setDraftReady] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [previewing, setPreviewing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -76,10 +163,52 @@ export function AdminCrossmatchPage(): ReactElement {
     null,
   );
   const previewRef = useRef<HTMLDivElement>(null);
+  const [selectedRecordId, setSelectedRecordId] =
+    useCrossmatchSkySelection(previewRows);
 
   useEffect(() => {
     document.title = "Crossmatch | LEDA";
   }, []);
+
+  useEffect(() => {
+    setDraftReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!draftReady) {
+      return;
+    }
+    const draft = {
+      tableName,
+      radius,
+      pgcColumn,
+      redshiftTolerance,
+      limit,
+      batchSize,
+      printPending,
+      write,
+    };
+    const timer = setTimeout(() => {
+      if (isDefaultDraft(draft)) {
+        clearDraft();
+        return;
+      }
+      writeDraft(draft);
+    }, DRAFT_SAVE_DEBOUNCE_MS);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [
+    draftReady,
+    tableName,
+    radius,
+    pgcColumn,
+    redshiftTolerance,
+    limit,
+    batchSize,
+    printPending,
+    write,
+  ]);
 
   function clearPreview(): void {
     setPreviewRows(null);
@@ -166,6 +295,7 @@ export function AdminCrossmatchPage(): ReactElement {
         throw new Error(describeUnknownError(response.error));
       }
       const taskId = response.data.data.task_id;
+      clearDraft();
       window.location.assign(`${sameEnvTasksOrigin()}/runs/flow-run/${taskId}`);
     } catch (err) {
       setError(formatCaughtError(err));
@@ -177,13 +307,13 @@ export function AdminCrossmatchPage(): ReactElement {
 
   return (
     <div className="w-full">
-      <div className="max-w-3xl">
-        <h2 className="text-3xl font-bold mb-2">Crossmatch</h2>
-        <p className="text-sm text-muted mb-6">
-          Cross-identify records in a layer 0 table against layer 2 objects.
-        </p>
+      <h2 className="text-3xl font-bold mb-2">Crossmatch</h2>
+      <p className="text-sm text-muted mb-6">
+        Cross-identify records in a layer 0 table against layer 2 objects.
+      </p>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start w-full">
+        <form onSubmit={handleSubmit} className="space-y-5 min-w-0 w-full">
           <div>
             <label className="block mb-1 text-subtle">Table name</label>
             <FieldInput
@@ -356,6 +486,13 @@ export function AdminCrossmatchPage(): ReactElement {
             </p>
           ) : null}
         </form>
+
+        <CrossmatchSkyPanel
+          rows={previewRows ?? []}
+          radiusArcsec={radius}
+          selectedRecordId={selectedRecordId}
+          onSelect={setSelectedRecordId}
+        />
       </div>
 
       {previewRows && previewTotalCount !== null ? (
@@ -363,6 +500,7 @@ export function AdminCrossmatchPage(): ReactElement {
           <CrossmatchPreview
             rows={previewRows}
             totalCount={previewTotalCount}
+            onSelectRecord={setSelectedRecordId}
           />
         </div>
       ) : null}

@@ -151,6 +151,7 @@ function drawLabelWithBackground(
 type AladinSourceData = {
   name?: string;
   id?: string | number;
+  color?: string;
   popupTitle?: string;
   popupDesc?: string;
 };
@@ -165,7 +166,13 @@ function drawSourceWithLabel(
   source: AladinCanvasSource,
   ctx: CanvasRenderingContext2D,
 ): void {
-  drawCross(ctx, source.x, source.y, SOURCE_SIZE, "black");
+  drawCross(
+    ctx,
+    source.x,
+    source.y,
+    SOURCE_SIZE,
+    source.data?.color ?? "black",
+  );
 
   const label = source.data?.name;
   if (!label) {
@@ -181,6 +188,7 @@ interface AdditionalSource {
   label: string;
   id?: string | number;
   description?: string;
+  color?: string;
 }
 
 interface AladinViewerProps {
@@ -330,6 +338,7 @@ export const AladinViewer = forwardRef<AladinViewerHandle, AladinViewerProps>(
             const data: AladinSourceData = {
               name: source.label,
               id: source.id,
+              color: source.color,
             };
             if (source.description) {
               descrCatalog.addSources([

@@ -477,7 +477,7 @@ export const WwtViewer = forwardRef<SkyViewerHandle, WwtViewerProps>(
                     />
                     <path
                       d="M1 1 L11 11 M11 1 L1 11"
-                      stroke="#111111"
+                      stroke={source.color ?? "#111111"}
                       strokeWidth="1.75"
                       strokeLinecap="round"
                     />
