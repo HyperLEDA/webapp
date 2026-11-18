@@ -14,6 +14,12 @@ const tasks = [
     description:
       "Start a Prefect task that uploads expression-mapped raw data into a layer 1 catalog.",
   },
+  {
+    to: "/tasks/crossmatch",
+    title: "Crossmatch",
+    description:
+      "Cross-identify records in a layer 0 table against layer 2 objects.",
+  },
 ];
 
 export function AdminPage(): ReactElement {
