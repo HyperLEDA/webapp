@@ -15,7 +15,7 @@ const DEV_BACKEND_ENV_STORAGE_KEY = "leda.backend-env";
 
 const backendEnvironmentUrls = {
   local: {
-    backendBaseUrl: "http://localhost:8080",
+    backendBaseUrl: "http://localhost:8081",
     adminBaseUrl: "http://localhost:8080",
   },
   test: {

@@ -20,6 +20,10 @@ gen:
 	bun run openapi-ts -i http://leda.sao.ru/api/openapi.json -o ./packages/lib/src/clients/backend
 	bun run openapi-ts -i http://leda.sao.ru/admin/api/openapi.json -o ./apps/admin/src/clients/admin
 
+gen-local:
+	bun run openapi-ts -i http://localhost:8081/api/openapi.json -o ./packages/lib/src/clients/backend
+	bun run openapi-ts -i http://localhost:8080/admin/api/openapi.json -o ./apps/admin/src/clients/admin
+
 new-branch:
 	@read -p "Branch name: " branch_name && \
 	branch_name=$${branch_name// /-} && \
