@@ -40,7 +40,7 @@ const AdminStructuredUploadPage = lazy(() =>
   })),
 );
 const AdminCrossmatchPage = lazy(() =>
-  import("./pages/AdminCrossmatch").then((m) => ({
+  import("./pages/crossmatch/AdminCrossmatch").then((m) => ({
     default: m.AdminCrossmatchPage,
   })),
 );
