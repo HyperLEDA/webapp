@@ -1,16 +1,27 @@
 import { ReactElement, MouseEvent } from "react";
 import { MdMyLocation } from "react-icons/md";
 import { Button, CellPrimitive, Column, CommonTable, Link } from "@leda/lib/ui";
-import type { PreviewCrossmatchRow } from "../../clients/admin";
+import type {
+  PreviewCrossmatchRow,
+  PreviewCrossmatchStat,
+} from "../../clients/admin";
 import { publicObjectUrl } from "../../origins";
-import { crossmatchOutcomeLabel } from "./outcome";
 
-const columns: Column[] = [
+const previewColumns: Column[] = [
   { slug: "locate", label: "" },
   { slug: "designation", label: "designation" },
   { slug: "status", label: "status" },
+  { slug: "triage", label: "triage" },
   { slug: "reason", label: "reason" },
   { slug: "candidates", label: "candidates" },
+];
+
+const statsColumns: Column[] = [
+  { slug: "status", label: "status" },
+  { slug: "triage", label: "triage" },
+  { slug: "reason", label: "reason" },
+  { slug: "count", label: "count" },
+  { slug: "percent", label: "%" },
 ];
 
 function stopRowClick(event: MouseEvent): void {
@@ -78,28 +89,57 @@ function previewTableRows(
         </Link>
       </span>
     ),
-    status: crossmatchOutcomeLabel(row),
+    status: row.status,
+    triage: row.triage,
     reason: row.reason || "—",
     candidates: renderCandidates(row.candidates),
+  }));
+}
+
+function statsTableRows(
+  statistics: PreviewCrossmatchStat[],
+): Record<string, CellPrimitive>[] {
+  return statistics.map((stat) => ({
+    status: stat.status,
+    triage: stat.triage,
+    reason: stat.reason || "—",
+    count: String(stat.count),
+    percent: `${stat.percent}%`,
   }));
 }
 
 export function CrossmatchPreview({
   rows,
   totalCount,
+  sampleCount,
+  statistics,
   onLocate,
 }: {
   rows: PreviewCrossmatchRow[];
   totalCount: number;
+  sampleCount: number;
+  statistics: PreviewCrossmatchStat[];
   onLocate: (recordId: string) => void;
 }): ReactElement {
   return (
-    <section className="mt-8 w-full min-w-0">
-      <CommonTable columns={columns} data={previewTableRows(rows, onLocate)}>
+    <section className="mt-8 w-full min-w-0 space-y-8">
+      <CommonTable columns={statsColumns} data={statsTableRows(statistics)}>
+        <div>
+          <h3 className="font-semibold text-primary mb-1">Statistics</h3>
+          <p className="text-sm text-muted">
+            Based on {sampleCount} of {totalCount} records
+          </p>
+        </div>
+      </CommonTable>
+
+      <CommonTable
+        columns={previewColumns}
+        data={previewTableRows(rows, onLocate)}
+      >
         <div>
           <h3 className="font-semibold text-primary mb-1">Preview</h3>
           <p className="text-sm text-muted">
-            Showing {rows.length} of {totalCount} records
+            Showing {rows.length} random records from the sample above
           </p>
         </div>
       </CommonTable>

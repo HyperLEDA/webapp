@@ -4,6 +4,7 @@ import {
   previewCrossmatch,
   startCrossmatch,
   type PreviewCrossmatchRow,
+  type PreviewCrossmatchStat,
   type StartCrossmatchRequest,
 } from "../../clients/admin";
 import { adminClient } from "../../clients";
@@ -93,6 +94,18 @@ function isDefaultDraft(draft: Omit<CrossmatchDraft, "savedAt">): boolean {
   );
 }
 
+function parseDecimalInput(raw: string): number | null {
+  const normalized = raw.trim().replace(",", ".");
+  if (normalized === "" || normalized === ".") {
+    return 0;
+  }
+  if (!/^\d*\.?\d*$/.test(normalized)) {
+    return null;
+  }
+  const value = Number(normalized);
+  return Number.isFinite(value) ? value : null;
+}
+
 async function loadTableNameOptions(query: string) {
   const response = await getTableList({
     client: adminClient,
@@ -137,9 +150,10 @@ export function AdminCrossmatchPage(): ReactElement {
   const [tableName, setTableName] = useState(initialDraft?.tableName ?? "");
   const [radius, setRadius] = useState(initialDraft?.radius ?? DEFAULT_RADIUS);
   const [pgcColumn, setPgcColumn] = useState(initialDraft?.pgcColumn ?? "");
-  const [redshiftTolerance, setRedshiftTolerance] = useState(
-    initialDraft?.redshiftTolerance ?? 0,
+  const [redshiftToleranceInput, setRedshiftToleranceInput] = useState(
+    String(initialDraft?.redshiftTolerance ?? 0),
   );
+  const redshiftTolerance = parseDecimalInput(redshiftToleranceInput) ?? 0;
   const [batchSize, setBatchSize] = useState(
     initialDraft?.batchSize ?? DEFAULT_BATCH_SIZE,
   );
@@ -157,6 +171,12 @@ export function AdminCrossmatchPage(): ReactElement {
   const [previewTotalCount, setPreviewTotalCount] = useState<number | null>(
     null,
   );
+  const [previewSampleCount, setPreviewSampleCount] = useState<number | null>(
+    null,
+  );
+  const [previewStatistics, setPreviewStatistics] = useState<
+    PreviewCrossmatchStat[] | null
+  >(null);
   const previewRef = useRef<HTMLDivElement>(null);
   const [selectedRecordId, setSelectedRecordId] =
     useCrossmatchSkySelection(previewRows);
@@ -206,6 +226,8 @@ export function AdminCrossmatchPage(): ReactElement {
   function clearPreview(): void {
     setPreviewRows(null);
     setPreviewTotalCount(null);
+    setPreviewSampleCount(null);
+    setPreviewStatistics(null);
   }
 
   async function handlePreview(): Promise<void> {
@@ -238,6 +260,8 @@ export function AdminCrossmatchPage(): ReactElement {
       const data = response.data.data;
       setPreviewRows(data.rows);
       setPreviewTotalCount(data.total_count);
+      setPreviewSampleCount(data.sample_count);
+      setPreviewStatistics(data.statistics);
       requestAnimationFrame(() => {
         previewRef.current?.scrollIntoView({
           behavior: "smooth",
@@ -316,7 +340,6 @@ export function AdminCrossmatchPage(): ReactElement {
               onChange={(next) => {
                 setTableName(next);
                 setError(null);
-                clearPreview();
               }}
             />
           </div>
@@ -336,7 +359,6 @@ export function AdminCrossmatchPage(): ReactElement {
               onChange={(event) => {
                 setRadius(Number(event.target.value) || 0);
                 setError(null);
-                clearPreview();
               }}
               className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-primary"
             />
@@ -355,7 +377,6 @@ export function AdminCrossmatchPage(): ReactElement {
               onChange={(event) => {
                 setPgcColumn(event.target.value);
                 setError(null);
-                clearPreview();
               }}
               className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-primary"
             />
@@ -370,20 +391,23 @@ export function AdminCrossmatchPage(): ReactElement {
             </label>
             <input
               id="redshift_tolerance"
-              type="number"
-              min={0}
-              step="any"
-              value={redshiftTolerance}
+              type="text"
+              inputMode="decimal"
+              lang="en"
+              value={redshiftToleranceInput}
               disabled={busy}
               onChange={(event) => {
-                setRedshiftTolerance(Number(event.target.value) || 0);
+                const next = event.target.value.replace(",", ".");
+                if (parseDecimalInput(next) === null) {
+                  return;
+                }
+                setRedshiftToleranceInput(next);
                 setError(null);
-                clearPreview();
               }}
               className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-primary"
             />
             <p className="text-xs text-muted mt-1">
-              0 disables redshift matching.
+              Absolute Δz; 0 disables redshift matching.
             </p>
           </div>
 
@@ -445,7 +469,17 @@ export function AdminCrossmatchPage(): ReactElement {
               disabled={busy || !tableName.trim()}
               onClick={() => void handlePreview()}
             >
-              {previewing ? "Previewing…" : "Preview"}
+              {previewing ? (
+                <span className="inline-flex items-center gap-2">
+                  <span
+                    className="w-4 h-4 border-2 border-border border-t-accent rounded-full animate-spin"
+                    aria-hidden
+                  />
+                  Loading preview...
+                </span>
+              ) : (
+                "Preview"
+              )}
             </Button>
           </div>
 
@@ -463,11 +497,16 @@ export function AdminCrossmatchPage(): ReactElement {
         />
       </div>
 
-      {previewRows && previewTotalCount !== null ? (
+      {previewRows &&
+      previewTotalCount !== null &&
+      previewSampleCount !== null &&
+      previewStatistics ? (
         <div ref={previewRef}>
           <CrossmatchPreview
             rows={previewRows}
             totalCount={previewTotalCount}
+            sampleCount={previewSampleCount}
+            statistics={previewStatistics}
             onLocate={setSelectedRecordId}
           />
         </div>
