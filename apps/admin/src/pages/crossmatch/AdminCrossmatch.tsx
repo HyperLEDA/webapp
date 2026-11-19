@@ -152,8 +152,6 @@ function buildStartParams(
     redshift_tolerance: includeRedshift ? redshiftTolerance : 0,
     row_filter: rowFilter.trim(),
     batch_size: batchSize,
-    print_pending: false,
-    write: true,
   };
 }
 
@@ -294,6 +292,7 @@ export function AdminCrossmatchPage(): ReactElement {
           pgc_column: includePgc ? pgcColumn.trim() : "",
           redshift_tolerance: includeRedshift ? redshiftTolerance : 0,
           row_filter: rowFilter.trim() || null,
+          batch_size: batchSize,
         },
       });
       if (response.error) {

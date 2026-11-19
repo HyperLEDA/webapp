@@ -9,7 +9,7 @@ const PARAMETER_ORDER: (keyof PreviewCrossmatchParameters)[] = [
   "name",
   "pgc",
   "redshift",
-  "type",
+  "nature",
 ];
 
 export function renderParameterMatches(

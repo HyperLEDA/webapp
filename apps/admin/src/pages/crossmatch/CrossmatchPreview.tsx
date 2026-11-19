@@ -12,9 +12,6 @@ import { renderParameterMatches } from "./parameters";
 const previewColumns: Column[] = [
   { slug: "locate", label: "" },
   { slug: "designation", label: "designation" },
-  { slug: "status", label: "status" },
-  { slug: "triage", label: "triage" },
-  { slug: "parameters", label: "parameters" },
   { slug: "candidates", label: "candidates" },
 ];
 
@@ -83,15 +80,12 @@ function previewTableRows(
         </Link>
       </span>
     ),
-    status: row.status,
-    triage: row.triage,
-    parameters: renderParameterMatches(row.status, row.parameters),
     candidates: renderCandidates(row.candidates),
   }));
 }
 
 function statKey(stat: PreviewCrossmatchStat, index: number): string {
-  return `${stat.status}:${stat.triage}:${index}`;
+  return `${stat.triage}:${stat.status}:${index}`;
 }
 
 function StatAccordionTitle({
@@ -102,12 +96,58 @@ function StatAccordionTitle({
   return (
     <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-primary">
       <span className="font-semibold">{stat.status}</span>
-      <span className="text-subtle">{stat.triage}</span>
       <span>{renderParameterMatches(stat.status, stat.parameters)}</span>
       <span className="text-muted">
         {stat.count} · {stat.percent}%
       </span>
     </span>
+  );
+}
+
+function StatisticsGroup({
+  title,
+  emptyLabel,
+  statistics,
+  sampleCount,
+  onLocate,
+}: {
+  title: string;
+  emptyLabel: string;
+  statistics: PreviewCrossmatchStat[];
+  sampleCount: number;
+  onLocate: (recordId: string) => void;
+}): ReactElement {
+  const count = statistics.reduce((sum, stat) => sum + stat.count, 0);
+  const percent =
+    sampleCount > 0 ? Math.round((1000 * count) / sampleCount) / 10 : 0;
+  return (
+    <div className="space-y-2">
+      <h4 className="font-semibold text-primary">
+        {title}
+        <span className="ml-2 font-normal text-muted">
+          {count} · {percent}%
+        </span>
+      </h4>
+      {statistics.length === 0 ? (
+        <p className="text-sm text-muted">{emptyLabel}</p>
+      ) : (
+        statistics.map((stat, index) => (
+          <Accordion
+            key={statKey(stat, index)}
+            title={<StatAccordionTitle stat={stat} />}
+          >
+            {stat.rows.length === 0 ? (
+              <p className="text-sm text-muted">No example rows</p>
+            ) : (
+              <CommonTable
+                columns={previewColumns}
+                data={previewTableRows(stat.rows, onLocate)}
+              />
+            )}
+          </Accordion>
+        ))
+      )}
+    </div>
   );
 }
 
@@ -128,30 +168,30 @@ export function CrossmatchPreview({
     eligibleCount === totalCount
       ? `${sampleCount} of ${totalCount} records`
       : `${sampleCount} of ${eligibleCount} eligible (${totalCount} total)`;
+  const pending = statistics.filter((stat) => stat.triage === "pending");
+  const resolved = statistics.filter((stat) => stat.triage === "resolved");
   return (
-    <section className="mt-8 w-full min-w-0 space-y-4">
+    <section className="mt-8 w-full min-w-0 space-y-6">
       <div>
         <h3 className="font-semibold text-primary mb-1">Statistics</h3>
         <p className="text-sm text-muted">Based on {scope}</p>
       </div>
 
-      <div className="space-y-2">
-        {statistics.map((stat, index) => (
-          <Accordion
-            key={statKey(stat, index)}
-            title={<StatAccordionTitle stat={stat} />}
-          >
-            {stat.rows.length === 0 ? (
-              <p className="text-sm text-muted">No example rows</p>
-            ) : (
-              <CommonTable
-                columns={previewColumns}
-                data={previewTableRows(stat.rows, onLocate)}
-              />
-            )}
-          </Accordion>
-        ))}
-      </div>
+      <StatisticsGroup
+        title="Pending"
+        emptyLabel="No pending records in the sample"
+        statistics={pending}
+        sampleCount={sampleCount}
+        onLocate={onLocate}
+      />
+
+      <StatisticsGroup
+        title="Resolved"
+        emptyLabel="No resolved records in the sample"
+        statistics={resolved}
+        sampleCount={sampleCount}
+        onLocate={onLocate}
+      />
     </section>
   );
 }
