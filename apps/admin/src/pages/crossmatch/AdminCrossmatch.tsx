@@ -28,12 +28,14 @@ const DRAFT_SAVE_DEBOUNCE_MS = 300;
 interface CrossmatchDraft {
   savedAt: number;
   tableName: string;
+  includePgc: boolean;
+  includeRedshift: boolean;
+  includeNature: boolean;
   radius: number;
   pgcColumn: string;
   redshiftTolerance: number;
+  rowFilter: string;
   batchSize: number;
-  printPending: boolean;
-  write: boolean;
 }
 
 function readDraft(): CrossmatchDraft | null {
@@ -54,6 +56,9 @@ function readDraft(): CrossmatchDraft | null {
     return {
       savedAt: draft.savedAt,
       tableName: String(draft.tableName || ""),
+      includePgc: draft.includePgc === true,
+      includeRedshift: draft.includeRedshift === true,
+      includeNature: draft.includeNature === true,
       radius: Number.isFinite(draft.radius)
         ? Number(draft.radius)
         : DEFAULT_RADIUS,
@@ -61,11 +66,10 @@ function readDraft(): CrossmatchDraft | null {
       redshiftTolerance: Number.isFinite(draft.redshiftTolerance)
         ? Number(draft.redshiftTolerance)
         : 0,
+      rowFilter: String(draft.rowFilter || ""),
       batchSize: Number.isFinite(draft.batchSize)
         ? Number(draft.batchSize)
         : DEFAULT_BATCH_SIZE,
-      printPending: draft.printPending === true,
-      write: draft.write !== false,
     };
   } catch {
     window.localStorage.removeItem(DRAFT_STORAGE_KEY);
@@ -85,12 +89,14 @@ function clearDraft(): void {
 function isDefaultDraft(draft: Omit<CrossmatchDraft, "savedAt">): boolean {
   return (
     !draft.tableName.trim() &&
+    !draft.includePgc &&
+    !draft.includeRedshift &&
+    !draft.includeNature &&
     draft.radius === DEFAULT_RADIUS &&
     !draft.pgcColumn.trim() &&
     draft.redshiftTolerance === 0 &&
-    draft.batchSize === DEFAULT_BATCH_SIZE &&
-    !draft.printPending &&
-    draft.write
+    !draft.rowFilter.trim() &&
+    draft.batchSize === DEFAULT_BATCH_SIZE
   );
 }
 
@@ -127,50 +133,68 @@ async function loadTableNameOptions(query: string) {
 
 function buildStartParams(
   tableName: string,
+  includePgc: boolean,
+  includeRedshift: boolean,
+  includeNature: boolean,
   radius: number,
   pgcColumn: string,
   redshiftTolerance: number,
+  rowFilter: string,
   batchSize: number,
-  printPending: boolean,
-  write: boolean,
 ): StartCrossmatchRequest["params"] {
   return {
     table_name: tableName.trim(),
+    include_pgc: includePgc,
+    include_redshift: includeRedshift,
+    include_nature: includeNature,
     radius,
-    pgc_column: pgcColumn.trim(),
-    redshift_tolerance: redshiftTolerance,
+    pgc_column: includePgc ? pgcColumn.trim() : "",
+    redshift_tolerance: includeRedshift ? redshiftTolerance : 0,
+    row_filter: rowFilter.trim(),
     batch_size: batchSize,
-    print_pending: printPending,
-    write,
+    print_pending: false,
+    write: true,
   };
 }
 
 export function AdminCrossmatchPage(): ReactElement {
   const [initialDraft] = useState(() => readDraft());
   const [tableName, setTableName] = useState(initialDraft?.tableName ?? "");
+  const [includePgc, setIncludePgc] = useState(
+    initialDraft?.includePgc ?? false,
+  );
+  const [includeRedshift, setIncludeRedshift] = useState(
+    initialDraft?.includeRedshift ?? false,
+  );
+  const [includeNature, setIncludeNature] = useState(
+    initialDraft?.includeNature ?? false,
+  );
   const [radius, setRadius] = useState(initialDraft?.radius ?? DEFAULT_RADIUS);
   const [pgcColumn, setPgcColumn] = useState(initialDraft?.pgcColumn ?? "");
   const [redshiftToleranceInput, setRedshiftToleranceInput] = useState(
     String(initialDraft?.redshiftTolerance ?? 0),
   );
   const redshiftTolerance = parseDecimalInput(redshiftToleranceInput) ?? 0;
+  const [rowFilter, setRowFilter] = useState(initialDraft?.rowFilter ?? "");
   const [batchSize, setBatchSize] = useState(
     initialDraft?.batchSize ?? DEFAULT_BATCH_SIZE,
   );
-  const [printPending, setPrintPending] = useState(
-    initialDraft?.printPending ?? false,
-  );
-  const [write, setWrite] = useState(initialDraft?.write ?? true);
   const [draftReady, setDraftReady] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [previewing, setPreviewing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [previewRows, setPreviewRows] = useState<PreviewCrossmatchRow[] | null>(
-    null,
-  );
+  const [previewPendingRows, setPreviewPendingRows] = useState<
+    PreviewCrossmatchRow[] | null
+  >(null);
+  const [previewResolvedRows, setPreviewResolvedRows] = useState<
+    PreviewCrossmatchRow[] | null
+  >(null);
   const [previewTotalCount, setPreviewTotalCount] = useState<number | null>(
     null,
   );
+  const [previewEligibleCount, setPreviewEligibleCount] = useState<
+    number | null
+  >(null);
   const [previewSampleCount, setPreviewSampleCount] = useState<number | null>(
     null,
   );
@@ -178,6 +202,10 @@ export function AdminCrossmatchPage(): ReactElement {
     PreviewCrossmatchStat[] | null
   >(null);
   const previewRef = useRef<HTMLDivElement>(null);
+  const previewRows =
+    previewPendingRows === null || previewResolvedRows === null
+      ? null
+      : [...previewPendingRows, ...previewResolvedRows];
   const [selectedRecordId, setSelectedRecordId] =
     useCrossmatchSkySelection(previewRows);
 
@@ -195,12 +223,14 @@ export function AdminCrossmatchPage(): ReactElement {
     }
     const draft = {
       tableName,
+      includePgc,
+      includeRedshift,
+      includeNature,
       radius,
       pgcColumn,
       redshiftTolerance,
+      rowFilter,
       batchSize,
-      printPending,
-      write,
     };
     const timer = setTimeout(() => {
       if (isDefaultDraft(draft)) {
@@ -215,28 +245,45 @@ export function AdminCrossmatchPage(): ReactElement {
   }, [
     draftReady,
     tableName,
+    includePgc,
+    includeRedshift,
+    includeNature,
     radius,
     pgcColumn,
     redshiftTolerance,
+    rowFilter,
     batchSize,
-    printPending,
-    write,
   ]);
 
   function clearPreview(): void {
-    setPreviewRows(null);
+    setPreviewPendingRows(null);
+    setPreviewResolvedRows(null);
     setPreviewTotalCount(null);
+    setPreviewEligibleCount(null);
     setPreviewSampleCount(null);
     setPreviewStatistics(null);
   }
 
-  async function handlePreview(): Promise<void> {
+  function validateForm(): string | null {
     if (!tableName.trim()) {
-      setError("Table name is required.");
-      return;
+      return "Table name is required.";
     }
     if (!(radius > 0)) {
-      setError("Radius must be greater than 0.");
+      return "Radius must be greater than 0.";
+    }
+    if (includePgc && !pgcColumn.trim()) {
+      return "PGC column is required when using PGC information.";
+    }
+    if (includeRedshift && !(redshiftTolerance > 0)) {
+      return "Redshift tolerance must be greater than 0 when using redshift information.";
+    }
+    return null;
+  }
+
+  async function handlePreview(): Promise<void> {
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
@@ -249,17 +296,23 @@ export function AdminCrossmatchPage(): ReactElement {
         client: adminClient,
         body: {
           table_name: tableName.trim(),
+          include_pgc: includePgc,
+          include_redshift: includeRedshift,
+          include_nature: includeNature,
           radius,
-          pgc_column: pgcColumn.trim(),
-          redshift_tolerance: redshiftTolerance,
+          pgc_column: includePgc ? pgcColumn.trim() : "",
+          redshift_tolerance: includeRedshift ? redshiftTolerance : 0,
+          row_filter: rowFilter.trim() || null,
         },
       });
       if (response.error) {
         throw new Error(describeUnknownError(response.error));
       }
       const data = response.data.data;
-      setPreviewRows(data.rows);
+      setPreviewPendingRows(data.pending_rows);
+      setPreviewResolvedRows(data.resolved_rows);
       setPreviewTotalCount(data.total_count);
+      setPreviewEligibleCount(data.eligible_count);
       setPreviewSampleCount(data.sample_count);
       setPreviewStatistics(data.statistics);
       requestAnimationFrame(() => {
@@ -279,12 +332,9 @@ export function AdminCrossmatchPage(): ReactElement {
     event: FormEvent<HTMLFormElement>,
   ): Promise<void> {
     event.preventDefault();
-    if (!tableName.trim()) {
-      setError("Table name is required.");
-      return;
-    }
-    if (!(radius > 0)) {
-      setError("Radius must be greater than 0.");
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
@@ -297,12 +347,14 @@ export function AdminCrossmatchPage(): ReactElement {
         body: {
           params: buildStartParams(
             tableName,
+            includePgc,
+            includeRedshift,
+            includeNature,
             radius,
             pgcColumn,
             redshiftTolerance,
+            rowFilter,
             batchSize,
-            printPending,
-            write,
           ),
           action_description: `crossmatch ${tableName.trim()} radius=${radius}`,
         },
@@ -345,6 +397,24 @@ export function AdminCrossmatchPage(): ReactElement {
           </div>
 
           <div>
+            <label htmlFor="row_filter" className="block mb-1 text-subtle">
+              Row filter
+            </label>
+            <input
+              id="row_filter"
+              type="text"
+              value={rowFilter}
+              disabled={busy}
+              placeholder="Empty is no filter"
+              onChange={(event) => {
+                setRowFilter(event.target.value);
+                setError(null);
+              }}
+              className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-primary"
+            />
+          </div>
+
+          <div>
             <label htmlFor="radius" className="block mb-1 text-subtle">
               Search radius (arcsec)
             </label>
@@ -364,51 +434,106 @@ export function AdminCrossmatchPage(): ReactElement {
             />
           </div>
 
-          <div>
-            <label htmlFor="pgc_column" className="block mb-1 text-subtle">
-              PGC column
-            </label>
+          <div className="flex items-center gap-2">
             <input
-              id="pgc_column"
-              type="text"
-              value={pgcColumn}
+              id="include_pgc"
+              type="checkbox"
+              checked={includePgc}
               disabled={busy}
-              placeholder="Empty skips PGC matching"
               onChange={(event) => {
-                setPgcColumn(event.target.value);
+                setIncludePgc(event.target.checked);
                 setError(null);
               }}
-              className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-primary"
+              className="rounded border-border"
             />
+            <label htmlFor="include_pgc" className="text-subtle">
+              Use PGC information
+            </label>
           </div>
 
-          <div>
-            <label
-              htmlFor="redshift_tolerance"
-              className="block mb-1 text-subtle"
-            >
-              Redshift tolerance
-            </label>
+          {includePgc ? (
+            <div>
+              <label htmlFor="pgc_column" className="block mb-1 text-subtle">
+                PGC column
+              </label>
+              <input
+                id="pgc_column"
+                type="text"
+                value={pgcColumn}
+                disabled={busy}
+                required
+                placeholder="Raw-table PGC column"
+                onChange={(event) => {
+                  setPgcColumn(event.target.value);
+                  setError(null);
+                }}
+                className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-primary"
+              />
+            </div>
+          ) : null}
+
+          <div className="flex items-center gap-2">
             <input
-              id="redshift_tolerance"
-              type="text"
-              inputMode="decimal"
-              lang="en"
-              value={redshiftToleranceInput}
+              id="include_redshift"
+              type="checkbox"
+              checked={includeRedshift}
               disabled={busy}
               onChange={(event) => {
-                const next = event.target.value.replace(",", ".");
-                if (parseDecimalInput(next) === null) {
-                  return;
-                }
-                setRedshiftToleranceInput(next);
+                setIncludeRedshift(event.target.checked);
                 setError(null);
               }}
-              className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-primary"
+              className="rounded border-border"
             />
-            <p className="text-xs text-muted mt-1">
-              Absolute Δz; 0 disables redshift matching.
-            </p>
+            <label htmlFor="include_redshift" className="text-subtle">
+              Use redshift information
+            </label>
+          </div>
+
+          {includeRedshift ? (
+            <div>
+              <label
+                htmlFor="redshift_tolerance"
+                className="block mb-1 text-subtle"
+              >
+                Redshift tolerance
+              </label>
+              <input
+                id="redshift_tolerance"
+                type="text"
+                inputMode="decimal"
+                lang="en"
+                value={redshiftToleranceInput}
+                disabled={busy}
+                required
+                onChange={(event) => {
+                  const next = event.target.value.replace(",", ".");
+                  if (parseDecimalInput(next) === null) {
+                    return;
+                  }
+                  setRedshiftToleranceInput(next);
+                  setError(null);
+                }}
+                className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-primary"
+              />
+              <p className="text-xs text-muted mt-1">Absolute Δz</p>
+            </div>
+          ) : null}
+
+          <div className="flex items-center gap-2">
+            <input
+              id="include_nature"
+              type="checkbox"
+              checked={includeNature}
+              disabled={busy}
+              onChange={(event) => {
+                setIncludeNature(event.target.checked);
+                setError(null);
+              }}
+              className="rounded border-border"
+            />
+            <label htmlFor="include_nature" className="text-subtle">
+              Use nature information
+            </label>
           </div>
 
           <div>
@@ -429,34 +554,9 @@ export function AdminCrossmatchPage(): ReactElement {
               }}
               className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-primary"
             />
-          </div>
-
-          <div className="flex items-center gap-2">
-            <input
-              id="write"
-              type="checkbox"
-              checked={write}
-              disabled={busy}
-              onChange={(event) => setWrite(event.target.checked)}
-              className="rounded border-border"
-            />
-            <label htmlFor="write" className="text-subtle">
-              Write results into layer0.crossmatch
-            </label>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <input
-              id="print_pending"
-              type="checkbox"
-              checked={printPending}
-              disabled={busy}
-              onChange={(event) => setPrintPending(event.target.checked)}
-              className="rounded border-border"
-            />
-            <label htmlFor="print_pending" className="text-subtle">
-              Log records that need manual check
-            </label>
+            <p className="text-xs text-muted mt-1">
+              How many records are loaded in memory at once
+            </p>
           </div>
 
           <div className="flex items-center gap-2">
@@ -497,14 +597,18 @@ export function AdminCrossmatchPage(): ReactElement {
         />
       </div>
 
-      {previewRows &&
+      {previewPendingRows &&
+      previewResolvedRows &&
       previewTotalCount !== null &&
+      previewEligibleCount !== null &&
       previewSampleCount !== null &&
       previewStatistics ? (
         <div ref={previewRef}>
           <CrossmatchPreview
-            rows={previewRows}
+            pendingRows={previewPendingRows}
+            resolvedRows={previewResolvedRows}
             totalCount={previewTotalCount}
+            eligibleCount={previewEligibleCount}
             sampleCount={previewSampleCount}
             statistics={previewStatistics}
             onLocate={setSelectedRecordId}

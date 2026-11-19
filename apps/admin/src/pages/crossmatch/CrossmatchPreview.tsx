@@ -109,41 +109,77 @@ function statsTableRows(
   }));
 }
 
-export function CrossmatchPreview({
+function PreviewBucket({
+  title,
+  emptyLabel,
   rows,
+  onLocate,
+}: {
+  title: string;
+  emptyLabel: string;
+  rows: PreviewCrossmatchRow[];
+  onLocate: (recordId: string) => void;
+}): ReactElement {
+  return (
+    <CommonTable
+      columns={previewColumns}
+      data={previewTableRows(rows, onLocate)}
+    >
+      <div>
+        <h3 className="font-semibold text-primary mb-1">{title}</h3>
+        <p className="text-sm text-muted">
+          {rows.length === 0
+            ? emptyLabel
+            : `Showing ${rows.length} random records from the sample above`}
+        </p>
+      </div>
+    </CommonTable>
+  );
+}
+
+export function CrossmatchPreview({
+  pendingRows,
+  resolvedRows,
   totalCount,
+  eligibleCount,
   sampleCount,
   statistics,
   onLocate,
 }: {
-  rows: PreviewCrossmatchRow[];
+  pendingRows: PreviewCrossmatchRow[];
+  resolvedRows: PreviewCrossmatchRow[];
   totalCount: number;
+  eligibleCount: number;
   sampleCount: number;
   statistics: PreviewCrossmatchStat[];
   onLocate: (recordId: string) => void;
 }): ReactElement {
+  const scope =
+    eligibleCount === totalCount
+      ? `${sampleCount} of ${totalCount} records`
+      : `${sampleCount} of ${eligibleCount} eligible (${totalCount} total)`;
   return (
     <section className="mt-8 w-full min-w-0 space-y-8">
       <CommonTable columns={statsColumns} data={statsTableRows(statistics)}>
         <div>
           <h3 className="font-semibold text-primary mb-1">Statistics</h3>
-          <p className="text-sm text-muted">
-            Based on {sampleCount} of {totalCount} records
-          </p>
+          <p className="text-sm text-muted">Based on {scope}</p>
         </div>
       </CommonTable>
 
-      <CommonTable
-        columns={previewColumns}
-        data={previewTableRows(rows, onLocate)}
-      >
-        <div>
-          <h3 className="font-semibold text-primary mb-1">Preview</h3>
-          <p className="text-sm text-muted">
-            Showing {rows.length} random records from the sample above
-          </p>
-        </div>
-      </CommonTable>
+      <PreviewBucket
+        title="Pending"
+        emptyLabel="No pending records in the sample"
+        rows={pendingRows}
+        onLocate={onLocate}
+      />
+
+      <PreviewBucket
+        title="Resolved"
+        emptyLabel="No resolved records in the sample"
+        rows={resolvedRows}
+        onLocate={onLocate}
+      />
     </section>
   );
 }

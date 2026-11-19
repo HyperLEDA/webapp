@@ -137,7 +137,7 @@ export function CrossmatchSkyPanel({
   }
 
   return (
-    <aside className="w-full min-w-0 rounded border border-border bg-surface-2 p-4 flex flex-col gap-3 overflow-hidden lg:sticky lg:top-4">
+    <aside className="w-full min-w-0 rounded border border-border bg-surface-2 p-4 flex flex-col gap-3 overflow-hidden">
       <div className="flex flex-wrap gap-3 text-xs text-muted">
         <span className="inline-flex items-center gap-1.5">
           <span
