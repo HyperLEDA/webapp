@@ -6,20 +6,21 @@ import type {
   PreviewCrossmatchStat,
 } from "../../clients/admin";
 import { publicObjectUrl } from "../../origins";
+import { renderParameterMatches } from "./parameters";
 
 const previewColumns: Column[] = [
   { slug: "locate", label: "" },
   { slug: "designation", label: "designation" },
   { slug: "status", label: "status" },
   { slug: "triage", label: "triage" },
-  { slug: "reason", label: "reason" },
+  { slug: "parameters", label: "parameters" },
   { slug: "candidates", label: "candidates" },
 ];
 
 const statsColumns: Column[] = [
   { slug: "status", label: "status" },
   { slug: "triage", label: "triage" },
-  { slug: "reason", label: "reason" },
+  { slug: "parameters", label: "parameters" },
   { slug: "count", label: "count" },
   { slug: "percent", label: "%" },
 ];
@@ -91,7 +92,7 @@ function previewTableRows(
     ),
     status: row.status,
     triage: row.triage,
-    reason: row.reason || "—",
+    parameters: renderParameterMatches(row.status, row.parameters),
     candidates: renderCandidates(row.candidates),
   }));
 }
@@ -102,7 +103,7 @@ function statsTableRows(
   return statistics.map((stat) => ({
     status: stat.status,
     triage: stat.triage,
-    reason: stat.reason || "—",
+    parameters: renderParameterMatches(stat.status, stat.parameters),
     count: String(stat.count),
     percent: `${stat.percent}%`,
   }));
