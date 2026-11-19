@@ -460,7 +460,6 @@ export function AdminCrossmatchPage(): ReactElement {
           rows={previewRows ?? []}
           radiusArcsec={radius}
           selectedRecordId={selectedRecordId}
-          onSelect={setSelectedRecordId}
         />
       </div>
 
@@ -469,7 +468,7 @@ export function AdminCrossmatchPage(): ReactElement {
           <CrossmatchPreview
             rows={previewRows}
             totalCount={previewTotalCount}
-            onSelectRecord={setSelectedRecordId}
+            onLocate={setSelectedRecordId}
           />
         </div>
       ) : null}

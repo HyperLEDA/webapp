@@ -71,12 +71,10 @@ export function CrossmatchSkyPanel({
   rows,
   radiusArcsec,
   selectedRecordId,
-  onSelect,
 }: {
   rows: PreviewCrossmatchRow[];
   radiusArcsec: number;
   selectedRecordId: string | null;
-  onSelect: (recordId: string) => void;
 }): ReactElement {
   const selected =
     rows.find((row) => row.record_id === selectedRecordId) ??
@@ -139,7 +137,7 @@ export function CrossmatchSkyPanel({
   }
 
   return (
-    <aside className="w-full min-w-0 rounded border border-border bg-surface-2 p-4 flex flex-col gap-3 overflow-hidden lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)]">
+    <aside className="w-full min-w-0 rounded border border-border bg-surface-2 p-4 flex flex-col gap-3 overflow-hidden lg:sticky lg:top-4">
       <div className="flex flex-wrap gap-3 text-xs text-muted">
         <span className="inline-flex items-center gap-1.5">
           <span
@@ -174,43 +172,6 @@ export function CrossmatchSkyPanel({
         additionalSources={sources}
         ellipses={searchEllipse}
       />
-
-      <ul className="flex-1 overflow-y-auto divide-y divide-border -mx-1 min-h-0">
-        {rows.map((row) => {
-          const active = row.record_id === selected.record_id;
-          const label = row.designation?.trim() || row.record_id;
-          const outcome = crossmatchOutcomeLabel(row);
-          const hasCoords =
-            row.ra !== null &&
-            row.ra !== undefined &&
-            row.dec !== null &&
-            row.dec !== undefined;
-          return (
-            <li key={row.record_id}>
-              <button
-                type="button"
-                disabled={!hasCoords}
-                onClick={() => onSelect(row.record_id)}
-                className={`w-full text-left px-2 py-2 transition-colors ${
-                  active ? "bg-surface" : "hover:bg-surface/60"
-                } ${hasCoords ? "cursor-pointer" : "opacity-50 cursor-not-allowed"}`}
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-medium text-primary truncate">
-                    {label}
-                  </span>
-                  <span className="text-xs text-muted shrink-0">{outcome}</span>
-                </div>
-                <p className="text-xs text-muted mt-0.5">
-                  {row.candidates.length > 0
-                    ? `candidates ${row.candidates.join(", ")}`
-                    : "No candidates"}
-                </p>
-              </button>
-            </li>
-          );
-        })}
-      </ul>
     </aside>
   );
 }
