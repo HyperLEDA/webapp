@@ -5,6 +5,7 @@ import type {
   PreviewCrossmatchRow,
   PreviewCrossmatchStat,
 } from "../../clients/admin";
+import { Accordion } from "../../components/ui";
 import { publicObjectUrl } from "../../origins";
 import { renderParameterMatches } from "./parameters";
 
@@ -15,14 +16,6 @@ const previewColumns: Column[] = [
   { slug: "triage", label: "triage" },
   { slug: "parameters", label: "parameters" },
   { slug: "candidates", label: "candidates" },
-];
-
-const statsColumns: Column[] = [
-  { slug: "status", label: "status" },
-  { slug: "triage", label: "triage" },
-  { slug: "parameters", label: "parameters" },
-  { slug: "count", label: "count" },
-  { slug: "percent", label: "%" },
 ];
 
 function stopRowClick(event: MouseEvent): void {
@@ -97,57 +90,34 @@ function previewTableRows(
   }));
 }
 
-function statsTableRows(
-  statistics: PreviewCrossmatchStat[],
-): Record<string, CellPrimitive>[] {
-  return statistics.map((stat) => ({
-    status: stat.status,
-    triage: stat.triage,
-    parameters: renderParameterMatches(stat.status, stat.parameters),
-    count: String(stat.count),
-    percent: `${stat.percent}%`,
-  }));
+function statKey(stat: PreviewCrossmatchStat, index: number): string {
+  return `${stat.status}:${stat.triage}:${index}`;
 }
 
-function PreviewBucket({
-  title,
-  emptyLabel,
-  rows,
-  onLocate,
+function StatAccordionTitle({
+  stat,
 }: {
-  title: string;
-  emptyLabel: string;
-  rows: PreviewCrossmatchRow[];
-  onLocate: (recordId: string) => void;
+  stat: PreviewCrossmatchStat;
 }): ReactElement {
   return (
-    <CommonTable
-      columns={previewColumns}
-      data={previewTableRows(rows, onLocate)}
-    >
-      <div>
-        <h3 className="font-semibold text-primary mb-1">{title}</h3>
-        <p className="text-sm text-muted">
-          {rows.length === 0
-            ? emptyLabel
-            : `Showing ${rows.length} random records from the sample above`}
-        </p>
-      </div>
-    </CommonTable>
+    <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-primary">
+      <span className="font-semibold">{stat.status}</span>
+      <span className="text-subtle">{stat.triage}</span>
+      <span>{renderParameterMatches(stat.status, stat.parameters)}</span>
+      <span className="text-muted">
+        {stat.count} · {stat.percent}%
+      </span>
+    </span>
   );
 }
 
 export function CrossmatchPreview({
-  pendingRows,
-  resolvedRows,
   totalCount,
   eligibleCount,
   sampleCount,
   statistics,
   onLocate,
 }: {
-  pendingRows: PreviewCrossmatchRow[];
-  resolvedRows: PreviewCrossmatchRow[];
   totalCount: number;
   eligibleCount: number;
   sampleCount: number;
@@ -159,27 +129,29 @@ export function CrossmatchPreview({
       ? `${sampleCount} of ${totalCount} records`
       : `${sampleCount} of ${eligibleCount} eligible (${totalCount} total)`;
   return (
-    <section className="mt-8 w-full min-w-0 space-y-8">
-      <CommonTable columns={statsColumns} data={statsTableRows(statistics)}>
-        <div>
-          <h3 className="font-semibold text-primary mb-1">Statistics</h3>
-          <p className="text-sm text-muted">Based on {scope}</p>
-        </div>
-      </CommonTable>
+    <section className="mt-8 w-full min-w-0 space-y-4">
+      <div>
+        <h3 className="font-semibold text-primary mb-1">Statistics</h3>
+        <p className="text-sm text-muted">Based on {scope}</p>
+      </div>
 
-      <PreviewBucket
-        title="Pending"
-        emptyLabel="No pending records in the sample"
-        rows={pendingRows}
-        onLocate={onLocate}
-      />
-
-      <PreviewBucket
-        title="Resolved"
-        emptyLabel="No resolved records in the sample"
-        rows={resolvedRows}
-        onLocate={onLocate}
-      />
+      <div className="space-y-2">
+        {statistics.map((stat, index) => (
+          <Accordion
+            key={statKey(stat, index)}
+            title={<StatAccordionTitle stat={stat} />}
+          >
+            {stat.rows.length === 0 ? (
+              <p className="text-sm text-muted">No example rows</p>
+            ) : (
+              <CommonTable
+                columns={previewColumns}
+                data={previewTableRows(stat.rows, onLocate)}
+              />
+            )}
+          </Accordion>
+        ))}
+      </div>
     </section>
   );
 }

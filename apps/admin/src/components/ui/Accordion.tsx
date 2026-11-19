@@ -1,9 +1,9 @@
-import React, { ReactElement, useState } from "react";
+import React, { ReactElement, ReactNode, useState } from "react";
 import { Text } from "@leda/lib/ui";
 
 interface AccordionProps {
-  title: string;
-  description?: string;
+  title: ReactNode;
+  description?: ReactNode;
   children: React.ReactNode;
   defaultOpen?: boolean;
 }
@@ -24,13 +24,21 @@ export function Accordion({
         className="w-full flex items-center justify-between px-4 py-3 text-left cursor-pointer hover:bg-surface-2 rounded-lg transition-colors duration-200 gap-2"
       >
         <span className="flex flex-col items-start gap-0.5 text-left w-full min-w-0">
-          <Text style="header" size="small" as="span">
-            {title}
-          </Text>
-          {description ? (
-            <Text size="small" type="code" as="span">
-              {description}
+          {typeof title === "string" ? (
+            <Text style="header" size="small" as="span">
+              {title}
             </Text>
+          ) : (
+            title
+          )}
+          {description ? (
+            typeof description === "string" ? (
+              <Text size="small" type="code" as="span">
+                {description}
+              </Text>
+            ) : (
+              description
+            )
           ) : null}
         </span>
         <span

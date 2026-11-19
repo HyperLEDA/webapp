@@ -183,12 +183,6 @@ export function AdminCrossmatchPage(): ReactElement {
   const [submitting, setSubmitting] = useState(false);
   const [previewing, setPreviewing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [previewPendingRows, setPreviewPendingRows] = useState<
-    PreviewCrossmatchRow[] | null
-  >(null);
-  const [previewResolvedRows, setPreviewResolvedRows] = useState<
-    PreviewCrossmatchRow[] | null
-  >(null);
   const [previewTotalCount, setPreviewTotalCount] = useState<number | null>(
     null,
   );
@@ -202,10 +196,9 @@ export function AdminCrossmatchPage(): ReactElement {
     PreviewCrossmatchStat[] | null
   >(null);
   const previewRef = useRef<HTMLDivElement>(null);
-  const previewRows =
-    previewPendingRows === null || previewResolvedRows === null
-      ? null
-      : [...previewPendingRows, ...previewResolvedRows];
+  const previewRows: PreviewCrossmatchRow[] | null = previewStatistics
+    ? previewStatistics.flatMap((stat) => stat.rows)
+    : null;
   const [selectedRecordId, setSelectedRecordId] =
     useCrossmatchSkySelection(previewRows);
 
@@ -256,8 +249,6 @@ export function AdminCrossmatchPage(): ReactElement {
   ]);
 
   function clearPreview(): void {
-    setPreviewPendingRows(null);
-    setPreviewResolvedRows(null);
     setPreviewTotalCount(null);
     setPreviewEligibleCount(null);
     setPreviewSampleCount(null);
@@ -309,8 +300,6 @@ export function AdminCrossmatchPage(): ReactElement {
         throw new Error(describeUnknownError(response.error));
       }
       const data = response.data.data;
-      setPreviewPendingRows(data.pending_rows);
-      setPreviewResolvedRows(data.resolved_rows);
       setPreviewTotalCount(data.total_count);
       setPreviewEligibleCount(data.eligible_count);
       setPreviewSampleCount(data.sample_count);
@@ -597,16 +586,12 @@ export function AdminCrossmatchPage(): ReactElement {
         />
       </div>
 
-      {previewPendingRows &&
-      previewResolvedRows &&
-      previewTotalCount !== null &&
+      {previewTotalCount !== null &&
       previewEligibleCount !== null &&
       previewSampleCount !== null &&
       previewStatistics ? (
         <div ref={previewRef}>
           <CrossmatchPreview
-            pendingRows={previewPendingRows}
-            resolvedRows={previewResolvedRows}
             totalCount={previewTotalCount}
             eligibleCount={previewEligibleCount}
             sampleCount={previewSampleCount}
