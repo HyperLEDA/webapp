@@ -1,5 +1,5 @@
 import { ReactElement, useEffect, useMemo, useState } from "react";
-import { SkyViewer, type SkySource } from "@leda/lib/ui";
+import { SkyViewer, type SkyEllipse, type SkySource } from "@leda/lib/ui";
 import type { PreviewCrossmatchRow } from "../../clients/admin";
 import { crossmatchOutcomeLabel, type CrossmatchOutcomeLabel } from "./outcome";
 
@@ -8,6 +8,7 @@ const NEW_COLOR = "#38bdf8";
 const EXISTING_COLOR = "#22c55e";
 const PENDING_COLOR = "#f59e0b";
 const NEIGHBOR_COLOR = "#94a3b8";
+const SEARCH_RADIUS_COLOR = "#38bdf8";
 
 const OUTCOME_COLORS = {
   new: NEW_COLOR,
@@ -51,7 +52,8 @@ function sourcesForRow(row: PreviewCrossmatchRow): SkySource[] {
 }
 
 function fovForRadius(radiusArcsec: number): number {
-  return Math.max(0.01, (radiusArcsec / 3600) * 3);
+  const diameterDeg = (2 * radiusArcsec) / 3600;
+  return Math.max(0.01, diameterDeg * 3);
 }
 
 function firstSkyRowId(rows: PreviewCrossmatchRow[]): string | null {
@@ -91,6 +93,28 @@ export function CrossmatchSkyPanel({
     () => (selected ? sourcesForRow(selected) : []),
     [selected],
   );
+
+  const searchEllipse = useMemo((): SkyEllipse[] => {
+    if (
+      !selected ||
+      selected.ra === null ||
+      selected.ra === undefined ||
+      selected.dec === null ||
+      selected.dec === undefined
+    ) {
+      return [];
+    }
+    const radiusDeg = radiusArcsec / 3600;
+    return [
+      {
+        ra: selected.ra,
+        dec: selected.dec,
+        aDeg: radiusDeg,
+        bDeg: radiusDeg,
+        color: SEARCH_RADIUS_COLOR,
+      },
+    ];
+  }, [radiusArcsec, selected]);
 
   if (rows.length === 0) {
     return (
@@ -146,8 +170,9 @@ export function CrossmatchSkyPanel({
         ra={selected.ra}
         dec={selected.dec}
         fov={fovForRadius(radiusArcsec)}
-        className="w-full aspect-square max-h-[28rem]"
+        className="w-full max-w-[28rem] aspect-square"
         additionalSources={sources}
+        ellipses={searchEllipse}
       />
 
       <ul className="flex-1 overflow-y-auto divide-y divide-border -mx-1 min-h-0">
