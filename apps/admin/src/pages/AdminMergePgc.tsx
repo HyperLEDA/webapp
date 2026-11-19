@@ -6,7 +6,13 @@ import { adminClient } from "../clients";
 import { backendClient } from "@leda/lib/clients";
 import { describeUnknownError } from "@leda/lib/tap";
 import { publicObjectUrl } from "../origins";
-import { SkyViewer, Button, Link, SuggestibleInput } from "@leda/lib/ui";
+import {
+  SkyViewer,
+  Button,
+  Link,
+  Loading,
+  SuggestibleInput,
+} from "@leda/lib/ui";
 import { ObjectSummary } from "../components/ui";
 
 const MIN_ALADIN_FOV_DEG = 0.05;
@@ -269,17 +275,7 @@ function PgcPicker({
       return [];
     }
     if (loading) {
-      return [
-        <div
-          key="loading"
-          className="flex items-center justify-center px-3 py-4"
-        >
-          <div
-            className="w-5 h-5 border-2 border-border border-t-accent rounded-full animate-spin"
-            aria-label="Loading"
-          />
-        </div>,
-      ];
+      return [<Loading key="loading" inline className="w-full px-3 py-4" />];
     }
     if (isPgcNumberInput(value)) {
       return [];

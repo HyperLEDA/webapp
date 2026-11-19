@@ -10,7 +10,7 @@ import {
 import { adminClient } from "../../clients";
 import { describeUnknownError, formatCaughtError } from "@leda/lib/tap";
 import { sameEnvTasksOrigin } from "@leda/lib/origins";
-import { Button } from "@leda/lib/ui";
+import { Button, Loading } from "@leda/lib/ui";
 import { FieldInput } from "../../components/ui";
 import { CrossmatchPreview } from "./CrossmatchPreview";
 import {
@@ -559,13 +559,7 @@ export function AdminCrossmatchPage(): ReactElement {
               onClick={() => void handlePreview()}
             >
               {previewing ? (
-                <span className="inline-flex items-center gap-2">
-                  <span
-                    className="w-4 h-4 border-2 border-border border-t-accent rounded-full animate-spin"
-                    aria-hidden
-                  />
-                  Loading preview...
-                </span>
+                <Loading inline message="Loading preview..." />
               ) : (
                 "Preview"
               )}
