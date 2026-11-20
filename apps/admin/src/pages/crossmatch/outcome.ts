@@ -1,21 +1,18 @@
 import type { PreviewCrossmatchRow } from "../../clients/admin";
 
-export type CrossmatchOutcomeLabel = "new" | "existing" | "pending";
+export type CandidateCountLabel = "0" | "1" | ">1";
 
 export type PreviewSkyRow = PreviewCrossmatchRow & {
   status: string;
   triage: string;
 };
 
-export function crossmatchOutcomeLabel(row: {
-  status: string;
-  triage: string;
-}): CrossmatchOutcomeLabel {
-  if (row.triage === "pending" || row.status === "colliding") {
-    return "pending";
+export function candidateCountLabel(status: string): CandidateCountLabel {
+  if (status === "existing") {
+    return "1";
   }
-  if (row.status === "existing") {
-    return "existing";
+  if (status === "colliding") {
+    return ">1";
   }
-  return "new";
+  return "0";
 }

@@ -1,30 +1,10 @@
 import { ReactElement, useEffect, useMemo, useState } from "react";
 import { SkyViewer, type SkyEllipse, type SkySource } from "@leda/lib/ui";
-import {
-  crossmatchOutcomeLabel,
-  type CrossmatchOutcomeLabel,
-  type PreviewSkyRow,
-} from "./outcome";
+import type { PreviewSkyRow } from "./outcome";
 
 const RECORD_COLOR = "#38bdf8";
-const NEW_COLOR = "#38bdf8";
-const EXISTING_COLOR = "#22c55e";
-const PENDING_COLOR = "#f59e0b";
 const NEIGHBOR_COLOR = "#94a3b8";
 const SEARCH_RADIUS_COLOR = "#38bdf8";
-
-const OUTCOME_COLORS = {
-  new: NEW_COLOR,
-  existing: EXISTING_COLOR,
-  pending: PENDING_COLOR,
-} satisfies Record<CrossmatchOutcomeLabel, string>;
-
-function neighborColor(pgc: number, row: PreviewSkyRow): string {
-  if (!row.candidates.includes(pgc)) {
-    return NEIGHBOR_COLOR;
-  }
-  return OUTCOME_COLORS[crossmatchOutcomeLabel(row)];
-}
 
 function sourcesForRow(row: PreviewSkyRow): SkySource[] {
   const designation = row.designation?.trim();
@@ -47,7 +27,7 @@ function sourcesForRow(row: PreviewSkyRow): SkySource[] {
     dec: neighbor.dec,
     label: neighbor.design?.trim() || `PGC ${neighbor.pgc}`,
     id: neighbor.pgc,
-    color: neighborColor(neighbor.pgc, row),
+    color: NEIGHBOR_COLOR,
     description: `${neighbor.distance_arcsec}"`,
   }));
 
@@ -141,30 +121,6 @@ export function CrossmatchSkyPanel({
 
   return (
     <aside className="w-full min-w-0 rounded border border-border bg-surface-2 p-4 flex flex-col gap-3 overflow-hidden">
-      <div className="flex flex-wrap gap-3 text-xs text-muted">
-        <span className="inline-flex items-center gap-1.5">
-          <span
-            className="inline-block h-2.5 w-2.5 rounded-full"
-            style={{ backgroundColor: NEW_COLOR }}
-          />
-          new
-        </span>
-        <span className="inline-flex items-center gap-1.5">
-          <span
-            className="inline-block h-2.5 w-2.5 rounded-full"
-            style={{ backgroundColor: EXISTING_COLOR }}
-          />
-          existing
-        </span>
-        <span className="inline-flex items-center gap-1.5">
-          <span
-            className="inline-block h-2.5 w-2.5 rounded-full"
-            style={{ backgroundColor: PENDING_COLOR }}
-          />
-          pending
-        </span>
-      </div>
-
       <SkyViewer
         key={selected.record_id}
         backend="aladin"

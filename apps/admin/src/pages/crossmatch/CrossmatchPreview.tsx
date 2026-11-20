@@ -7,6 +7,7 @@ import type {
 } from "../../clients/admin";
 import { Accordion } from "../../components/ui";
 import { publicObjectUrl } from "../../origins";
+import { candidateCountLabel } from "./outcome";
 import { renderParameterMatches } from "./parameters";
 
 const previewColumns: Column[] = [
@@ -93,9 +94,12 @@ function StatAccordionTitle({
 }: {
   stat: PreviewCrossmatchStat;
 }): ReactElement {
+  const count = candidateCountLabel(stat.status);
   return (
     <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-primary">
-      <span className="font-semibold">{stat.status}</span>
+      <span className="font-semibold">
+        {count} {count === "1" ? "candidate" : "candidates"}
+      </span>
       <span>{renderParameterMatches(stat.status, stat.parameters)}</span>
       <span className="text-muted">{stat.percent}%</span>
     </span>
@@ -174,16 +178,16 @@ export function CrossmatchPreview({
       </div>
 
       <StatisticsGroup
-        title="Pending"
-        emptyLabel="No pending records in the sample"
+        title="For manual review"
+        emptyLabel="No records for manual review in the sample"
         statistics={pending}
         sampleCount={sampleCount}
         onLocate={onLocate}
       />
 
       <StatisticsGroup
-        title="Resolved"
-        emptyLabel="No resolved records in the sample"
+        title="Resolved automatically"
+        emptyLabel="No automatically resolved records in the sample"
         statistics={resolved}
         sampleCount={sampleCount}
         onLocate={onLocate}
