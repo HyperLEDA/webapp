@@ -1,4 +1,5 @@
 import { FormEvent, ReactElement, useEffect, useRef, useState } from "react";
+import { MdPlayArrow, MdVisibility } from "react-icons/md";
 import {
   getTableList,
   previewCrossmatch,
@@ -552,19 +553,28 @@ export function AdminCrossmatchPage(): ReactElement {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button type="submit" disabled={busy || !tableName.trim()}>
-              {submitting ? "Starting…" : "Start crossmatch"}
-            </Button>
             <Button
               type="button"
-              className="bg-transparent! border-border!"
               disabled={busy || !tableName.trim()}
               onClick={() => void handlePreview()}
             >
               {previewing ? (
                 <Loading inline message="Loading preview..." />
               ) : (
-                "Preview"
+                <>
+                  <MdVisibility className="w-4 h-4 mr-1" />
+                  Preview
+                </>
+              )}
+            </Button>
+            <Button type="submit" disabled={busy || !tableName.trim()}>
+              {submitting ? (
+                "Starting…"
+              ) : (
+                <>
+                  <MdPlayArrow className="w-4 h-4 mr-1" />
+                  Start
+                </>
               )}
             </Button>
           </div>
