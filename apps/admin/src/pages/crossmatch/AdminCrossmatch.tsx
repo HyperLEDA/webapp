@@ -398,7 +398,7 @@ export function AdminCrossmatchPage(): ReactElement {
               type="text"
               value={rowFilter}
               disabled={busy}
-              placeholder="Empty is no filter"
+              placeholder="mag < 15 AND survey = 'SDSS'"
               onChange={(event) => {
                 setRowFilter(event.target.value);
                 setError(null);
@@ -508,7 +508,10 @@ export function AdminCrossmatchPage(): ReactElement {
                 }}
                 className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-primary"
               />
-              <p className="text-xs text-muted mt-1">Absolute Δz</p>
+              <p className="text-xs text-muted mt-1">
+                Absolute Δz. How much a record&apos;s redshift can deviate from
+                the PGC before it is not considered a match.
+              </p>
             </div>
           ) : null}
 
@@ -563,7 +566,7 @@ export function AdminCrossmatchPage(): ReactElement {
               ) : (
                 <>
                   <MdVisibility className="w-4 h-4 mr-1" />
-                  Preview
+                  Preview a batch
                 </>
               )}
             </Button>

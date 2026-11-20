@@ -97,9 +97,7 @@ function StatAccordionTitle({
     <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-primary">
       <span className="font-semibold">{stat.status}</span>
       <span>{renderParameterMatches(stat.status, stat.parameters)}</span>
-      <span className="text-muted">
-        {stat.count} · {stat.percent}%
-      </span>
+      <span className="text-muted">{stat.percent}%</span>
     </span>
   );
 }
@@ -124,9 +122,7 @@ function StatisticsGroup({
     <div className="space-y-2">
       <h4 className="font-semibold text-primary">
         {title}
-        <span className="ml-2 font-normal text-muted">
-          {count} · {percent}%
-        </span>
+        <span className="ml-2 font-normal text-muted">{percent}%</span>
       </h4>
       {statistics.length === 0 ? (
         <p className="text-sm text-muted">{emptyLabel}</p>
@@ -164,17 +160,17 @@ export function CrossmatchPreview({
   statistics: PreviewCrossmatchStat[];
   onLocate: (recordId: string) => void;
 }): ReactElement {
-  const scope =
-    eligibleCount === totalCount
-      ? `${sampleCount} of ${totalCount} records`
-      : `${sampleCount} of ${eligibleCount} eligible (${totalCount} total)`;
   const pending = statistics.filter((stat) => stat.triage === "pending");
   const resolved = statistics.filter((stat) => stat.triage === "resolved");
   return (
     <section className="mt-8 w-full min-w-0 space-y-6">
       <div>
-        <h3 className="font-semibold text-primary mb-1">Statistics</h3>
-        <p className="text-sm text-muted">Based on {scope}</p>
+        <h3 className="font-semibold text-primary mb-1">Preview results</h3>
+        <p className="text-sm text-muted">
+          Based on a sample of {sampleCount} records. {eligibleCount} records
+          pass row filter. {totalCount} records total. You can expand and see up
+          to 10 examples in each category below.
+        </p>
       </div>
 
       <StatisticsGroup
