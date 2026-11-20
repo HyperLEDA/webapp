@@ -63,28 +63,12 @@ function loadAladinScript(): Promise<void> {
 
 const ALADIN_SURVEYS = [
   {
-    label: "DESI Legacy",
-    survey: "CDS/P/DESI-Legacy-Surveys/DR10/color",
-  },
-  {
-    label: "SDSS",
-    survey: "CDS/P/SDSS9/color",
-  },
-  {
-    label: "Pan-STARRS1",
-    survey: "CDS/P/PanSTARRS/DR1/color-i-r-g",
-  },
-  {
     label: "DSS",
-    survey: "CDS/P/DSS2/color",
+    survey: "https://skies.esac.esa.int/DSSColor",
   },
   {
     label: "2MASS",
-    survey: "CDS/P/2MASS/color",
-  },
-  {
-    label: "unWISE",
-    survey: "CDS/P/unWISE/color-W2-W1W2-W1",
+    survey: "https://skies.esac.esa.int/2MASS/Color",
   },
 ] as const;
 
@@ -151,6 +135,7 @@ function drawLabelWithBackground(
 type AladinSourceData = {
   name?: string;
   id?: string | number;
+  color?: string;
   popupTitle?: string;
   popupDesc?: string;
 };
@@ -165,7 +150,13 @@ function drawSourceWithLabel(
   source: AladinCanvasSource,
   ctx: CanvasRenderingContext2D,
 ): void {
-  drawCross(ctx, source.x, source.y, SOURCE_SIZE, "black");
+  drawCross(
+    ctx,
+    source.x,
+    source.y,
+    SOURCE_SIZE,
+    source.data?.color ?? "black",
+  );
 
   const label = source.data?.name;
   if (!label) {
@@ -181,6 +172,16 @@ interface AdditionalSource {
   label: string;
   id?: string | number;
   description?: string;
+  color?: string;
+}
+
+interface SkyEllipse {
+  ra: number;
+  dec: number;
+  aDeg: number;
+  bDeg: number;
+  paDeg?: number;
+  color?: string;
 }
 
 interface AladinViewerProps {
@@ -190,6 +191,7 @@ interface AladinViewerProps {
   survey?: string;
   className?: string;
   additionalSources?: AdditionalSource[];
+  ellipses?: SkyEllipse[];
   onSourceClick?: (id: string | number) => void;
 }
 
@@ -202,10 +204,20 @@ type AladinInstance = {
   gotoRaDec: (ra: number, dec: number) => void;
   setFov: (fov: number) => void;
   addCatalog: (catalog: AladinCatalog) => void;
+  addOverlay: (overlay: AladinGraphicOverlay) => void;
   on: (
     event: "objectClicked",
     callback: (object: AladinSource | null) => void,
   ) => void;
+};
+
+type AladinGraphicOverlay = {
+  add: (ellipse: AladinEllipse | AladinEllipse[]) => void;
+};
+
+type AladinEllipse = {
+  ra: number;
+  dec: number;
 };
 
 export const AladinViewer = forwardRef<AladinViewerHandle, AladinViewerProps>(
@@ -217,6 +229,7 @@ export const AladinViewer = forwardRef<AladinViewerHandle, AladinViewerProps>(
       survey = DEFAULT_ALADIN_SURVEY,
       className = "w-full h-96",
       additionalSources,
+      ellipses,
       onSourceClick,
     },
     ref,
@@ -230,6 +243,7 @@ export const AladinViewer = forwardRef<AladinViewerHandle, AladinViewerProps>(
     const [scriptReady, setScriptReady] = useState(() => Boolean(window.A));
     const [scriptError, setScriptError] = useState(false);
     const additionalSourcesKey = JSON.stringify(additionalSources ?? []);
+    const ellipsesKey = JSON.stringify(ellipses ?? []);
 
     viewRef.current = { ra, dec, fov };
 
@@ -300,6 +314,7 @@ export const AladinViewer = forwardRef<AladinViewerHandle, AladinViewerProps>(
         });
 
         aladin.gotoRaDec(initialRa, initialDec);
+        aladin.setFov(initialFov);
         aladinRef.current = aladin;
 
         aladin.on("objectClicked", (object) => {
@@ -330,6 +345,7 @@ export const AladinViewer = forwardRef<AladinViewerHandle, AladinViewerProps>(
             const data: AladinSourceData = {
               name: source.label,
               id: source.id,
+              color: source.color,
             };
             if (source.description) {
               descrCatalog.addSources([
@@ -345,6 +361,25 @@ export const AladinViewer = forwardRef<AladinViewerHandle, AladinViewerProps>(
             );
           });
         }
+
+        // SAFETY: ellipsesKey is JSON.stringify of SkyEllipse[].
+        const skyEllipses = JSON.parse(ellipsesKey) as SkyEllipse[];
+        skyEllipses.forEach((ellipse) => {
+          const overlay = aladinApi.graphicOverlay({
+            color: ellipse.color ?? "#38bdf8",
+            lineWidth: 2,
+          });
+          aladin.addOverlay(overlay);
+          overlay.add(
+            aladinApi.ellipse(
+              ellipse.ra,
+              ellipse.dec,
+              ellipse.aDeg,
+              ellipse.bDeg,
+              ellipse.paDeg ?? 0,
+            ),
+          );
+        });
       } catch (error) {
         console.error("Error initializing Aladin:", error);
         aladinRef.current = null;
@@ -353,15 +388,75 @@ export const AladinViewer = forwardRef<AladinViewerHandle, AladinViewerProps>(
       return () => {
         aladinRef.current = null;
       };
-    }, [scriptReady, selectedSurvey, additionalSourcesKey]);
+    }, [scriptReady, selectedSurvey, additionalSourcesKey, ellipsesKey]);
 
     useEffect(() => {
       const aladin = aladinRef.current;
-      if (!aladin) return;
+      const host = aladinDivRef.current;
+      if (!aladin || !host) {
+        return undefined;
+      }
 
-      aladin.setFov(fov);
-      aladin.gotoRaDec(ra, dec);
-    }, [ra, dec, fov]);
+      function applyView(): void {
+        const current = aladinRef.current;
+        if (!current) {
+          return;
+        }
+        current.setFov(viewRef.current.fov);
+        current.gotoRaDec(viewRef.current.ra, viewRef.current.dec);
+      }
+
+      applyView();
+
+      let settled = false;
+      const observer = new ResizeObserver(() => {
+        if (settled || host.clientWidth < 32 || host.clientHeight < 32) {
+          return;
+        }
+        settled = true;
+        applyView();
+        observer.disconnect();
+      });
+      observer.observe(host);
+
+      function settleAfterPaint(): void {
+        const node = aladinDivRef.current;
+        if (
+          settled ||
+          node === null ||
+          node.clientWidth < 32 ||
+          node.clientHeight < 32
+        ) {
+          return;
+        }
+        settled = true;
+        applyView();
+        observer.disconnect();
+      }
+
+      const frame = window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(settleAfterPaint);
+      });
+      const timer = window.setTimeout(() => {
+        settleAfterPaint();
+        applyView();
+      }, 100);
+
+      return () => {
+        settled = true;
+        window.cancelAnimationFrame(frame);
+        window.clearTimeout(timer);
+        observer.disconnect();
+      };
+    }, [
+      ra,
+      dec,
+      fov,
+      scriptReady,
+      selectedSurvey,
+      additionalSourcesKey,
+      ellipsesKey,
+    ]);
 
     return (
       <div ref={containerRef} className="space-y-2">
@@ -447,6 +542,19 @@ declare global {
         dec: number,
         properties?: AladinSourceData,
       ) => AladinSource;
+      graphicOverlay: (options?: {
+        color?: string;
+        lineWidth?: number;
+        lineDash?: number[];
+      }) => AladinGraphicOverlay;
+      ellipse: (
+        ra: number,
+        dec: number,
+        radiusRaDeg: number,
+        radiusDecDeg: number,
+        rotationDeg: number,
+        options?: { color?: string },
+      ) => AladinEllipse;
     };
   }
 }

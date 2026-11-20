@@ -218,6 +218,27 @@ function placeMarkers(host: HTMLElement, overlay: HTMLElement): void {
       point.y <= height + MARKER_MARGIN_PX;
     marker.style.display = visible ? "block" : "none";
     marker.style.transform = `translate(${point.x}px, ${point.y}px)`;
+
+    if (marker.dataset.kind !== "ellipse") {
+      continue;
+    }
+    const aDeg = Number(marker.dataset.a);
+    const bDeg = Number(marker.dataset.b);
+    const paDeg = Number(marker.dataset.pa ?? 0);
+    const cosDec = Math.max(Math.cos((dec * Math.PI) / 180), 1e-6);
+    const raPoint = control.getScreenPointForCoordinates(
+      (ra + aDeg / cosDec) / 15,
+      dec,
+    );
+    const decPoint = control.getScreenPointForCoordinates(ra / 15, dec + bDeg);
+    const rx = Math.hypot(raPoint.x - point.x, raPoint.y - point.y);
+    const ry = Math.hypot(decPoint.x - point.x, decPoint.y - point.y);
+    const ellipseNode = marker.querySelector("ellipse");
+    if (ellipseNode) {
+      ellipseNode.setAttribute("rx", String(Math.max(rx, 1)));
+      ellipseNode.setAttribute("ry", String(Math.max(ry, 1)));
+      ellipseNode.setAttribute("transform", `rotate(${paDeg})`);
+    }
   }
 }
 
@@ -259,6 +280,7 @@ export const WwtViewer = forwardRef<SkyViewerHandle, WwtViewerProps>(
       fov = 0.5,
       className = "w-full h-96",
       additionalSources,
+      ellipses,
       onSourceClick,
     },
     ref,
@@ -277,6 +299,7 @@ export const WwtViewer = forwardRef<SkyViewerHandle, WwtViewerProps>(
       useState<string>(DEFAULT_WWT_SURVEY);
     const selectedSurveyRef = useRef(selectedSurvey);
     const additionalSourcesKey = JSON.stringify(additionalSources ?? []);
+    const ellipsesKey = JSON.stringify(ellipses ?? []);
 
     viewRef.current = { ra, dec, fov };
     selectedSurveyRef.current = selectedSurvey;
@@ -414,7 +437,7 @@ export const WwtViewer = forwardRef<SkyViewerHandle, WwtViewerProps>(
       return () => {
         cancelAnimationFrame(frame);
       };
-    }, [engineReady, scriptReady, additionalSourcesKey]);
+    }, [engineReady, scriptReady, additionalSourcesKey, ellipsesKey]);
 
     return (
       <div ref={containerRef} className="space-y-2">
@@ -440,6 +463,34 @@ export const WwtViewer = forwardRef<SkyViewerHandle, WwtViewerProps>(
             ref={overlayRef}
             className="pointer-events-none absolute inset-0 z-20"
           >
+            {(ellipses ?? []).map((ellipse, index) => (
+              <div
+                key={`ellipse-${index}-${ellipse.ra}-${ellipse.dec}`}
+                data-kind="ellipse"
+                data-ra={ellipse.ra}
+                data-dec={ellipse.dec}
+                data-a={ellipse.aDeg}
+                data-b={ellipse.bDeg}
+                data-pa={ellipse.paDeg ?? 0}
+                className="absolute left-0 top-0 hidden h-0 w-0"
+              >
+                <svg
+                  aria-hidden="true"
+                  className="absolute left-0 top-0 overflow-visible"
+                  style={{ overflow: "visible" }}
+                >
+                  <ellipse
+                    cx={0}
+                    cy={0}
+                    rx={1}
+                    ry={1}
+                    fill="none"
+                    stroke={ellipse.color ?? "#38bdf8"}
+                    strokeWidth={2}
+                  />
+                </svg>
+              </div>
+            ))}
             {(additionalSources ?? []).map((source) => (
               <div
                 key={`${source.id ?? source.label}-${source.ra}-${source.dec}`}
@@ -477,7 +528,7 @@ export const WwtViewer = forwardRef<SkyViewerHandle, WwtViewerProps>(
                     />
                     <path
                       d="M1 1 L11 11 M11 1 L1 11"
-                      stroke="#111111"
+                      stroke={source.color ?? "#111111"}
                       strokeWidth="1.75"
                       strokeLinecap="round"
                     />

@@ -453,7 +453,7 @@ function RecordCrossmatchDetails({
       <div className="flex items-start gap-6">
         {icrs && (
           <SkyViewer
-            backend="wwt"
+            backend="aladin"
             ra={icrs.ra}
             dec={icrs.dec}
             fov={0.02}

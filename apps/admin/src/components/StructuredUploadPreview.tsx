@@ -1,6 +1,33 @@
 import { ReactElement } from "react";
-import classNames from "classnames";
+import { CellPrimitive, Column, CommonTable } from "@leda/lib/ui";
 import type { PreviewRow } from "../clients/admin";
+
+function renderMutedCell(value: CellPrimitive): ReactElement {
+  return <span className="text-muted">{String(value)}</span>;
+}
+
+function previewEntries(
+  row: PreviewRow,
+  inputColumns: string[],
+  fields: string[],
+): [string, CellPrimitive][] {
+  const entries: [string, CellPrimitive][] = [["record_id", row.record_id]];
+  for (const column of inputColumns) {
+    entries.push([`in:${column}`, String(row.inputs[column] ?? "")]);
+  }
+  if (row.skipped_reason) {
+    const reason = row.skipped_reason;
+    for (const [index, field] of fields.entries()) {
+      const value = index === 0 ? <span className="italic">{reason}</span> : "";
+      entries.push([`out:${field}`, value]);
+    }
+  } else {
+    for (const field of fields) {
+      entries.push([`out:${field}`, String(row.outputs[field] ?? "")]);
+    }
+  }
+  return entries;
+}
 
 export function StructuredUploadPreview({
   rows,
@@ -16,81 +43,34 @@ export function StructuredUploadPreview({
   const inputColumns = [
     ...new Set(rows.flatMap((row) => Object.keys(row.inputs))),
   ];
+  const columns: Column[] = [
+    { slug: "record_id", label: "record id" },
+    ...inputColumns.map((column) => ({
+      slug: `in:${column}`,
+      label: `${column} (in)`,
+      renderCell: renderMutedCell,
+    })),
+    ...fields.map((field) => ({
+      slug: `out:${field}`,
+      label: field,
+    })),
+  ];
+  const data = rows.map((row) =>
+    Object.fromEntries(previewEntries(row, inputColumns, fields)),
+  );
 
   return (
-    <section className="mt-8 w-full min-w-0">
-      <h3 className="font-semibold text-primary mb-2">Preview</h3>
-      <p className="text-sm text-muted mb-2">
-        {eligibleCount} / {totalCount} rows eligible
-      </p>
+    <section className="mt-8 w-full min-w-0 space-y-6">
+      <div>
+        <h3 className="font-semibold text-primary mb-1">Preview results</h3>
+        <p className="text-sm text-muted">
+          {eligibleCount} / {totalCount} rows eligible
+        </p>
+      </div>
       {rows.length === 0 ? (
         <p className="text-sm text-muted">No rows returned.</p>
       ) : (
-        <div className="overflow-x-auto rounded border border-border">
-          <table className="w-full text-sm">
-            <thead className="bg-surface-2 text-primary">
-              <tr>
-                <th className="px-3 py-2 text-left whitespace-nowrap">
-                  record id
-                </th>
-                {inputColumns.map((column) => (
-                  <th
-                    key={`in:${column}`}
-                    className="px-3 py-2 text-left whitespace-nowrap text-muted"
-                    title="Input column"
-                  >
-                    {column} <span className="text-xs">(in)</span>
-                  </th>
-                ))}
-                {fields.map((field) => (
-                  <th
-                    key={`out:${field}`}
-                    className="px-3 py-2 text-left whitespace-nowrap"
-                  >
-                    {field}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {rows.map((row) => (
-                <tr
-                  key={row.record_id}
-                  className={classNames({ "opacity-50": row.skipped_reason })}
-                >
-                  <td className="px-3 py-2 font-mono whitespace-nowrap">
-                    {row.record_id}
-                  </td>
-                  {inputColumns.map((column) => (
-                    <td
-                      key={`in:${column}`}
-                      className="px-3 py-2 whitespace-nowrap text-muted"
-                    >
-                      {String(row.inputs[column] ?? "")}
-                    </td>
-                  ))}
-                  {row.skipped_reason ? (
-                    <td
-                      colSpan={Math.max(fields.length, 1)}
-                      className="px-3 py-2 italic whitespace-nowrap"
-                    >
-                      {row.skipped_reason}
-                    </td>
-                  ) : (
-                    fields.map((field) => (
-                      <td
-                        key={`out:${field}`}
-                        className="px-3 py-2 whitespace-nowrap"
-                      >
-                        {String(row.outputs[field] ?? "")}
-                      </td>
-                    ))
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <CommonTable columns={columns} data={data} />
       )}
     </section>
   );

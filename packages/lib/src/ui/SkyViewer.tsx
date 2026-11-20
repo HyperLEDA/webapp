@@ -11,6 +11,16 @@ export type SkySource = {
   label: string;
   id?: string | number;
   description?: string;
+  color?: string;
+};
+
+export type SkyEllipse = {
+  ra: number;
+  dec: number;
+  aDeg: number;
+  bDeg: number;
+  paDeg?: number;
+  color?: string;
 };
 
 export type SkyViewerProps = {
@@ -20,6 +30,7 @@ export type SkyViewerProps = {
   fov?: number;
   className?: string;
   additionalSources?: SkySource[];
+  ellipses?: SkyEllipse[];
   onSourceClick?: (id: string | number) => void;
 };
 

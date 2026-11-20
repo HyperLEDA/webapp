@@ -24,7 +24,7 @@ export function SkyViewCard({
     >
       {hasCoordinates ? (
         <SkyViewer
-          backend="wwt"
+          backend="aladin"
           ra={coordinates.equatorial.ra}
           dec={coordinates.equatorial.dec}
           fov={0.02}

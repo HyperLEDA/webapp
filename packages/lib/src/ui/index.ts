@@ -7,6 +7,8 @@ export { SuggestibleInput } from "./SuggestibleInput";
 export { AladinViewer, type AladinViewerHandle } from "./Aladin";
 export {
   SkyViewer,
+  type SkyEllipse,
+  type SkySource,
   type SkyViewerBackend,
   type SkyViewerHandle,
 } from "./SkyViewer";

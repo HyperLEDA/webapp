@@ -1,15 +1,16 @@
 import {
-  FormEvent,
   ReactElement,
+  ReactNode,
+  SubmitEvent,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
+import { MdPlayArrow, MdVisibility } from "react-icons/md";
 import {
   getCatalogs,
   getTable,
-  getTableList,
   previewStructuredUpload,
   startStructuredUpload,
   type CatalogField,
@@ -21,23 +22,26 @@ import {
 import { adminClient } from "../clients";
 import { describeUnknownError, formatCaughtError } from "@leda/lib/tap";
 import { sameEnvTasksOrigin } from "@leda/lib/origins";
-import { Button } from "@leda/lib/ui";
+import { Button, Loading } from "@leda/lib/ui";
 import { ExpressionEditor } from "../components/ExpressionEditor";
+import {
+  Form,
+  FormField,
+  FormTableSearchField,
+  clearFormDraft,
+  readFormDraft,
+} from "../components/form";
 import { StructuredUploadPreview } from "../components/StructuredUploadPreview";
-import { CopyButton, FieldInput } from "../components/ui";
+import { CopyButton } from "../components/ui";
 
 const DEFAULT_BATCH_SIZE = 10_000;
 const TABLE_LOAD_DEBOUNCE_MS = 300;
-const TABLE_SEARCH_PAGE_SIZE = 20;
 const DRAFT_STORAGE_KEY = "leda.admin.structured-upload.draft";
 const HISTORY_STORAGE_KEY = "leda.admin.structured-upload.history";
-const DRAFT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
-const DRAFT_SAVE_DEBOUNCE_MS = 300;
 const HISTORY_MAX_ENTRIES = 20;
 const HISTORY_INPUT_TRUNCATE = 28;
 
 interface StructuredUploadDraft {
-  savedAt: number;
   catalog: string;
   tableName: string;
   expressions: Record<string, string>;
@@ -46,55 +50,43 @@ interface StructuredUploadDraft {
   rowFilter: string;
 }
 
-type StructuredUploadHistoryEntry = StructuredUploadDraft;
+interface StructuredUploadHistoryEntry extends StructuredUploadDraft {
+  savedAt: number;
+}
 
-function readDraft(): StructuredUploadDraft | null {
-  try {
-    const raw = window.localStorage.getItem(DRAFT_STORAGE_KEY);
-    if (!raw) {
-      return null;
-    }
-    // SAFETY: writeDraft is the only writer; savedAt expiry rejects stale or corrupt payloads.
-    const draft = JSON.parse(raw) as StructuredUploadDraft;
-    if (
-      !Number.isFinite(draft.savedAt) ||
-      Date.now() - draft.savedAt > DRAFT_TTL_MS
-    ) {
-      window.localStorage.removeItem(DRAFT_STORAGE_KEY);
-      return null;
-    }
-    return {
-      savedAt: draft.savedAt,
-      catalog: String(draft.catalog || ""),
-      tableName: String(draft.tableName || ""),
-      expressions:
-        draft.expressions instanceof Object && !Array.isArray(draft.expressions)
-          ? Object.fromEntries(
-              Object.entries(draft.expressions).map(([key, value]) => [
-                key,
-                String(value || ""),
-              ]),
-            )
-          : {},
-      write: draft.write !== false,
-      batchSize: Number.isFinite(draft.batchSize)
-        ? Number(draft.batchSize)
-        : DEFAULT_BATCH_SIZE,
-      rowFilter: String(draft.rowFilter || ""),
-    };
-  } catch {
-    window.localStorage.removeItem(DRAFT_STORAGE_KEY);
+function normalizeStructuredUploadDraft(
+  draft: Partial<StructuredUploadDraft> | null,
+): StructuredUploadDraft | null {
+  if (draft === null) {
     return null;
   }
+  const expressions = draft.expressions;
+  return {
+    catalog: String(draft.catalog || ""),
+    tableName: String(draft.tableName || ""),
+    expressions:
+      expressions instanceof Object && !Array.isArray(expressions)
+        ? Object.fromEntries(
+            Object.entries(expressions).map(([key, value]) => [
+              key,
+              String(value || ""),
+            ]),
+          )
+        : {},
+    write: draft.write !== false,
+    batchSize: Number.isFinite(draft.batchSize)
+      ? Number(draft.batchSize)
+      : DEFAULT_BATCH_SIZE,
+    rowFilter: String(draft.rowFilter || ""),
+  };
 }
 
-function writeDraft(draft: Omit<StructuredUploadDraft, "savedAt">): void {
-  const payload: StructuredUploadDraft = { ...draft, savedAt: Date.now() };
-  window.localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(payload));
-}
-
-function clearDraft(): void {
-  window.localStorage.removeItem(DRAFT_STORAGE_KEY);
+function isEmptyStructuredUploadDraft(draft: StructuredUploadDraft): boolean {
+  return (
+    !draft.catalog &&
+    !draft.tableName.trim() &&
+    !Object.values(draft.expressions).some((value) => value.trim())
+  );
 }
 
 function readHistory(): StructuredUploadHistoryEntry[] {
@@ -236,25 +228,6 @@ function matchesColumnQuery(column: ColumnDescription, query: string): boolean {
     .join(" ")
     .toLowerCase();
   return haystack.includes(needle);
-}
-
-async function loadTableNameOptions(query: string) {
-  const response = await getTableList({
-    client: adminClient,
-    query: {
-      query: query.trim() || undefined,
-      page: 0,
-      page_size: TABLE_SEARCH_PAGE_SIZE,
-    },
-  });
-  if (response.error) {
-    throw new Error(describeUnknownError(response.error));
-  }
-  return response.data.data.tables.map((item) => ({
-    value: item.name,
-    label: item.name,
-    description: item.description,
-  }));
 }
 
 function HistoryMenu({
@@ -450,7 +423,6 @@ export function AdminStructuredUploadPage(): ReactElement {
   const [previewErrors, setPreviewErrors] = useState(
     () => new Map<string, string>(),
   );
-  const [draftReady, setDraftReady] = useState(false);
   const [history, setHistory] = useState<StructuredUploadHistoryEntry[]>([]);
   const previewRef = useRef<HTMLDivElement>(null);
 
@@ -511,7 +483,9 @@ export function AdminStructuredUploadPage(): ReactElement {
         }
         const loaded = response.data.data.catalogs;
         setCatalogs(loaded);
-        const draft = readDraft();
+        const draft = normalizeStructuredUploadDraft(
+          readFormDraft<Partial<StructuredUploadDraft>>(DRAFT_STORAGE_KEY),
+        );
         if (draft) {
           const catalog = loaded.find((item) => item.catalog === draft.catalog);
           if (catalog) {
@@ -529,14 +503,12 @@ export function AdminStructuredUploadPage(): ReactElement {
               ),
             );
           } else {
-            clearDraft();
+            clearFormDraft(DRAFT_STORAGE_KEY);
           }
         }
-        setDraftReady(true);
       } catch (error) {
         if (!cancelled) {
           setCatalogsError(formatCaughtError(error));
-          setDraftReady(true);
         }
       } finally {
         if (!cancelled) {
@@ -550,41 +522,6 @@ export function AdminStructuredUploadPage(): ReactElement {
       cancelled = true;
     };
   }, []);
-
-  useEffect(() => {
-    if (!draftReady) {
-      return;
-    }
-    const timer = setTimeout(() => {
-      if (
-        !selectedCatalog &&
-        !tableName.trim() &&
-        ![...expressions.values()].some((value) => value.trim())
-      ) {
-        clearDraft();
-        return;
-      }
-      writeDraft({
-        catalog: selectedCatalog,
-        tableName,
-        expressions: Object.fromEntries(expressions),
-        write,
-        batchSize,
-        rowFilter,
-      });
-    }, DRAFT_SAVE_DEBOUNCE_MS);
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [
-    draftReady,
-    selectedCatalog,
-    tableName,
-    expressions,
-    write,
-    batchSize,
-    rowFilter,
-  ]);
 
   useEffect(() => {
     const trimmed = tableName.trim();
@@ -639,7 +576,6 @@ export function AdminStructuredUploadPage(): ReactElement {
   function handleCatalogChange(catalog: string): void {
     setSelectedCatalog(catalog);
     setSubmitError(null);
-    clearPreview();
     const next = catalogs.find((item) => item.catalog === catalog);
     setExpressions(
       new Map((next?.fields ?? []).map((field) => [field.name, ""])),
@@ -706,7 +642,7 @@ export function AdminStructuredUploadPage(): ReactElement {
   }
 
   async function handleSubmit(
-    event: FormEvent<HTMLFormElement>,
+    event: SubmitEvent<HTMLFormElement>,
   ): Promise<void> {
     event.preventDefault();
     if (!schema) {
@@ -761,17 +697,126 @@ export function AdminStructuredUploadPage(): ReactElement {
           rowFilter,
         }),
       );
-      clearDraft();
-      window.location.assign(`${sameEnvTasksOrigin()}/runs/flow-run/${taskId}`);
+      clearFormDraft(DRAFT_STORAGE_KEY);
+      window.location.assign(
+        `${sameEnvTasksOrigin()}/v2/runs/flow-run/${taskId}`,
+      );
     } catch (error) {
       setSubmitError(formatCaughtError(error));
       setSubmitting(false);
     }
   }
 
+  const busy = submitting || previewing;
+  const draftValue: StructuredUploadDraft = {
+    catalog: selectedCatalog,
+    tableName,
+    expressions: Object.fromEntries(expressions),
+    write,
+    batchSize,
+    rowFilter,
+  };
+  const fields: ReactNode[] = [
+    <FormField
+      key="catalog"
+      kind="select"
+      id="catalog"
+      label="Catalog"
+      value={selectedCatalog}
+      placeholder="Select a catalog…"
+      options={catalogs.map((item) => ({
+        value: item.catalog,
+        label: item.title,
+      }))}
+      onChange={handleCatalogChange}
+    />,
+    <FormTableSearchField
+      key="tableName"
+      label="Table name"
+      value={tableName}
+      onChange={(next) => {
+        setTableName(next);
+        setSubmitError(null);
+      }}
+    />,
+    <FormField
+      key="rowFilter"
+      kind="text"
+      id="row_filter"
+      label="Row filter"
+      value={rowFilter}
+      placeholder="mag < 15 AND survey = 'SDSS'"
+      onChange={(next) => {
+        setRowFilter(next);
+        setSubmitError(null);
+      }}
+    />,
+  ];
+  if (schema) {
+    fields.push(
+      <p key="description" className="text-sm text-muted">
+        {schema.description}
+      </p>,
+    );
+    for (const field of schema.fields) {
+      const required = field.required !== false;
+      fields.push(
+        <FormField
+          key={field.name}
+          kind="custom"
+          label={field.name}
+          optional={!required}
+          error={previewErrors.get(field.name) ?? null}
+          hint={fieldHint(field)}
+        >
+          <ExpressionEditor
+            ariaLabel={field.name}
+            value={expressions.get(field.name) ?? ""}
+            disabled={busy}
+            onChange={(value) => {
+              setExpressions((current) => {
+                const next = new Map(current);
+                next.set(field.name, value);
+                return next;
+              });
+              setPreviewErrors((current) => {
+                const next = new Map(current);
+                next.delete(field.name);
+                return next;
+              });
+            }}
+          />
+        </FormField>,
+      );
+    }
+    fields.push(
+      <FormField
+        key="write"
+        kind="checkbox"
+        id="write"
+        label="Write rows into the catalog"
+        checked={write}
+        onChange={setWrite}
+      />,
+      <FormField
+        key="batchSize"
+        kind="number"
+        id="batch_size"
+        label="Batch size"
+        value={batchSize}
+        min={1}
+        max={500_000}
+        required
+        onChange={(next) => {
+          setBatchSize(Number(next) || DEFAULT_BATCH_SIZE);
+        }}
+      />,
+    );
+  }
+
   return (
     <div className="w-full">
-      <div className="flex items-start justify-between gap-4 mb-2">
+      <div className="flex items-start justify-between gap-4 mb-6">
         <h2 className="text-3xl font-bold">Structured upload</h2>
         {history.length > 0 ? (
           <HistoryMenu history={history} onSelect={applyHistoryEntry} />
@@ -787,170 +832,52 @@ export function AdminStructuredUploadPage(): ReactElement {
 
       {!catalogsLoading && !catalogsError ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start w-full">
-          <form onSubmit={handleSubmit} className="space-y-6 min-w-0 w-full">
-            <div>
-              <label htmlFor="catalog" className="block mb-1 text-subtle">
-                Catalog
-              </label>
-              <select
-                id="catalog"
-                value={selectedCatalog}
-                onChange={(event) => handleCatalogChange(event.target.value)}
-                className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-primary"
-              >
-                <option value="">Select a catalog…</option>
-                {catalogs.map((item) => (
-                  <option key={item.catalog} value={item.catalog}>
-                    {item.title}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block mb-1 text-subtle">Table name</label>
-              <FieldInput
-                input={{
-                  kind: "autocomplete",
-                  loadOptions: loadTableNameOptions,
-                }}
-                value={tableName}
-                disabled={submitting}
-                placeholder="rawdata table name"
-                onChange={(next) => {
-                  setTableName(next);
-                  setSubmitError(null);
-                  clearPreview();
-                }}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="row_filter" className="block mb-1 text-subtle">
-                Row filter
-              </label>
-              <input
-                id="row_filter"
-                type="text"
-                value={rowFilter}
-                disabled={submitting}
-                placeholder="Empty is no filter"
-                onChange={(event) => {
-                  setRowFilter(event.target.value);
-                  setSubmitError(null);
-                  clearPreview();
-                }}
-                className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-primary"
-              />
-            </div>
-
-            {schema ? (
-              <div className="space-y-4">
-                <p className="text-sm text-muted">{schema.description}</p>
-
-                {schema.fields.map((field) => {
-                  const required = field.required !== false;
-                  return (
-                    <div key={field.name}>
-                      <label className="block mb-1 text-subtle">
-                        {field.name}
-                        {required ? null : (
-                          <span className="text-muted"> (optional)</span>
-                        )}
-                      </label>
-                      <ExpressionEditor
-                        ariaLabel={field.name}
-                        value={expressions.get(field.name) ?? ""}
-                        disabled={submitting}
-                        onChange={(value) => {
-                          setExpressions((current) => {
-                            const next = new Map(current);
-                            next.set(field.name, value);
-                            return next;
-                          });
-                          setPreviewErrors((current) => {
-                            const next = new Map(current);
-                            next.delete(field.name);
-                            return next;
-                          });
-                        }}
-                      />
-                      {previewErrors.has(field.name) ? (
-                        <p className="text-xs text-danger mt-1" role="alert">
-                          {previewErrors.get(field.name)}
-                        </p>
-                      ) : (
-                        <p className="text-xs text-muted mt-1">
-                          {fieldHint(field)}
-                        </p>
-                      )}
-                    </div>
-                  );
-                })}
-
+          <Form
+            fields={fields}
+            actions={
+              schema ? (
                 <div className="flex items-center gap-2">
-                  <input
-                    id="write"
-                    type="checkbox"
-                    checked={write}
-                    onChange={(event) => setWrite(event.target.checked)}
-                    className="rounded border-border"
-                  />
-                  <label htmlFor="write" className="text-subtle">
-                    Write rows into the catalog
-                  </label>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="batch_size"
-                    className="block mb-1 text-subtle"
-                  >
-                    Batch size
-                  </label>
-                  <input
-                    id="batch_size"
-                    type="number"
-                    min={1}
-                    max={500_000}
-                    required
-                    value={batchSize}
-                    onChange={(event) =>
-                      setBatchSize(
-                        Number(event.target.value) || DEFAULT_BATCH_SIZE,
-                      )
-                    }
-                    className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-primary"
-                  />
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Button
-                    type="submit"
-                    disabled={submitting || !selectedCatalog}
-                  >
-                    {submitting ? "Starting…" : "Start upload"}
-                  </Button>
                   <Button
                     type="button"
-                    className="bg-transparent! border-border!"
-                    disabled={
-                      previewing || !selectedCatalog || !tableName.trim()
-                    }
-                    onClick={() => void handlePreview()}
+                    disabled={busy || !selectedCatalog || !tableName.trim()}
+                    onClick={() => {
+                      void handlePreview();
+                    }}
                   >
-                    {previewing ? "Previewing…" : "Preview"}
+                    {previewing ? (
+                      <Loading inline message="Loading preview..." />
+                    ) : (
+                      <>
+                        <MdVisibility className="w-4 h-4 mr-1" />
+                        Preview a batch
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={busy || !selectedCatalog || !tableName.trim()}
+                  >
+                    {submitting ? (
+                      "Starting…"
+                    ) : (
+                      <>
+                        <MdPlayArrow className="w-4 h-4 mr-1" />
+                        Start
+                      </>
+                    )}
                   </Button>
                 </div>
-
-                {submitError ? (
-                  <p className="text-danger" role="alert">
-                    {submitError}
-                  </p>
-                ) : null}
-              </div>
-            ) : null}
-          </form>
+              ) : null
+            }
+            busy={busy}
+            error={submitError}
+            onSubmit={(event) => {
+              void handleSubmit(event);
+            }}
+            draftKey={DRAFT_STORAGE_KEY}
+            draftValue={draftValue}
+            isEmptyDraft={isEmptyStructuredUploadDraft}
+          />
 
           <TableColumnsPanel
             tableName={tableName}
