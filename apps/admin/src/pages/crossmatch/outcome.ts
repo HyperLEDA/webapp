@@ -2,9 +2,15 @@ import type { PreviewCrossmatchRow } from "../../clients/admin";
 
 export type CrossmatchOutcomeLabel = "new" | "existing" | "pending";
 
-export function crossmatchOutcomeLabel(
-  row: PreviewCrossmatchRow,
-): CrossmatchOutcomeLabel {
+export type PreviewSkyRow = PreviewCrossmatchRow & {
+  status: string;
+  triage: string;
+};
+
+export function crossmatchOutcomeLabel(row: {
+  status: string;
+  triage: string;
+}): CrossmatchOutcomeLabel {
   if (row.triage === "pending" || row.status === "colliding") {
     return "pending";
   }

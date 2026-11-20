@@ -45,11 +45,17 @@ export function Loading({
   }
 
   return (
-    <div className={`p-8 ${className}`} role="status" aria-label={text ?? "Loading"}>
+    <div
+      className={`p-8 ${className}`}
+      role="status"
+      aria-label={text ?? "Loading"}
+    >
       <div className="flex flex-col justify-center items-center h-64 space-y-4">
         <Spinner size="md" />
         {text ? (
-          <p className="text-subtle text-lg font-medium animate-pulse">{text}</p>
+          <p className="text-subtle text-lg font-medium animate-pulse">
+            {text}
+          </p>
         ) : null}
       </div>
     </div>

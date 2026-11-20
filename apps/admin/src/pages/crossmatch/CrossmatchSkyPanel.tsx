@@ -1,7 +1,10 @@
 import { ReactElement, useEffect, useMemo, useState } from "react";
 import { SkyViewer, type SkyEllipse, type SkySource } from "@leda/lib/ui";
-import type { PreviewCrossmatchRow } from "../../clients/admin";
-import { crossmatchOutcomeLabel, type CrossmatchOutcomeLabel } from "./outcome";
+import {
+  crossmatchOutcomeLabel,
+  type CrossmatchOutcomeLabel,
+  type PreviewSkyRow,
+} from "./outcome";
 
 const RECORD_COLOR = "#38bdf8";
 const NEW_COLOR = "#38bdf8";
@@ -16,14 +19,14 @@ const OUTCOME_COLORS = {
   pending: PENDING_COLOR,
 } satisfies Record<CrossmatchOutcomeLabel, string>;
 
-function neighborColor(pgc: number, row: PreviewCrossmatchRow): string {
+function neighborColor(pgc: number, row: PreviewSkyRow): string {
   if (!row.candidates.includes(pgc)) {
     return NEIGHBOR_COLOR;
   }
   return OUTCOME_COLORS[crossmatchOutcomeLabel(row)];
 }
 
-function sourcesForRow(row: PreviewCrossmatchRow): SkySource[] {
+function sourcesForRow(row: PreviewSkyRow): SkySource[] {
   const designation = row.designation?.trim();
   const recordSource: SkySource | null =
     row.ra !== null &&
@@ -56,7 +59,7 @@ function fovForRadius(radiusArcsec: number): number {
   return Math.max(0.01, diameterDeg * 3);
 }
 
-function firstSkyRowId(rows: PreviewCrossmatchRow[]): string | null {
+function firstSkyRowId(rows: PreviewSkyRow[]): string | null {
   const row = rows.find(
     (item) =>
       item.ra !== null &&
@@ -72,7 +75,7 @@ export function CrossmatchSkyPanel({
   radiusArcsec,
   selectedRecordId,
 }: {
-  rows: PreviewCrossmatchRow[];
+  rows: PreviewSkyRow[];
   radiusArcsec: number;
   selectedRecordId: string | null;
 }): ReactElement {
@@ -177,7 +180,7 @@ export function CrossmatchSkyPanel({
 }
 
 export function useCrossmatchSkySelection(
-  rows: PreviewCrossmatchRow[] | null,
+  rows: PreviewSkyRow[] | null,
 ): [string | null, (recordId: string) => void] {
   const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
 

@@ -3,7 +3,6 @@ import {
   getTableList,
   previewCrossmatch,
   startCrossmatch,
-  type PreviewCrossmatchRow,
   type PreviewCrossmatchStat,
   type StartCrossmatchRequest,
 } from "../../clients/admin";
@@ -17,6 +16,7 @@ import {
   CrossmatchSkyPanel,
   useCrossmatchSkySelection,
 } from "./CrossmatchSkyPanel";
+import type { PreviewSkyRow } from "./outcome";
 
 const DEFAULT_RADIUS = 30;
 const DEFAULT_BATCH_SIZE = 1000;
@@ -144,10 +144,9 @@ function buildStartParams(
 ): StartCrossmatchRequest["params"] {
   return {
     table_name: tableName.trim(),
-    include_pgc: includePgc,
     include_redshift: includeRedshift,
     include_nature: includeNature,
-    radius,
+    radius_arcsec: radius,
     pgc_column: includePgc ? pgcColumn.trim() : "",
     redshift_tolerance: includeRedshift ? redshiftTolerance : 0,
     row_filter: rowFilter.trim(),
@@ -194,8 +193,14 @@ export function AdminCrossmatchPage(): ReactElement {
     PreviewCrossmatchStat[] | null
   >(null);
   const previewRef = useRef<HTMLDivElement>(null);
-  const previewRows: PreviewCrossmatchRow[] | null = previewStatistics
-    ? previewStatistics.flatMap((stat) => stat.rows)
+  const previewRows: PreviewSkyRow[] | null = previewStatistics
+    ? previewStatistics.flatMap((stat) =>
+        stat.rows.map((row) => ({
+          ...row,
+          status: stat.status,
+          triage: stat.triage,
+        })),
+      )
     : null;
   const [selectedRecordId, setSelectedRecordId] =
     useCrossmatchSkySelection(previewRows);
@@ -285,14 +290,13 @@ export function AdminCrossmatchPage(): ReactElement {
         client: adminClient,
         body: {
           table_name: tableName.trim(),
-          include_pgc: includePgc,
           include_redshift: includeRedshift,
           include_nature: includeNature,
-          radius,
+          radius_arcsec: radius,
           pgc_column: includePgc ? pgcColumn.trim() : "",
           redshift_tolerance: includeRedshift ? redshiftTolerance : 0,
           row_filter: rowFilter.trim() || null,
-          batch_size: batchSize,
+          sample_size: batchSize,
         },
       });
       if (response.error) {
