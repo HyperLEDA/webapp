@@ -55,8 +55,11 @@ export function SubmitCrossmatchPreview({
             : null}
         </p>
       </div>
-      {rows.length === 0 ? (
-        <p className="text-sm text-muted">No eligible records in the sample.</p>
+      {sampleCount === 0 ? (
+        <p className="text-sm text-muted">
+          No records satisfy your criteria. Did you use all of the parameters
+          above in the cross-identification?
+        </p>
       ) : (
         <CommonTable columns={columns} data={previewTableRows(rows)} />
       )}
