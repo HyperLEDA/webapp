@@ -1,21 +1,25 @@
 import { ReactElement } from "react";
 import { CellPrimitive, Column, CommonTable, Link } from "@leda/lib/ui";
 import type { PreviewSubmitCrossmatchRow } from "../../clients/admin";
+import { publicObjectUrl } from "../../origins";
+import { renderParameterMatches } from "../crossmatch/parameters";
 
 const columns: Column[] = [
   { slug: "record_id", label: "record id" },
-  { slug: "outcome", label: "outcome" },
   { slug: "pgc", label: "pgc" },
+  { slug: "parameters", label: "parameters" },
 ];
 
-function outcomeLabel(outcome: string): string {
-  if (outcome === "new") {
-    return "new PGC";
+function renderPgc(pgc: number | null | undefined): CellPrimitive {
+  if (pgc === null || pgc === undefined) {
+    return "—";
   }
-  if (outcome === "existing") {
-    return "existing PGC";
-  }
-  return outcome;
+  const objectLink = publicObjectUrl(pgc);
+  return (
+    <Link href={objectLink.href} external={objectLink.external}>
+      {pgc}
+    </Link>
+  );
 }
 
 function previewTableRows(
@@ -23,20 +27,18 @@ function previewTableRows(
 ): Record<string, CellPrimitive>[] {
   return rows.map((row) => ({
     record_id: <Link href={`/records/${row.record_id}`}>{row.record_id}</Link>,
-    outcome: outcomeLabel(row.outcome),
-    pgc: row.pgc ?? "—",
+    pgc: renderPgc(row.pgc),
+    parameters: renderParameterMatches(row.outcome, row.parameters),
   }));
 }
 
 export function SubmitCrossmatchPreview({
-  totalCount,
-  eligibleCount,
+  sampleCount,
   newCount,
   existingCount,
   rows,
 }: {
-  totalCount: number;
-  eligibleCount: number;
+  sampleCount: number;
   newCount: number;
   existingCount: number;
   rows: PreviewSubmitCrossmatchRow[];
@@ -46,8 +48,11 @@ export function SubmitCrossmatchPreview({
       <div>
         <h3 className="font-semibold text-primary mb-1">Preview</h3>
         <p className="text-sm text-muted">
-          {eligibleCount} / {totalCount} records eligible · {newCount} new ·{" "}
+          Sample of {sampleCount} eligible records · {newCount} new ·{" "}
           {existingCount} existing
+          {rows.length > 0 && rows.length < sampleCount
+            ? ` · showing first ${rows.length}`
+            : null}
         </p>
       </div>
       {rows.length === 0 ? (

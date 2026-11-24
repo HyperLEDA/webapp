@@ -27,7 +27,6 @@ import {
 import { SubmitCrossmatchPreview } from "./SubmitCrossmatchPreview";
 
 const DEFAULT_BATCH_SIZE = 1000;
-const PREVIEW_SAMPLE_LIMIT = 200;
 const DRAFT_STORAGE_KEY = "leda.admin.submit-crossmatch.draft";
 
 interface SubmitCrossmatchDraft {
@@ -76,12 +75,9 @@ export function AdminSubmitCrossmatchPage(): ReactElement {
   const [submitting, setSubmitting] = useState(false);
   const [previewing, setPreviewing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [previewTotalCount, setPreviewTotalCount] = useState<number | null>(
+  const [previewSampleCount, setPreviewSampleCount] = useState<number | null>(
     null,
   );
-  const [previewEligibleCount, setPreviewEligibleCount] = useState<
-    number | null
-  >(null);
   const [previewNewCount, setPreviewNewCount] = useState<number | null>(null);
   const [previewExistingCount, setPreviewExistingCount] = useState<
     number | null
@@ -96,8 +92,7 @@ export function AdminSubmitCrossmatchPage(): ReactElement {
   }, []);
 
   function clearPreview(): void {
-    setPreviewTotalCount(null);
-    setPreviewEligibleCount(null);
+    setPreviewSampleCount(null);
     setPreviewNewCount(null);
     setPreviewExistingCount(null);
     setPreviewRows(null);
@@ -129,15 +124,14 @@ export function AdminSubmitCrossmatchPage(): ReactElement {
         client: adminClient,
         body: {
           table_name: tableName.trim(),
-          sample_size: Math.min(batchSize, PREVIEW_SAMPLE_LIMIT),
+          sample_size: batchSize,
         },
       });
       if (response.error) {
         throw new Error(describeUnknownError(response.error));
       }
       const data = response.data.data;
-      setPreviewTotalCount(data.total_count);
-      setPreviewEligibleCount(data.eligible_count);
+      setPreviewSampleCount(data.sample_count);
       setPreviewNewCount(data.new_count);
       setPreviewExistingCount(data.existing_count);
       setPreviewRows(data.rows);
@@ -264,15 +258,13 @@ export function AdminSubmitCrossmatchPage(): ReactElement {
         draftValue={draftValue}
         isEmptyDraft={isEmptyDraft}
       />
-      {previewTotalCount !== null &&
-      previewEligibleCount !== null &&
+      {previewRows &&
+      previewSampleCount !== null &&
       previewNewCount !== null &&
-      previewExistingCount !== null &&
-      previewRows ? (
+      previewExistingCount !== null ? (
         <div ref={previewRef}>
           <SubmitCrossmatchPreview
-            totalCount={previewTotalCount}
-            eligibleCount={previewEligibleCount}
+            sampleCount={previewSampleCount}
             newCount={previewNewCount}
             existingCount={previewExistingCount}
             rows={previewRows}
