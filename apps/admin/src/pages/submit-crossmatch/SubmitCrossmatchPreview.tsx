@@ -12,7 +12,7 @@ const columns: Column[] = [
 
 function renderPgc(pgc: number | null | undefined): CellPrimitive {
   if (pgc === null || pgc === undefined) {
-    return "—";
+    return "new one";
   }
   const objectLink = publicObjectUrl(pgc);
   return (
