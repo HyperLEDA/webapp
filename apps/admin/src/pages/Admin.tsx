@@ -20,6 +20,12 @@ const tasks = [
     description:
       "Cross-identify records in a layer 0 table against layer 2 objects.",
   },
+  {
+    to: "/tasks/submit-crossmatch",
+    title: "Submit crossmatch",
+    description:
+      "Assign PGCs from resolved crossmatch results in a layer 0 table.",
+  },
 ];
 
 export function AdminPage(): ReactElement {
