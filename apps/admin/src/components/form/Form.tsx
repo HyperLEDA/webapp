@@ -71,7 +71,9 @@ export function Form<T>({
         className={classNames("space-y-5 min-w-0 w-full", className)}
       >
         {fields}
-        {actions}
+        {actions ? (
+          <div className="flex items-center gap-2">{actions}</div>
+        ) : null}
         {error ? (
           <p className="text-danger" role="alert">
             {error}

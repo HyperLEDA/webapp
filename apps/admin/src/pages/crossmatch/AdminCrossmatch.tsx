@@ -435,7 +435,7 @@ export function AdminCrossmatchPage(): ReactElement {
         <Form
           fields={fields}
           actions={
-            <div className="flex items-center gap-2">
+            <>
               <Button
                 type="button"
                 disabled={busy || !tableName.trim()}
@@ -462,7 +462,7 @@ export function AdminCrossmatchPage(): ReactElement {
                   </>
                 )}
               </Button>
-            </div>
+            </>
           }
           busy={busy}
           error={error}

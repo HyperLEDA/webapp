@@ -835,39 +835,37 @@ export function AdminStructuredUploadPage(): ReactElement {
           <Form
             fields={fields}
             actions={
-              schema ? (
-                <div className="flex items-center gap-2">
-                  <Button
-                    type="button"
-                    disabled={busy || !selectedCatalog || !tableName.trim()}
-                    onClick={() => {
-                      void handlePreview();
-                    }}
-                  >
-                    {previewing ? (
-                      <Loading inline message="Loading preview..." />
-                    ) : (
-                      <>
-                        <MdVisibility className="w-4 h-4 mr-1" />
-                        Preview a batch
-                      </>
-                    )}
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={busy || !selectedCatalog || !tableName.trim()}
-                  >
-                    {submitting ? (
-                      "Starting…"
-                    ) : (
-                      <>
-                        <MdPlayArrow className="w-4 h-4 mr-1" />
-                        Start
-                      </>
-                    )}
-                  </Button>
-                </div>
-              ) : null
+              <>
+                <Button
+                  type="button"
+                  disabled={busy || !selectedCatalog || !tableName.trim()}
+                  onClick={() => {
+                    void handlePreview();
+                  }}
+                >
+                  {previewing ? (
+                    <Loading inline message="Loading preview..." />
+                  ) : (
+                    <>
+                      <MdVisibility className="w-4 h-4 mr-1" />
+                      Preview a batch
+                    </>
+                  )}
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={busy || !selectedCatalog || !tableName.trim()}
+                >
+                  {submitting ? (
+                    "Starting…"
+                  ) : (
+                    <>
+                      <MdPlayArrow className="w-4 h-4 mr-1" />
+                      Start
+                    </>
+                  )}
+                </Button>
+              </>
             }
             busy={busy}
             error={submitError}
