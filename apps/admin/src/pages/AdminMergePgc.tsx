@@ -12,6 +12,7 @@ import {
   Link,
   Loading,
   SuggestibleInput,
+  Text,
 } from "@leda/lib/ui";
 import { ObjectSummary } from "../components/ui";
 
@@ -431,7 +432,9 @@ export function AdminMergePgcPage(): ReactElement {
   return (
     <div className="max-w-5xl flex flex-col gap-6">
       <div>
-        <h2 className="text-3xl font-bold mb-4">Merge PGC objects</h2>
+        <Text as="h2" style="header" size="medium" className="mb-6">
+          Merge PGC objects
+        </Text>
         <p className="text-sm text-muted">
           Select a target PGC (survives) and a source PGC (records are
           reassigned, then the source disappears). You probably will want to

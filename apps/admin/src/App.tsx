@@ -44,6 +44,11 @@ const AdminCrossmatchPage = lazy(() =>
     default: m.AdminCrossmatchPage,
   })),
 );
+const AdminSubmitCrossmatchPage = lazy(() =>
+  import("./pages/submit-crossmatch/AdminSubmitCrossmatch").then((m) => ({
+    default: m.AdminSubmitCrossmatchPage,
+  })),
+);
 const AdminPage = lazy(() =>
   import("./pages/Admin").then((m) => ({ default: m.AdminPage })),
 );
@@ -187,6 +192,10 @@ function App() {
             element={<AdminStructuredUploadPage />}
           />
           <Route path="/tasks/crossmatch" element={<AdminCrossmatchPage />} />
+          <Route
+            path="/tasks/submit-crossmatch"
+            element={<AdminSubmitCrossmatchPage />}
+          />
           <Route path="/tables" element={<TablesPage />} />
           <Route path="/records" element={<RecordsPage />} />
           <Route path="/tables/upload" element={<TableUploadPage />} />

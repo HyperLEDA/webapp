@@ -22,7 +22,7 @@ import {
 import { adminClient } from "../clients";
 import { describeUnknownError, formatCaughtError } from "@leda/lib/tap";
 import { sameEnvTasksOrigin } from "@leda/lib/origins";
-import { Button, Loading } from "@leda/lib/ui";
+import { Button, Loading, Text } from "@leda/lib/ui";
 import { ExpressionEditor } from "../components/ExpressionEditor";
 import {
   Form,
@@ -817,7 +817,9 @@ export function AdminStructuredUploadPage(): ReactElement {
   return (
     <div className="w-full">
       <div className="flex items-start justify-between gap-4 mb-6">
-        <h2 className="text-3xl font-bold">Structured upload</h2>
+        <Text as="h2" style="header" size="medium">
+          Structured upload
+        </Text>
         {history.length > 0 ? (
           <HistoryMenu history={history} onSelect={applyHistoryEntry} />
         ) : null}
@@ -835,39 +837,37 @@ export function AdminStructuredUploadPage(): ReactElement {
           <Form
             fields={fields}
             actions={
-              schema ? (
-                <div className="flex items-center gap-2">
-                  <Button
-                    type="button"
-                    disabled={busy || !selectedCatalog || !tableName.trim()}
-                    onClick={() => {
-                      void handlePreview();
-                    }}
-                  >
-                    {previewing ? (
-                      <Loading inline message="Loading preview..." />
-                    ) : (
-                      <>
-                        <MdVisibility className="w-4 h-4 mr-1" />
-                        Preview a batch
-                      </>
-                    )}
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={busy || !selectedCatalog || !tableName.trim()}
-                  >
-                    {submitting ? (
-                      "Starting…"
-                    ) : (
-                      <>
-                        <MdPlayArrow className="w-4 h-4 mr-1" />
-                        Start
-                      </>
-                    )}
-                  </Button>
-                </div>
-              ) : null
+              <>
+                <Button
+                  type="button"
+                  disabled={busy || !selectedCatalog || !tableName.trim()}
+                  onClick={() => {
+                    void handlePreview();
+                  }}
+                >
+                  {previewing ? (
+                    <Loading inline message="Loading preview..." />
+                  ) : (
+                    <>
+                      <MdVisibility className="w-4 h-4 mr-1" />
+                      Preview a batch
+                    </>
+                  )}
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={busy || !selectedCatalog || !tableName.trim()}
+                >
+                  {submitting ? (
+                    "Starting…"
+                  ) : (
+                    <>
+                      <MdPlayArrow className="w-4 h-4 mr-1" />
+                      Start
+                    </>
+                  )}
+                </Button>
+              </>
             }
             busy={busy}
             error={submitError}
