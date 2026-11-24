@@ -1,0 +1,74 @@
+{
+  "-6": {
+    "design": "cE",
+    "description": "Compact elliptical"
+  },
+  "-5": {
+    "design": "E",
+    "description": "Elliptical"
+  },
+  "-4": {
+    "design": "cD",
+    "description": "Giant elliptical. Sharp central profile and very extended low surface brightness halo"
+  },
+  "-3": {
+    "design": "S0⁻",
+    "description": "Lenticular. Dominant bulge, no sign of structure in disk nor dust"
+  },
+  "-2": {
+    "design": "S0⁰",
+    "description": "Lenticular. Some structure in disk but no arms, low amounts of dust"
+  },
+  "-1": {
+    "design": "S0⁺",
+    "description": "Lenticular. Clear structure in disk but no arms, thin dust lanes"
+  },
+  "0": {
+    "design": "S0/a",
+    "description": "Spiral. Very tightly wound arms, very prominent bulge, low amounts of dust"
+  },
+  "1": {
+    "design": "Sa",
+    "description": "Spiral. Tightly wound arms, very prominent bulge, low amounts of dust"
+  },
+  "2": {
+    "design": "Sab",
+    "description": "Spiral. Quite tightly wound arms, prominent bulge, low amounts of dust"
+  },
+  "3": {
+    "design": "Sb",
+    "description": "Spiral. Quite tightly wound arms, prominent bulge, strong dust lanes"
+  },
+  "4": {
+    "design": "Sbc",
+    "description": "Spiral. Quite loosely wound arms, medium bulge, dust lanes"
+  },
+  "5": {
+    "design": "Sc",
+    "description": "Spiral. Grand design spiral, fairly weak bulge, dust lanes"
+  },
+  "6": {
+    "design": "Scd",
+    "description": "Spiral. Loosely wound and weak arms, weak bulge, scattered dust"
+  },
+  "7": {
+    "design": "Sd",
+    "description": "Spiral. Loosely wound and very weak arms, weak bulge, scattered dust"
+  },
+  "8": {
+    "design": "Sdm",
+    "description": "Spiral. Very loosely wound arms, very weak bulge, low amounts of dust"
+  },
+  "9": {
+    "design": "Sm",
+    "description": "Spiral. Some indication of spiral arms, very weak bulge, low amounts of dust"
+  },
+  "10": {
+    "design": "Ir",
+    "description": "Irregular including Magellanic and non-Magellanic types. No arms, no bulge. Irregular profile. Low surface brightness. May host a bar"
+  },
+  "11": {
+    "design": "dSph",
+    "description": "Dwarf spheroidal/elliptical. Regular low-surface-brightness profile with no spiral arms. May contain a compact nucleus. LEDA extension of the standard Hubble sequence"
+  }
+}
