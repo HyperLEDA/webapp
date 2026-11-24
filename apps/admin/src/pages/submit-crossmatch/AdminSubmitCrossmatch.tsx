@@ -26,7 +26,7 @@ import {
 } from "../../components/form";
 import { SubmitCrossmatchPreview } from "./SubmitCrossmatchPreview";
 
-const DEFAULT_BATCH_SIZE = 1000;
+const DEFAULT_BATCH_SIZE = 5000;
 const DRAFT_STORAGE_KEY = "leda.admin.submit-crossmatch.draft";
 const SUBMIT_PARAMETERS = [
   "coordinates",
