@@ -11,7 +11,6 @@ import {
   previewSubmitCrossmatch,
   startSubmitCrossmatch,
   type PreviewSubmitCrossmatchRow,
-  type StartSubmitCrossmatchRequest,
 } from "../../clients/admin";
 import { adminClient } from "../../clients";
 import { describeUnknownError, formatCaughtError } from "@leda/lib/tap";
@@ -23,16 +22,43 @@ import {
   FormTableSearchField,
   clearFormDraft,
   readFormDraft,
+  useFormBusy,
 } from "../../components/form";
 import { SubmitCrossmatchPreview } from "./SubmitCrossmatchPreview";
 
 const DEFAULT_BATCH_SIZE = 1000;
-const PREVIEW_SAMPLE_LIMIT = 200;
 const DRAFT_STORAGE_KEY = "leda.admin.submit-crossmatch.draft";
+const SUBMIT_PARAMETERS = [
+  "coordinates",
+  "name",
+  "pgc",
+  "redshift",
+  "nature",
+] as const;
+const DEFAULT_REQUIRED_PARAMETERS: SubmitParameter[] = [];
+
+type SubmitParameter = (typeof SUBMIT_PARAMETERS)[number];
 
 interface SubmitCrossmatchDraft {
   tableName: string;
+  rowFilter: string;
+  includeNew: boolean;
+  includeExisting: boolean;
+  requireParameters: SubmitParameter[];
   batchSize: number;
+}
+
+function normalizeRequireParameters(
+  draft: Partial<SubmitCrossmatchDraft>,
+): SubmitParameter[] {
+  if (!("requireParameters" in draft)) {
+    return [...DEFAULT_REQUIRED_PARAMETERS];
+  }
+  const value = draft.requireParameters;
+  if (!Array.isArray(value)) {
+    return [...DEFAULT_REQUIRED_PARAMETERS];
+  }
+  return SUBMIT_PARAMETERS.filter((name) => value.includes(name));
 }
 
 function normalizeDraft(
@@ -43,24 +69,69 @@ function normalizeDraft(
   }
   return {
     tableName: String(draft.tableName || ""),
+    rowFilter: String(draft.rowFilter || ""),
+    includeNew: draft.includeNew !== false,
+    includeExisting: draft.includeExisting !== false,
+    requireParameters: normalizeRequireParameters(draft),
     batchSize: Number.isFinite(draft.batchSize)
       ? Number(draft.batchSize)
       : DEFAULT_BATCH_SIZE,
   };
 }
 
-function isEmptyDraft(draft: SubmitCrossmatchDraft): boolean {
-  return !draft.tableName.trim() && draft.batchSize === DEFAULT_BATCH_SIZE;
+function isDefaultRequired(value: SubmitParameter[]): boolean {
+  return (
+    value.length === DEFAULT_REQUIRED_PARAMETERS.length &&
+    DEFAULT_REQUIRED_PARAMETERS.every((name) => value.includes(name))
+  );
 }
 
-function buildStartParams(
-  tableName: string,
-  batchSize: number,
-): StartSubmitCrossmatchRequest["params"] {
-  return {
-    table_name: tableName.trim(),
-    batch_size: batchSize,
-  };
+function isEmptyDraft(draft: SubmitCrossmatchDraft): boolean {
+  return (
+    !draft.tableName.trim() &&
+    !draft.rowFilter.trim() &&
+    draft.includeNew &&
+    draft.includeExisting &&
+    isDefaultRequired(draft.requireParameters) &&
+    draft.batchSize === DEFAULT_BATCH_SIZE
+  );
+}
+
+function selectedParameters(
+  requireParameters: SubmitParameter[],
+): SubmitParameter[] {
+  return SUBMIT_PARAMETERS.filter((name) => requireParameters.includes(name));
+}
+
+function RequireParameterFields({
+  requireParameters,
+  onToggle,
+}: {
+  requireParameters: SubmitParameter[];
+  onToggle: (name: SubmitParameter, checked: boolean) => void;
+}): ReactElement {
+  const busy = useFormBusy();
+  return (
+    <div className="flex flex-wrap gap-x-4 gap-y-2">
+      {SUBMIT_PARAMETERS.map((name) => (
+        <label
+          key={name}
+          className="inline-flex items-center gap-2 text-subtle"
+        >
+          <input
+            type="checkbox"
+            checked={requireParameters.includes(name)}
+            disabled={busy}
+            onChange={(event) => {
+              onToggle(name, event.target.checked);
+            }}
+            className="rounded border-border"
+          />
+          {name}
+        </label>
+      ))}
+    </div>
+  );
 }
 
 export function AdminSubmitCrossmatchPage(): ReactElement {
@@ -70,20 +141,30 @@ export function AdminSubmitCrossmatchPage(): ReactElement {
     ),
   );
   const [tableName, setTableName] = useState(initialDraft?.tableName ?? "");
+  const [rowFilter, setRowFilter] = useState(initialDraft?.rowFilter ?? "");
+  const [includeNew, setIncludeNew] = useState(
+    initialDraft?.includeNew ?? true,
+  );
+  const [includeExisting, setIncludeExisting] = useState(
+    initialDraft?.includeExisting ?? true,
+  );
+  const [requireParameters, setRequireParameters] = useState<SubmitParameter[]>(
+    initialDraft?.requireParameters ?? [...DEFAULT_REQUIRED_PARAMETERS],
+  );
   const [batchSize, setBatchSize] = useState(
     initialDraft?.batchSize ?? DEFAULT_BATCH_SIZE,
   );
   const [submitting, setSubmitting] = useState(false);
   const [previewing, setPreviewing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [previewTotalCount, setPreviewTotalCount] = useState<number | null>(
+  const [previewSampleCount, setPreviewSampleCount] = useState<number | null>(
     null,
   );
-  const [previewEligibleCount, setPreviewEligibleCount] = useState<
-    number | null
-  >(null);
   const [previewNewCount, setPreviewNewCount] = useState<number | null>(null);
   const [previewExistingCount, setPreviewExistingCount] = useState<
+    number | null
+  >(null);
+  const [previewEligiblePercent, setPreviewEligiblePercent] = useState<
     number | null
   >(null);
   const [previewRows, setPreviewRows] = useState<
@@ -96,10 +177,10 @@ export function AdminSubmitCrossmatchPage(): ReactElement {
   }, []);
 
   function clearPreview(): void {
-    setPreviewTotalCount(null);
-    setPreviewEligibleCount(null);
+    setPreviewSampleCount(null);
     setPreviewNewCount(null);
     setPreviewExistingCount(null);
+    setPreviewEligiblePercent(null);
     setPreviewRows(null);
   }
 
@@ -107,10 +188,25 @@ export function AdminSubmitCrossmatchPage(): ReactElement {
     if (!tableName.trim()) {
       return "Table name is required.";
     }
+    if (!includeNew && !includeExisting) {
+      return "Select at least one outcome.";
+    }
     if (!Number.isInteger(batchSize) || batchSize < 1 || batchSize > 10_000) {
       return "Batch size must be an integer between 1 and 10000.";
     }
     return null;
+  }
+
+  function selectionBody() {
+    return {
+      table_name: tableName.trim(),
+      row_filter: rowFilter.trim(),
+      include_new: includeNew,
+      include_existing: includeExisting,
+      require_parameters: includeExisting
+        ? selectedParameters(requireParameters)
+        : [],
+    };
   }
 
   async function handlePreview(): Promise<void> {
@@ -128,18 +224,18 @@ export function AdminSubmitCrossmatchPage(): ReactElement {
       const response = await previewSubmitCrossmatch({
         client: adminClient,
         body: {
-          table_name: tableName.trim(),
-          sample_size: Math.min(batchSize, PREVIEW_SAMPLE_LIMIT),
+          ...selectionBody(),
+          sample_size: batchSize,
         },
       });
       if (response.error) {
         throw new Error(describeUnknownError(response.error));
       }
       const data = response.data.data;
-      setPreviewTotalCount(data.total_count);
-      setPreviewEligibleCount(data.eligible_count);
+      setPreviewSampleCount(data.sample_count);
       setPreviewNewCount(data.new_count);
       setPreviewExistingCount(data.existing_count);
+      setPreviewEligiblePercent(data.eligible_percent);
       setPreviewRows(data.rows);
       requestAnimationFrame(() => {
         previewRef.current?.scrollIntoView({
@@ -171,7 +267,10 @@ export function AdminSubmitCrossmatchPage(): ReactElement {
       const response = await startSubmitCrossmatch({
         client: adminClient,
         body: {
-          params: buildStartParams(tableName, batchSize),
+          params: {
+            ...selectionBody(),
+            batch_size: batchSize,
+          },
           action_description: `submit crossmatch ${tableName.trim()} batch=${batchSize}`,
         },
       });
@@ -190,7 +289,14 @@ export function AdminSubmitCrossmatchPage(): ReactElement {
   }
 
   const busy = submitting || previewing;
-  const draftValue: SubmitCrossmatchDraft = { tableName, batchSize };
+  const draftValue: SubmitCrossmatchDraft = {
+    tableName,
+    rowFilter,
+    includeNew,
+    includeExisting,
+    requireParameters,
+    batchSize,
+  };
   const fields: ReactNode[] = [
     <FormTableSearchField
       key="tableName"
@@ -201,6 +307,61 @@ export function AdminSubmitCrossmatchPage(): ReactElement {
         setError(null);
       }}
     />,
+    <FormField
+      key="rowFilter"
+      kind="text"
+      id="row_filter"
+      label="Row filter"
+      value={rowFilter}
+      placeholder="mag < 15 AND survey = 'SDSS'"
+      onChange={(next) => {
+        setRowFilter(next);
+        setError(null);
+      }}
+    />,
+    <FormField
+      key="includeNew"
+      kind="checkbox"
+      id="include_new"
+      label="New objects"
+      checked={includeNew}
+      onChange={(next) => {
+        setIncludeNew(next);
+        setError(null);
+      }}
+    />,
+    <FormField
+      key="includeExisting"
+      kind="checkbox"
+      id="include_existing"
+      label="Existing matches"
+      checked={includeExisting}
+      onChange={(next) => {
+        setIncludeExisting(next);
+        setError(null);
+      }}
+    />,
+    includeExisting ? (
+      <FormField
+        key="requireParameters"
+        kind="custom"
+        label="For matches on existing objects, require at least all of these parameters to match:"
+      >
+        <RequireParameterFields
+          requireParameters={requireParameters}
+          onToggle={(name, checked) => {
+            setRequireParameters((current) =>
+              checked
+                ? selectedParameters(
+                    current.includes(name) ? current : [...current, name],
+                  )
+                : current.filter((item) => item !== name),
+            );
+            setError(null);
+          }}
+        />
+      </FormField>
+    ) : null,
     <FormField
       key="batchSize"
       kind="number"
@@ -264,17 +425,18 @@ export function AdminSubmitCrossmatchPage(): ReactElement {
         draftValue={draftValue}
         isEmptyDraft={isEmptyDraft}
       />
-      {previewTotalCount !== null &&
-      previewEligibleCount !== null &&
+      {previewRows &&
+      previewSampleCount !== null &&
       previewNewCount !== null &&
       previewExistingCount !== null &&
-      previewRows ? (
+      previewEligiblePercent !== null ? (
         <div ref={previewRef}>
           <SubmitCrossmatchPreview
-            totalCount={previewTotalCount}
-            eligibleCount={previewEligibleCount}
+            sampleCount={previewSampleCount}
             newCount={previewNewCount}
             existingCount={previewExistingCount}
+            eligiblePercent={previewEligiblePercent}
+            hasRowFilter={Boolean(rowFilter.trim())}
             rows={previewRows}
           />
         </div>
