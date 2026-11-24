@@ -36,17 +36,27 @@ export function SubmitCrossmatchPreview({
   sampleCount,
   newCount,
   existingCount,
+  eligiblePercent,
+  hasRowFilter,
   rows,
 }: {
   sampleCount: number;
   newCount: number;
   existingCount: number;
+  eligiblePercent: number;
+  hasRowFilter: boolean;
   rows: PreviewSubmitCrossmatchRow[];
 }): ReactElement {
+  const denominator = hasRowFilter
+    ? "records matching the row filter"
+    : "records in this table";
   return (
     <section className="mt-8 w-full min-w-0 space-y-4">
       <div>
         <h3 className="font-semibold text-primary mb-1">Preview</h3>
+        <p className="text-sm text-muted">
+          Approximately {eligiblePercent}% of {denominator} are eligible
+        </p>
         <p className="text-sm text-muted">
           Sample of {sampleCount} eligible records · {newCount} new ·{" "}
           {existingCount} existing

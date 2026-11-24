@@ -164,6 +164,9 @@ export function AdminSubmitCrossmatchPage(): ReactElement {
   const [previewExistingCount, setPreviewExistingCount] = useState<
     number | null
   >(null);
+  const [previewEligiblePercent, setPreviewEligiblePercent] = useState<
+    number | null
+  >(null);
   const [previewRows, setPreviewRows] = useState<
     PreviewSubmitCrossmatchRow[] | null
   >(null);
@@ -177,6 +180,7 @@ export function AdminSubmitCrossmatchPage(): ReactElement {
     setPreviewSampleCount(null);
     setPreviewNewCount(null);
     setPreviewExistingCount(null);
+    setPreviewEligiblePercent(null);
     setPreviewRows(null);
   }
 
@@ -231,6 +235,7 @@ export function AdminSubmitCrossmatchPage(): ReactElement {
       setPreviewSampleCount(data.sample_count);
       setPreviewNewCount(data.new_count);
       setPreviewExistingCount(data.existing_count);
+      setPreviewEligiblePercent(data.eligible_percent);
       setPreviewRows(data.rows);
       requestAnimationFrame(() => {
         previewRef.current?.scrollIntoView({
@@ -423,12 +428,15 @@ export function AdminSubmitCrossmatchPage(): ReactElement {
       {previewRows &&
       previewSampleCount !== null &&
       previewNewCount !== null &&
-      previewExistingCount !== null ? (
+      previewExistingCount !== null &&
+      previewEligiblePercent !== null ? (
         <div ref={previewRef}>
           <SubmitCrossmatchPreview
             sampleCount={previewSampleCount}
             newCount={previewNewCount}
             existingCount={previewExistingCount}
+            eligiblePercent={previewEligiblePercent}
+            hasRowFilter={Boolean(rowFilter.trim())}
             rows={previewRows}
           />
         </div>
