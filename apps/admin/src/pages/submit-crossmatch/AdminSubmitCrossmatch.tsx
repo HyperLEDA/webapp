@@ -15,7 +15,7 @@ import {
 } from "../../clients/admin";
 import { adminClient } from "../../clients";
 import { describeUnknownError, formatCaughtError } from "@leda/lib/tap";
-import { Button, Loading } from "@leda/lib/ui";
+import { Button, Loading, Text } from "@leda/lib/ui";
 import { sameEnvTasksOrigin } from "@leda/lib/origins";
 import {
   Form,
@@ -92,7 +92,7 @@ export function AdminSubmitCrossmatchPage(): ReactElement {
   const previewRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    document.title = "Submit crossmatch | LEDA";
+    document.title = "Submit crossmatch results | LEDA";
   }, []);
 
   function clearPreview(): void {
@@ -219,8 +219,10 @@ export function AdminSubmitCrossmatchPage(): ReactElement {
   ];
 
   return (
-    <div className="w-full">
-      <h2 className="text-3xl font-bold mb-6">Submit crossmatch</h2>
+    <>
+      <Text as="h2" style="header" size="medium" className="mb-6">
+        Submit crossmatch results
+      </Text>
       <Form
         fields={fields}
         actions={
@@ -277,6 +279,6 @@ export function AdminSubmitCrossmatchPage(): ReactElement {
           />
         </div>
       ) : null}
-    </div>
+    </>
   );
 }

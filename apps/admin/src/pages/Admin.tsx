@@ -1,5 +1,5 @@
 import { ReactElement, useEffect } from "react";
-import { Link } from "@leda/lib/ui";
+import { Link, Text } from "@leda/lib/ui";
 
 const tasks = [
   {
@@ -12,7 +12,7 @@ const tasks = [
     to: "/structured-upload",
     title: "Structured upload",
     description:
-      "Start a Prefect task that uploads expression-mapped raw data into a layer 1 catalog.",
+      "Start a task that uploads raw data into a layer 1 catalog.",
   },
   {
     to: "/tasks/crossmatch",
@@ -22,7 +22,7 @@ const tasks = [
   },
   {
     to: "/tasks/submit-crossmatch",
-    title: "Submit crossmatch",
+    title: "Submit crossmatch results",
     description:
       "Assign PGCs from resolved crossmatch results in a layer 0 table.",
   },
@@ -35,7 +35,9 @@ export function AdminPage(): ReactElement {
 
   return (
     <div className="max-w-3xl">
-      <h2 className="text-3xl font-bold mb-4">Tasks</h2>
+      <Text as="h2" style="header" size="medium" className="mb-6">
+        Tasks
+      </Text>
       <ul className="flex flex-col gap-4">
         {tasks.map((task) => (
           <li key={task.to}>

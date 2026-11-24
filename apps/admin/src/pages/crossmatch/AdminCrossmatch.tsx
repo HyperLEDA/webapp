@@ -15,7 +15,7 @@ import {
 } from "../../clients/admin";
 import { adminClient } from "../../clients";
 import { describeUnknownError, formatCaughtError } from "@leda/lib/tap";
-import { Button, Loading } from "@leda/lib/ui";
+import { Button, Loading, Text } from "@leda/lib/ui";
 import { sameEnvTasksOrigin } from "@leda/lib/origins";
 import {
   Form,
@@ -429,7 +429,9 @@ export function AdminCrossmatchPage(): ReactElement {
 
   return (
     <div className="w-full">
-      <h2 className="text-3xl font-bold mb-6">Crossmatch</h2>
+      <Text as="h2" style="header" size="medium" className="mb-6">
+        Crossmatch
+      </Text>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start w-full">
         <Form
