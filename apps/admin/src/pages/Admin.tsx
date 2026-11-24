@@ -11,8 +11,7 @@ const tasks = [
   {
     to: "/structured-upload",
     title: "Structured upload",
-    description:
-      "Start a task that uploads raw data into a layer 1 catalog.",
+    description: "Start a task that uploads raw data into a layer 1 catalog.",
   },
   {
     to: "/tasks/crossmatch",
