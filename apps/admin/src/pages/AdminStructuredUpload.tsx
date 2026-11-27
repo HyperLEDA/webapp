@@ -45,7 +45,6 @@ interface StructuredUploadDraft {
   catalog: string;
   tableName: string;
   expressions: Record<string, string>;
-  write: boolean;
   batchSize: number;
   rowFilter: string;
 }
@@ -73,7 +72,6 @@ function normalizeStructuredUploadDraft(
             ]),
           )
         : {},
-    write: draft.write !== false,
     batchSize: Number.isFinite(draft.batchSize)
       ? Number(draft.batchSize)
       : DEFAULT_BATCH_SIZE,
@@ -124,7 +122,6 @@ function readHistory(): StructuredUploadHistoryEntry[] {
                 ]),
               )
             : {},
-        write: entry.write !== false,
         batchSize: Number.isFinite(entry.batchSize)
           ? Number(entry.batchSize)
           : DEFAULT_BATCH_SIZE,
@@ -192,13 +189,11 @@ function buildUploadParams(
   schema: CatalogSchema,
   tableName: string,
   expressions: Map<string, string>,
-  write: boolean,
   batchSize: number,
   rowFilter: string,
 ): StartStructuredUploadRequest["params"] {
   const params: StartStructuredUploadRequest["params"] = {
     table_name: tableName.trim(),
-    write,
     batch_size: batchSize,
     row_filter: rowFilter.trim(),
   };
@@ -408,7 +403,6 @@ export function AdminStructuredUploadPage(): ReactElement {
   const [expressions, setExpressions] = useState(
     () => new Map<string, string>(),
   );
-  const [write, setWrite] = useState(true);
   const [batchSize, setBatchSize] = useState(DEFAULT_BATCH_SIZE);
   const [rowFilter, setRowFilter] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -441,7 +435,6 @@ export function AdminStructuredUploadPage(): ReactElement {
     }
     setSelectedCatalog(catalog.catalog);
     setTableName(entry.tableName);
-    setWrite(entry.write);
     setBatchSize(entry.batchSize || DEFAULT_BATCH_SIZE);
     setRowFilter(entry.rowFilter);
     setExpressions(
@@ -491,7 +484,6 @@ export function AdminStructuredUploadPage(): ReactElement {
           if (catalog) {
             setSelectedCatalog(catalog.catalog);
             setTableName(draft.tableName);
-            setWrite(draft.write);
             setBatchSize(draft.batchSize || DEFAULT_BATCH_SIZE);
             setRowFilter(draft.rowFilter);
             setExpressions(
@@ -676,7 +668,6 @@ export function AdminStructuredUploadPage(): ReactElement {
             schema,
             tableName,
             expressions,
-            write,
             batchSize,
             rowFilter,
           ),
@@ -692,7 +683,6 @@ export function AdminStructuredUploadPage(): ReactElement {
           catalog: schema.catalog,
           tableName: tableName.trim(),
           expressions: Object.fromEntries(expressions),
-          write,
           batchSize,
           rowFilter,
         }),
@@ -712,7 +702,6 @@ export function AdminStructuredUploadPage(): ReactElement {
     catalog: selectedCatalog,
     tableName,
     expressions: Object.fromEntries(expressions),
-    write,
     batchSize,
     rowFilter,
   };
@@ -790,14 +779,6 @@ export function AdminStructuredUploadPage(): ReactElement {
       );
     }
     fields.push(
-      <FormField
-        key="write"
-        kind="checkbox"
-        id="write"
-        label="Write rows into the catalog"
-        checked={write}
-        onChange={setWrite}
-      />,
       <FormField
         key="batchSize"
         kind="number"
