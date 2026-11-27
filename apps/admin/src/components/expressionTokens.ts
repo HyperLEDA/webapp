@@ -261,6 +261,12 @@ export const EXPRESSION_TOKENS: ExpressionToken[] = [
     detail: "Parse text to a dimensionless number; fails on unparseable values",
   },
   {
+    label: "normalize_name",
+    insert: "normalize_name(${1:s})",
+    kind: "function",
+    detail: "Normalize an astronomical designation (e.g. ngc905 → NGC 905)",
+  },
+  {
     label: "to_deg",
     insert: "to_deg(${1:x})",
     kind: "function",
