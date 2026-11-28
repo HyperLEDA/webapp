@@ -1,9 +1,13 @@
 import { tapSync } from "@leda/lib/clients/backend";
-import type {
-  TapSyncResponse,
-  ValidationError,
-} from "@leda/lib/clients/backend";
+import type { TapSyncResponse } from "@leda/lib/clients/backend";
 import { backendClient } from "@leda/lib/clients";
+import { formatApiError } from "./apiError";
+
+export {
+  describeUnknownError,
+  formatApiError,
+  formatCaughtError,
+} from "./apiError";
 
 export type TapCellValue = string | number;
 
@@ -16,50 +20,8 @@ export interface TapTableData {
   rows: Record<string, TapCellValue>[];
 }
 
-interface ApiErrorPayload {
-  detail?: ValidationError[];
-}
-
 export const DEFAULT_SQL_EXAMPLE =
   "SELECT * FROM layer2.designations WHERE pgc = 67872";
-
-export function formatCaughtError(cause: unknown): string {
-  return cause instanceof Error ? cause.message : String(cause);
-}
-
-export function describeUnknownError(
-  error: string | ApiErrorPayload | ValidationError[] | null | undefined,
-): string {
-  if (error === null || error === undefined) {
-    return String(error);
-  }
-  if (Object(error) !== error) {
-    return String(error);
-  }
-  return JSON.stringify(error);
-}
-
-export function formatApiError(
-  error: string | ApiErrorPayload | ValidationError[] | null | undefined,
-): string {
-  if (error === null || error === undefined) {
-    return "Unknown error";
-  }
-  if (Array.isArray(error)) {
-    return error.length
-      ? error.map((entry) => entry.msg).join(", ")
-      : JSON.stringify(error);
-  }
-  if (Object(error) !== error) {
-    return String(error);
-  }
-  // SAFETY: Remaining errors are API payloads after array and primitive checks.
-  const payload = error as ApiErrorPayload;
-  if (payload.detail?.length) {
-    return payload.detail.map((entry) => entry.msg).join(", ");
-  }
-  return JSON.stringify(payload);
-}
 
 export async function executeSqlQuery(sql: string): Promise<TapSyncResponse> {
   const response = await tapSync({

@@ -4,6 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "main": "src/ui/index.ts",
+  "scripts": {
+    "test": "output=$(vitest run 2>&1) || { printf '%s\\n' \"$output\"; exit 1; }",
+    "test:watch": "vitest"
+  },
   "exports": {
     "./clients": "./src/clients/index.ts",
     "./clients/backend": "./src/clients/backend/index.ts",
@@ -35,6 +39,7 @@
     "@types/react-dom": "^19.2.4",
     "react-icons": "^5.7.0",
     "react-router-dom": "^7.18.2",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.10"
   }
 }
