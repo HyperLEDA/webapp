@@ -11,6 +11,7 @@
     "oxlint": "bun scripts/run-oxlint.mjs",
     "test:web": "bun run --cwd apps/web test",
     "test:admin": "bun run --cwd apps/admin test",
+    "test:lib": "bun run --cwd packages/lib test",
     "start": "node server.mjs",
     "prettier": "prettier",
     "openapi-ts": "openapi-ts"

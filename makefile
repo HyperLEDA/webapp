@@ -1,6 +1,7 @@
 check:
 	@output=$$(bun --silent run prettier --check apps/web/src apps/admin/src packages/lib/src 2>&1) || { echo "$$output"; exit 1; }
 	@output=$$(bun --silent run oxlint . 2>&1) || { echo "$$output"; exit 1; }
+	@bun run test:lib
 	@bun run test:web
 	@bun run test:admin
 	@bun run build:web
